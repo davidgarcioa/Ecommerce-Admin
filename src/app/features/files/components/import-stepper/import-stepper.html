@@ -1,0 +1,13 @@
+<nav class="import-stepper" aria-label="Pasos de importación">
+  @for (step of steps(); track step.id; let index = $index) {
+    <button
+      type="button"
+      [class]="'import-stepper__item import-stepper__item--' + getStepState(step)"
+      [attr.aria-current]="currentStep() === step.id ? 'step' : null"
+      (click)="stepClick.emit(step.id)"
+    >
+      <span>{{ index + 1 }}</span>
+      {{ step.label }}
+    </button>
+  }
+</nav>

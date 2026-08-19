@@ -1,0 +1,26 @@
+<section class="settings-page" aria-labelledby="permissions-title">
+  <header class="settings-page__header">
+    <div>
+      <h2 id="permissions-title" class="settings-page__title">Permisos</h2>
+      <p class="settings-page__description">Catálogo técnico que habilita o limita cada módulo.</p>
+    </div>
+  </header>
+
+  <div class="settings-summary" aria-label="Resumen de permisos">
+    <div class="settings-summary-card"><span>Permisos registrados</span><strong>{{ totalPermissions() }}</strong></div>
+  </div>
+
+  <app-data-table
+    [data]="permissions()"
+    [columns]="columns()"
+    [loading]="loading()"
+    [error]="error()"
+    rowIdKey="id"
+    [exportEnabled]="true"
+    [columnSelectorEnabled]="true"
+    preferencesKey="settings-permissions-table"
+    emptyTitle="Sin permisos"
+    emptyDescription="No hay permisos disponibles desde el backend."
+    (retry)="refresh()"
+  />
+</section>

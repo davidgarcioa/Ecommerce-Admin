@@ -1,0 +1,31 @@
+@use '../../../../styles/abstracts/variables' as *;
+@use '../../../../styles/abstracts/mixins' as *;
+
+.office-page {
+  @include fade-in;
+
+  display: grid;
+  gap: $space-8;
+  min-width: 0;
+
+  &__error {
+    background: var(--color-card);
+    border: 1px solid rgb(139 87 87 / 55%);
+    border-radius: $radius-lg;
+    padding: $space-5;
+
+    p {
+      color: var(--color-text-secondary);
+    }
+
+    button {
+      background: var(--color-card-elevated);
+      border: 1px solid var(--color-border);
+      border-radius: $radius-md;
+      color: var(--color-text-primary);
+      cursor: pointer;
+      min-height: 2.5rem;
+      padding: 0 $space-4;
+    }
+  }
+}

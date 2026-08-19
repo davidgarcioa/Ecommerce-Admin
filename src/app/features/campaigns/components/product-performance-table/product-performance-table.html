@@ -1,0 +1,14 @@
+<section class="product-performance" aria-labelledby="product-performance-title">
+  <header>
+    <h3 id="product-performance-title">Rendimiento por producto</h3>
+  </header>
+  <app-data-table
+    [data]="products()"
+    [columns]="columns"
+    rowIdKey="productId"
+    [loading]="loading()"
+    [compact]="true"
+    emptyTitle="Sin productos"
+    emptyDescription="No hay rendimiento por producto para los filtros aplicados."
+  />
+</section>

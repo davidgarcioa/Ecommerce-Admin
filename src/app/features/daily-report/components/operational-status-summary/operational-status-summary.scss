@@ -1,0 +1,210 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.status-summary {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: $radius-lg;
+  display: grid;
+  gap: $space-3;
+  min-width: 0;
+  overflow: hidden;
+  padding: $space-4;
+
+  h3,
+  p {
+    margin: 0;
+  }
+
+  &__header {
+    min-width: 0;
+
+    h3 {
+      color: var(--color-text-primary);
+      font-size: $font-size-xl;
+      font-weight: $font-weight-bold;
+      letter-spacing: 0;
+    }
+
+    p {
+      color: var(--color-text-secondary);
+      font-size: $font-size-sm;
+      margin-top: 0.125rem;
+    }
+
+    aside {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--color-border);
+      border-radius: 999px;
+      display: inline-flex;
+      gap: $space-2;
+      padding: 0.375rem $space-3;
+    }
+
+    aside span {
+      color: var(--color-text-muted);
+      font-size: $font-size-xs;
+      font-weight: $font-weight-semibold;
+      text-transform: uppercase;
+    }
+
+    aside strong {
+      color: var(--color-text-primary);
+      font-size: $font-size-sm;
+      line-height: 1;
+    }
+  }
+
+  &__title-row {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-3;
+  }
+
+  &__grid {
+    display: grid;
+    gap: $space-2;
+    grid-template-columns: repeat(auto-fit, minmax(min(13rem, 100%), 1fr));
+    min-width: 0;
+  }
+
+  &__footer {
+    align-items: center;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    display: flex;
+    gap: $space-2;
+    padding: $space-2 $space-3;
+
+    span {
+      border-radius: 999px;
+      flex: 0 0 0.5rem;
+      height: 0.5rem;
+    }
+
+    p {
+      color: var(--color-text-secondary);
+      font-size: $font-size-xs;
+    }
+  }
+}
+
+.status-card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--color-border);
+  border-radius: $radius-md;
+  display: grid;
+  gap: $space-2;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: $space-3;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: var(--color-border-strong);
+    transform: translateY(-2px);
+  }
+
+  &__icon {
+    align-items: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-secondary);
+    display: inline-flex;
+    font-size: 1rem;
+    height: 2.125rem;
+    justify-content: center;
+    width: 2.125rem;
+  }
+
+  &__content {
+    min-width: 0;
+  }
+
+  strong {
+    color: var(--color-text-primary);
+    display: block;
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    line-height: 1;
+  }
+
+  span,
+  p {
+    color: var(--color-text-secondary);
+    font-size: $font-size-sm;
+  }
+
+  &__content span {
+    display: block;
+    margin-top: $space-1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  p {
+    align-self: start;
+    color: var(--color-text-primary);
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+  }
+
+  &__bar {
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 999px;
+    grid-column: 1 / -1;
+    height: 0.25rem;
+    overflow: hidden;
+
+    i {
+      border-radius: inherit;
+      display: block;
+      height: 100%;
+      opacity: 0.65;
+      transform: scaleX(0);
+      transform-origin: left center;
+    }
+  }
+
+  &--positive &__icon {
+    color: var(--color-text-secondary);
+  }
+
+  &--info &__icon {
+    color: var(--color-text-secondary);
+  }
+
+  &--warning &__icon {
+    color: var(--color-text-secondary);
+  }
+
+  &--danger &__icon {
+    color: var(--color-text-secondary);
+  }
+}
+
+.status-summary.is-in-view .status-card__bar i {
+  animation: status-fill 680ms ease-out both;
+}
+
+@keyframes status-fill {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (max-width: 48rem) {
+  .status-summary {
+    padding: $space-4;
+  }
+}

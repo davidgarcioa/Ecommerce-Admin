@@ -1,0 +1,44 @@
+<div class="tracking-info-cards">
+  <section>
+    <h2>Pedido</h2>
+    <p>
+      <strong>{{ result().order.orderNumber }}</strong>
+    </p>
+    <p>Fecha: {{ formatDate(result().order.createdAt) }}</p>
+    <p>Producto: {{ result().order.productName }}</p>
+    <p>Cantidad: {{ result().order.quantity }}</p>
+    <p>Total: {{ formatCurrency(result().order.total) }}</p>
+    <p>Estado: {{ orderStatusLabel(result().order.orderStatus) }}</p>
+  </section>
+
+  <section>
+    <h2>Cliente</h2>
+    <p>
+      <strong>{{ result().customer.name }}</strong>
+    </p>
+    <p>Teléfono: {{ result().customer.phoneMasked }}</p>
+    @if (result().customer.emailMasked) {
+      <p>Correo: {{ result().customer.emailMasked }}</p>
+    }
+    <p>Ciudad: {{ result().customer.city }}</p>
+    <p>Dirección: {{ result().customer.addressMasked }}</p>
+  </section>
+
+  <section>
+    <h2>Envío</h2>
+    <p>Transportadora: {{ result().shipment.carrier || 'Sin transportadora' }}</p>
+    <p>Guía: {{ result().shipment.trackingNumber || 'Sin guía' }}</p>
+    <p>Entrega: {{ deliveryStatusLabel(result().shipment.deliveryStatus) }}</p>
+    <p>Actualizado: {{ formatDate(result().shipment.updatedAt) }}</p>
+  </section>
+
+  <section>
+    <h2>Pago y devolución</h2>
+    <p>Método: {{ result().order.paymentMethod }}</p>
+    <p>Pago: {{ paymentStatusLabel(result().order.paymentStatus) }}</p>
+    <p>Devolución: {{ result().returnSummary.hasReturn ? 'Relacionada' : 'Sin devolución' }}</p>
+    @if (result().returnSummary.description) {
+      <p>{{ result().returnSummary.description }}</p>
+    }
+  </section>
+</div>

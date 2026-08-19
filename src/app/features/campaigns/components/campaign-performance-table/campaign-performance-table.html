@@ -1,0 +1,21 @@
+<section class="campaign-table" aria-labelledby="campaign-table-title">
+  <header>
+    <h3 id="campaign-table-title">Rendimiento por campaña</h3>
+  </header>
+
+  <app-data-table
+    [data]="campaigns()"
+    [columns]="columns"
+    rowIdKey="id"
+    [loading]="loading()"
+    [selectable]="true"
+    [rowActions]="actions"
+    [exportEnabled]="true"
+    [columnSelectorEnabled]="true"
+    emptyTitle="Sin campañas"
+    emptyDescription="No hay campañas para los filtros aplicados."
+    preferencesKey="ecommerce-control-center.campaigns.table"
+    (rowClick)="rowClick.emit($event)"
+    (actionClick)="actionClick.emit($event)"
+  />
+</section>

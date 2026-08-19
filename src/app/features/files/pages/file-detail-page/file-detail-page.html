@@ -1,0 +1,78 @@
+<section class="file-detail">
+  <header>
+    <button type="button" (click)="back()">
+      <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+      Volver
+    </button>
+    <div class="file-detail__actions">
+      <button type="button" (click)="download()">Descargar</button>
+      <button type="button" (click)="edit()">Editar</button>
+      @if (file()?.status === 'archived') {
+        <button type="button" (click)="restore()">Restaurar</button>
+      } @else {
+        <button type="button" (click)="archive()">Archivar</button>
+      }
+      <button class="file-detail__danger" type="button" (click)="delete()">Eliminar</button>
+    </div>
+  </header>
+
+  @if (error(); as message) {
+    <p class="file-detail__error" role="alert">{{ message }}</p>
+  }
+
+  @if (loading()) {
+    <article class="file-detail__panel">Cargando archivo...</article>
+  } @else if (file(); as item) {
+    <article class="file-detail__panel">
+      <div>
+        <span>Archivo</span>
+        <h1>{{ item.displayName }}</h1>
+        <p>{{ item.originalName }}</p>
+      </div>
+
+      <dl>
+        <div>
+          <dt>Estado</dt>
+          <dd>{{ item.status }}</dd>
+        </div>
+        <div>
+          <dt>Categoría</dt>
+          <dd>{{ item.category }}</dd>
+        </div>
+        <div>
+          <dt>Visibilidad</dt>
+          <dd>{{ item.visibility }}</dd>
+        </div>
+        <div>
+          <dt>Tamaño</dt>
+          <dd>{{ formatFileSize(item.size) }}</dd>
+        </div>
+        <div>
+          <dt>Tipo MIME</dt>
+          <dd>{{ item.mimeType }}</dd>
+        </div>
+        <div>
+          <dt>Relación</dt>
+          <dd>{{ item.relatedEntityType ?? 'general' }} {{ item.relatedEntityId ?? '' }}</dd>
+        </div>
+        <div>
+          <dt>Creación</dt>
+          <dd>{{ formatDateTime(item.createdAt) }}</dd>
+        </div>
+        <div>
+          <dt>Actualización</dt>
+          <dd>{{ formatDateTime(item.updatedAt) }}</dd>
+        </div>
+      </dl>
+
+      @if (item.description) {
+        <section>
+          <h2>Descripción</h2>
+          <p>{{ item.description }}</p>
+        </section>
+      }
+    </article>
+  } @else {
+    <article class="file-detail__panel">Archivo no encontrado.</article>
+  }
+</section>

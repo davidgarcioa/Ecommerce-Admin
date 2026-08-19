@@ -1,0 +1,424 @@
+<section class="campaigns-filters" aria-label="Filtros de campañas">
+  <header class="campaigns-filters__header">
+    <div class="campaigns-filters__title">
+      <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+      <div>
+        <strong>Filtros</strong>
+        <p>
+          {{
+            activeFiltersCount() === 1
+              ? '1 ajuste activo'
+              : activeFiltersCount() + ' ajustes activos'
+          }}
+        </p>
+      </div>
+    </div>
+
+    @if (activeFilterSummary().length > 0) {
+      <div class="campaigns-filters__summary" aria-label="Filtros activos">
+        @for (item of activeFilterSummary(); track item.label) {
+          <span class="campaigns-filters__chip">{{ item.label }}: {{ item.value }}</span>
+        }
+      </div>
+    }
+  </header>
+
+  <div class="campaigns-filters__quick-grid">
+    <label class="campaigns-filters__field">
+      <span>Periodo</span>
+      <div
+        class="campaigns-filters__select"
+        [class.campaigns-filters__select--open]="isSelectOpen('period')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="campaigns-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('period')"
+          (click)="toggleSelect('period')"
+        >
+          <span>{{ selectedPeriodLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+
+        @if (isSelectOpen('period')) {
+          <div class="campaigns-filters__select-menu" role="listbox">
+            @for (period of periods; track period.value) {
+              <button
+                type="button"
+                role="option"
+                [class.campaigns-filters__select-option--selected]="
+                  current().period === period.value
+                "
+                [attr.aria-selected]="current().period === period.value"
+                (click)="selectPeriod(period.value)"
+              >
+                <span>{{ period.label }}</span>
+                @if (current().period === period.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
+
+    <label class="campaigns-filters__field">
+      <span>Estado</span>
+      <div
+        class="campaigns-filters__select"
+        [class.campaigns-filters__select--open]="isSelectOpen('status')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="campaigns-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('status')"
+          (click)="toggleSelect('status')"
+        >
+          <span>{{ current().campaignStatus }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+
+        @if (isSelectOpen('status')) {
+          <div class="campaigns-filters__select-menu" role="listbox">
+            <button
+              type="button"
+              role="option"
+              [class.campaigns-filters__select-option--selected]="
+                current().campaignStatus === 'Todos'
+              "
+              [attr.aria-selected]="current().campaignStatus === 'Todos'"
+              (click)="selectStatus('Todos')"
+            >
+              <span>Todos</span>
+              @if (current().campaignStatus === 'Todos') {
+                <span class="material-symbols-rounded" aria-hidden="true">check</span>
+              }
+            </button>
+
+            @for (status of statuses; track status) {
+              <button
+                type="button"
+                role="option"
+                [class.campaigns-filters__select-option--selected]="
+                  current().campaignStatus === status
+                "
+                [attr.aria-selected]="current().campaignStatus === status"
+                (click)="selectStatus(status)"
+              >
+                <span>{{ status }}</span>
+                @if (current().campaignStatus === status) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
+
+    <label class="campaigns-filters__field">
+      <span>Conjunto</span>
+      <div
+        class="campaigns-filters__select"
+        [class.campaigns-filters__select--open]="isSelectOpen('group')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="campaigns-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('group')"
+          (click)="toggleSelect('group')"
+        >
+          <span>{{ selectedGroupLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+
+        @if (isSelectOpen('group')) {
+          <div class="campaigns-filters__select-menu" role="listbox">
+            @for (group of groups; track group.id) {
+              <button
+                type="button"
+                role="option"
+                [class.campaigns-filters__select-option--selected]="
+                  current().productGroupId === group.id
+                "
+                [attr.aria-selected]="current().productGroupId === group.id"
+                (click)="selectGroup(group.id)"
+              >
+                <span>{{ group.name }}</span>
+                @if (current().productGroupId === group.id) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
+
+    <label class="campaigns-filters__search">
+      <span>Buscar</span>
+      <input
+        type="search"
+        placeholder="Campaña, producto o cuenta"
+        [value]="current().searchTerm"
+        (focus)="closeSelects()"
+        (input)="onSearchChange($event)"
+      />
+    </label>
+  </div>
+
+  @if (current().period === 'custom') {
+    <div class="campaigns-filters__date-grid">
+      <label>
+        <span>Desde</span>
+        <input
+          type="date"
+          [value]="current().dateFrom ?? ''"
+          (focus)="closeSelects()"
+          (input)="onDateChange('dateFrom', $event)"
+        />
+      </label>
+
+      <label>
+        <span>Hasta</span>
+        <input
+          type="date"
+          [value]="current().dateTo ?? ''"
+          (focus)="closeSelects()"
+          (input)="onDateChange('dateTo', $event)"
+        />
+      </label>
+    </div>
+  }
+
+  @if (advancedVisible()) {
+    <div class="campaigns-filters__advanced-grid" aria-label="Filtros avanzados">
+      <label class="campaigns-filters__field">
+        <span>Cuenta</span>
+        <div
+          class="campaigns-filters__select"
+          [class.campaigns-filters__select--open]="isSelectOpen('account')"
+          (click)="$event.stopPropagation()"
+        >
+          <button
+            type="button"
+            class="campaigns-filters__select-trigger"
+            [attr.aria-expanded]="isSelectOpen('account')"
+            (click)="toggleSelect('account')"
+          >
+            <span>{{ selectedAccountLabel() }}</span>
+            <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+          </button>
+
+          @if (isSelectOpen('account')) {
+            <div class="campaigns-filters__select-menu" role="listbox">
+              <button
+                type="button"
+                role="option"
+                [class.campaigns-filters__select-option--selected]="current().adAccountId === 'all'"
+                [attr.aria-selected]="current().adAccountId === 'all'"
+                (click)="selectAccount('all')"
+              >
+                <span>Todas</span>
+                @if (current().adAccountId === 'all') {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+
+              @for (account of accounts; track account.id) {
+                <button
+                  type="button"
+                  role="option"
+                  [class.campaigns-filters__select-option--selected]="
+                    current().adAccountId === account.id
+                  "
+                  [attr.aria-selected]="current().adAccountId === account.id"
+                  (click)="selectAccount(account.id)"
+                >
+                  <span>{{ account.name }}</span>
+                  @if (current().adAccountId === account.id) {
+                    <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                  }
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </label>
+
+      <label class="campaigns-filters__field">
+        <span>Objetivo</span>
+        <div
+          class="campaigns-filters__select"
+          [class.campaigns-filters__select--open]="isSelectOpen('objective')"
+          (click)="$event.stopPropagation()"
+        >
+          <button
+            type="button"
+            class="campaigns-filters__select-trigger"
+            [attr.aria-expanded]="isSelectOpen('objective')"
+            (click)="toggleSelect('objective')"
+          >
+            <span>{{ current().objective }}</span>
+            <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+          </button>
+
+          @if (isSelectOpen('objective')) {
+            <div class="campaigns-filters__select-menu" role="listbox">
+              <button
+                type="button"
+                role="option"
+                [class.campaigns-filters__select-option--selected]="current().objective === 'Todos'"
+                [attr.aria-selected]="current().objective === 'Todos'"
+                (click)="selectObjective('Todos')"
+              >
+                <span>Todos</span>
+                @if (current().objective === 'Todos') {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+
+              @for (objective of objectives; track objective) {
+                <button
+                  type="button"
+                  role="option"
+                  [class.campaigns-filters__select-option--selected]="
+                    current().objective === objective
+                  "
+                  [attr.aria-selected]="current().objective === objective"
+                  (click)="selectObjective(objective)"
+                >
+                  <span>{{ objective }}</span>
+                  @if (current().objective === objective) {
+                    <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                  }
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </label>
+
+      <label class="campaigns-filters__field">
+        <span>Producto</span>
+        <div
+          class="campaigns-filters__select"
+          [class.campaigns-filters__select--open]="isSelectOpen('product')"
+          (click)="$event.stopPropagation()"
+        >
+          <button
+            type="button"
+            class="campaigns-filters__select-trigger"
+            [attr.aria-expanded]="isSelectOpen('product')"
+            (click)="toggleSelect('product')"
+          >
+            <span>{{ selectedProductLabel() }}</span>
+            <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+          </button>
+
+          @if (isSelectOpen('product')) {
+            <div class="campaigns-filters__select-menu" role="listbox">
+              @for (product of filteredProducts(); track product.id) {
+                <button
+                  type="button"
+                  role="option"
+                  [class.campaigns-filters__select-option--selected]="
+                    current().productId === product.id
+                  "
+                  [attr.aria-selected]="current().productId === product.id"
+                  (click)="selectProduct(product.id)"
+                >
+                  <span>{{ product.name }}</span>
+                  @if (current().productId === product.id) {
+                    <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                  }
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </label>
+
+      <label class="campaigns-filters__field">
+        <span>Plataforma</span>
+        <div
+          class="campaigns-filters__select"
+          [class.campaigns-filters__select--open]="isSelectOpen('platform')"
+          (click)="$event.stopPropagation()"
+        >
+          <button
+            type="button"
+            class="campaigns-filters__select-trigger"
+            [attr.aria-expanded]="isSelectOpen('platform')"
+            (click)="toggleSelect('platform')"
+          >
+            <span>{{ current().platform }}</span>
+            <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+          </button>
+
+          @if (isSelectOpen('platform')) {
+            <div class="campaigns-filters__select-menu" role="listbox">
+              <button
+                type="button"
+                role="option"
+                [class.campaigns-filters__select-option--selected]="current().platform === 'Todas'"
+                [attr.aria-selected]="current().platform === 'Todas'"
+                (click)="selectPlatform('Todas')"
+              >
+                <span>Todas</span>
+                @if (current().platform === 'Todas') {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+
+              @for (platform of platforms; track platform) {
+                <button
+                  type="button"
+                  role="option"
+                  [class.campaigns-filters__select-option--selected]="
+                    current().platform === platform
+                  "
+                  [attr.aria-selected]="current().platform === platform"
+                  (click)="selectPlatform(platform)"
+                >
+                  <span>{{ platform }}</span>
+                  @if (current().platform === platform) {
+                    <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                  }
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </label>
+    </div>
+  }
+
+  <footer class="campaigns-filters__actions">
+    <button type="button" class="campaigns-filters__button" (click)="toggleAdvanced()">
+      <span class="material-symbols-rounded" aria-hidden="true">
+        {{ advancedVisible() ? 'expand_less' : 'tune' }}
+      </span>
+      {{ advancedVisible() ? 'Menos filtros' : 'Más filtros' }}
+    </button>
+
+    <span class="campaigns-filters__spacer" aria-hidden="true"></span>
+
+    <button
+      type="button"
+      class="campaigns-filters__button campaigns-filters__button--primary"
+      (click)="onApply()"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">check</span>
+      Aplicar
+    </button>
+    <button type="button" class="campaigns-filters__button" (click)="onClear()">
+      <span class="material-symbols-rounded" aria-hidden="true">restart_alt</span>
+      Limpiar
+    </button>
+  </footer>
+</section>

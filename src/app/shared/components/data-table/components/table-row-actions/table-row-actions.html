@@ -1,0 +1,35 @@
+<div class="row-actions" (keydown)="onKeydown($event)">
+  <button
+    type="button"
+    aria-label="Acciones de fila"
+    [attr.aria-expanded]="menuOpen()"
+    (click)="onToggleMenu()"
+  >
+    <span class="material-symbols-rounded" aria-hidden="true">more_horiz</span>
+  </button>
+
+  @if (menuOpen()) {
+    <div class="row-actions__menu" role="menu">
+      @for (action of visibleActions(); track action.id) {
+        <button
+          type="button"
+          role="menuitem"
+          [class.row-actions__item--danger]="action.variant === 'danger'"
+          [disabled]="isDisabled(action)"
+          (click)="onAction(action)"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">{{ action.icon }}</span>
+          {{ action.label }}
+        </button>
+      }
+    </div>
+  }
+
+  @if (pendingAction(); as action) {
+    <div class="row-actions__confirm" role="alert">
+      <p>{{ action.confirmationMessage ?? 'Confirma esta acción.' }}</p>
+      <button type="button" (click)="onConfirmAction()">Confirmar</button>
+      <button type="button" (click)="onCancelAction()">Cancelar</button>
+    </div>
+  }
+</div>

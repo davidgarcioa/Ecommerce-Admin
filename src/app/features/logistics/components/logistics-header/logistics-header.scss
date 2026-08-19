@@ -1,0 +1,58 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.logistics-header {
+  display: flex;
+  gap: $space-4;
+  align-items: flex-start;
+  justify-content: space-between;
+  min-width: 0;
+
+  h1,
+  p {
+    margin: 0;
+  }
+
+  h1 {
+    color: var(--color-text-primary);
+    font-size: $font-size-2xl;
+  }
+
+  p,
+  span,
+  small {
+    display: block;
+    color: var(--color-text-secondary);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-3;
+    justify-content: flex-end;
+  }
+
+  button {
+    display: inline-flex;
+    gap: $space-2;
+    align-items: center;
+    border: 1px solid var(--color-border);
+    border-radius: $radius-lg;
+    padding: $space-3 $space-4;
+    background: var(--color-card);
+    color: var(--color-text-primary);
+  }
+}
+
+@media (max-width: 760px) {
+  .logistics-header {
+    display: grid;
+
+    &__actions {
+      justify-content: stretch;
+    }
+
+    button {
+      flex: 1;
+    }
+  }
+}

@@ -1,0 +1,34 @@
+<div class="order-history-page">
+  <button type="button" (click)="back()">
+    <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+    Volver al pedido
+  </button>
+
+  <header>
+    <p>{{ order()?.orderNumber || 'Pedido' }}</p>
+    <h1>Historial</h1>
+    <span>Registro de cambios entregado por el backend.</span>
+  </header>
+
+  @if (error(); as message) {
+    <section class="order-history-page__state" role="alert">{{ message }}</section>
+  } @else if (loading()) {
+    <section class="order-history-page__state">Cargando historial...</section>
+  } @else if (history().length === 0) {
+    <section class="order-history-page__state">
+      Este pedido todavía no tiene historial registrado.
+    </section>
+  } @else {
+    <ol>
+      @for (item of history(); track item.id) {
+        <li>
+          <strong>{{ item.action }}</strong>
+          <span>{{ formatDate(item.createdAt) }}</span>
+          @if (item.notes) {
+            <p>{{ item.notes }}</p>
+          }
+        </li>
+      }
+    </ol>
+  }
+</div>

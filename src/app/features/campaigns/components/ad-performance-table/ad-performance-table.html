@@ -1,0 +1,16 @@
+<section class="ad-table" aria-labelledby="ad-table-title">
+  <header>
+    <h3 id="ad-table-title">Rendimiento por anuncio</h3>
+    <p>Creativos y piezas con métricas publicitarias disponibles.</p>
+  </header>
+  <app-data-table
+    [data]="advertisements()"
+    [columns]="columns"
+    rowIdKey="id"
+    [loading]="loading()"
+    [compact]="true"
+    emptyTitle="Sin anuncios"
+    emptyDescription="No hay anuncios para los filtros aplicados."
+  />
+</section>
+

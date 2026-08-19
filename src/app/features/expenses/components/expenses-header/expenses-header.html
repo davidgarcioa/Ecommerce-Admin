@@ -1,0 +1,21 @@
+<header class="expenses-header">
+  <div>
+    <p class="expenses-header__eyebrow">Control financiero operativo</p>
+    <h2>Gastos</h2>
+    <span
+      >Última actualización {{ formatLastUpdated(lastUpdated()) }} · Contrato actual: Expenses
+      CRUD</span
+    >
+  </div>
+
+  <div class="expenses-header__actions" aria-label="Acciones de gastos">
+    <button type="button" (click)="refresh.emit()" [disabled]="loading()">
+      <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
+      Actualizar
+    </button>
+    <button type="button" class="expenses-header__primary" (click)="create.emit()">
+      <span class="material-symbols-rounded" aria-hidden="true">add</span>
+      Nuevo gasto
+    </button>
+  </div>
+</header>

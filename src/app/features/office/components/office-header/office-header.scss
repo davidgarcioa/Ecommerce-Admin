@@ -1,0 +1,64 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.office-header {
+  align-items: start;
+  display: flex;
+  gap: $space-4;
+  justify-content: space-between;
+  min-width: 0;
+
+  h1 {
+    font-size: $font-size-2xl;
+    margin: 0 0 $space-2;
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  span {
+    color: var(--color-text-disabled);
+    display: inline-block;
+    font-size: $font-size-sm;
+    margin-top: $space-3;
+  }
+
+  button {
+    align-items: center;
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    display: inline-flex;
+    gap: $space-2;
+    min-height: 2.75rem;
+    padding: 0 $space-4;
+  }
+
+  &__eyebrow {
+    color: var(--color-text-disabled);
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+    text-transform: uppercase;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-3;
+    justify-content: end;
+  }
+}
+
+@media (max-width: 720px) {
+  .office-header {
+    display: grid;
+
+    &__actions {
+      display: grid;
+      justify-content: stretch;
+    }
+  }
+}

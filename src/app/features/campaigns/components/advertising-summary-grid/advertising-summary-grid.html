@@ -1,0 +1,24 @@
+<section class="advertising-summary" aria-labelledby="advertising-summary-title">
+  <header>
+    <h3 id="advertising-summary-title">Resumen publicitario</h3>
+  </header>
+
+  <div class="advertising-summary__cards">
+    @for (metric of cards(); track metric.id) {
+      <article [class]="'advertising-summary__card advertising-summary__card--' + metric.status">
+        <span class="advertising-summary__icon material-symbols-rounded" aria-hidden="true">
+          {{ metric.icon }}
+        </span>
+        <div>
+          <span>{{ metric.title }}</span>
+          <strong>{{ metric.formattedValue }}</strong>
+          <small>{{ metric.subtitle }}</small>
+        </div>
+        <span class="advertising-summary__dot" aria-hidden="true"></span>
+        <div class="advertising-summary__bar" aria-hidden="true">
+          <span [style.width.%]="metric.intensity"></span>
+        </div>
+      </article>
+    }
+  </div>
+</section>

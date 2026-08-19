@@ -1,0 +1,116 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.product-group-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-left: 2px solid transparent;
+  border-radius: $radius-md;
+  cursor: pointer;
+  display: grid;
+  gap: $space-6;
+  padding: $space-5;
+  transition:
+    background-color $transition-base,
+    border-color $transition-base,
+    transform $transition-base;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--color-card-elevated);
+    border-color: var(--color-separator);
+    transform: translateY(-0.125rem);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+
+  &--active {
+    background: var(--color-card-elevated);
+    border-left-color: var(--color-primary);
+
+    h4 {
+      color: var(--color-primary);
+    }
+  }
+
+  &__header {
+    align-items: flex-start;
+    display: flex;
+    gap: $space-4;
+    justify-content: space-between;
+
+    h4,
+    p {
+      margin: 0;
+    }
+
+    h4 {
+      font-size: $font-size-md;
+      font-weight: $font-weight-semibold;
+    }
+
+    p,
+    .product-group-card__status {
+      color: var(--color-text-secondary);
+      font-size: $font-size-xs;
+    }
+
+    .product-group-card__status {
+      border: 1px solid var(--color-border);
+      border-radius: $radius-sm;
+      padding: $space-1 $space-2;
+      white-space: nowrap;
+    }
+  }
+
+  &__description,
+  &__updated {
+    color: var(--color-text-secondary);
+    font-size: $font-size-xs;
+    margin: 0;
+  }
+
+  &__updated {
+    color: var(--color-text-disabled);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+    justify-content: space-between;
+
+    button {
+      background: transparent;
+      border: 1px solid var(--color-border);
+      border-radius: $radius-sm;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      font-size: $font-size-xs;
+      min-height: 2rem;
+      padding: 0 $space-3;
+      transition:
+        background-color $transition-base,
+        color $transition-base;
+
+      &:hover {
+        background: var(--color-hover);
+        color: var(--color-text-primary);
+      }
+
+      &:focus-visible {
+        border-color: var(--color-primary);
+        outline: 2px solid var(--color-focus-ring);
+        outline-offset: 2px;
+      }
+    }
+  }
+
+  &__menu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+  }
+}

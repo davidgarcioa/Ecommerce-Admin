@@ -1,0 +1,52 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.campaign-export {
+  background: rgb(0 0 0 / 62%);
+  inset: 0;
+  position: fixed;
+  z-index: 45;
+
+  &__panel {
+    background: var(--color-bg-secondary);
+    border-left: 1px solid var(--color-border);
+    display: grid;
+    gap: $space-4;
+    height: 100%;
+    margin-left: auto;
+    max-width: 28rem;
+    padding: $space-6;
+    width: min(28rem, 100%);
+  }
+
+  header,
+  footer {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  label {
+    color: var(--color-text-secondary);
+    display: flex;
+    flex-direction: column;
+    font-size: $font-size-sm;
+    gap: $space-2;
+  }
+
+  input,
+  select,
+  button {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    font: inherit;
+    min-height: 2.5rem;
+    padding: 0 $space-3;
+  }
+
+  input[type='checkbox'] {
+    min-height: auto;
+    width: fit-content;
+  }
+}

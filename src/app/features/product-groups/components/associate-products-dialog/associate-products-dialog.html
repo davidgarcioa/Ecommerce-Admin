@@ -1,0 +1,59 @@
+<div
+  class="associate-products-dialog"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="associate-title"
+>
+  <button
+    class="associate-products-dialog__overlay"
+    type="button"
+    aria-label="Cerrar"
+    (click)="close.emit()"
+  ></button>
+
+  <section class="associate-products-dialog__panel">
+    <header>
+      <div>
+        <h2 id="associate-title">Asociar productos</h2>
+        <p>Selecciona productos disponibles del catálogo real.</p>
+      </div>
+      <button type="button" aria-label="Cerrar diálogo" (click)="close.emit()">
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      </button>
+    </header>
+
+    <label>
+      Buscar productos
+      <input
+        #searchInput
+        type="search"
+        placeholder="SKU o nombre"
+        (input)="search.emit(searchInput.value)"
+      />
+    </label>
+
+    <app-data-table
+      [data]="availableProducts()"
+      [columns]="columns()"
+      [loading]="loading()"
+      [error]="null"
+      rowIdKey="id"
+      [selectable]="true"
+      [multiSelect]="true"
+      [sortable]="true"
+      [pageable]="true"
+      [pageSize]="10"
+      [compact]="true"
+      emptyTitle="Sin productos disponibles"
+      emptyDescription="No hay productos activos disponibles para asociar."
+      (selectionChange)="onSelection($event)"
+    />
+
+    <footer>
+      <button type="button" (click)="close.emit()">Cancelar</button>
+      <button type="button" [disabled]="selectedIds().length === 0" (click)="submit()">
+        Asociar {{ selectedIds().length }}
+      </button>
+    </footer>
+  </section>
+</div>

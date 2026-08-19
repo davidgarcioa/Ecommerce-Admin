@@ -1,0 +1,32 @@
+<article
+  class="product-group-card"
+  [class.product-group-card--active]="active()"
+  tabindex="0"
+  role="button"
+  [attr.aria-pressed]="active()"
+  (click)="onSelectProductGroup()"
+  (keydown.enter)="onSelectProductGroup()"
+  (keydown.space)="onSelectProductGroup()"
+>
+  <div class="product-group-card__header">
+    <div>
+      <h4>{{ productGroup().name }}</h4>
+      <p>{{ productGroup().productCount }} productos</p>
+    </div>
+    <span class="product-group-card__status">{{ productGroup().status }}</span>
+  </div>
+
+  <p class="product-group-card__description">{{ productGroup().description }}</p>
+  <p class="product-group-card__updated">
+    Última actualización: {{ formatDate(productGroup().lastUpdated) }}
+  </p>
+
+  <div class="product-group-card__actions">
+    <button type="button" (click)="onProductGroupAction('open', $event)">Abrir</button>
+    <div class="product-group-card__menu" aria-label="Acciones del conjunto">
+      <button type="button" (click)="onProductGroupAction('edit', $event)">Editar</button>
+      <button type="button" (click)="onProductGroupAction('duplicate', $event)">Duplicar</button>
+      <button type="button" (click)="onProductGroupAction('delete', $event)">Eliminar</button>
+    </div>
+  </div>
+</article>

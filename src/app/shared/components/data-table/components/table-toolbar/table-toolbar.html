@@ -1,0 +1,54 @@
+<div class="table-toolbar">
+  @if (searchable()) {
+    <label class="table-toolbar__search">
+      <span class="material-symbols-rounded" aria-hidden="true">search</span>
+      <input
+        type="search"
+        [value]="localSearchTerm() || searchTerm()"
+        placeholder="Buscar"
+        aria-label="Buscar en tabla"
+        (input)="onSearchInput($event)"
+      />
+      @if (localSearchTerm() || searchTerm()) {
+        <button type="button" aria-label="Limpiar búsqueda" (click)="onClearSearch()">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      }
+    </label>
+  }
+
+  <div class="table-toolbar__actions">
+    <button
+      type="button"
+      [attr.aria-expanded]="filterPanelVisible()"
+      (click)="toggleFilters.emit()"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">filter_list</span>
+      Filtros
+      @if (activeFilterCount() > 0) {
+        <span>{{ activeFilterCount() }}</span>
+      }
+    </button>
+
+    @if (columnSelectorEnabled()) {
+      <button type="button" (click)="toggleColumnSelector.emit()">
+        <span class="material-symbols-rounded" aria-hidden="true">view_column</span>
+        Columnas
+      </button>
+    }
+
+    @if (exportEnabled()) {
+      <button type="button" (click)="exportTable.emit()">
+        <span class="material-symbols-rounded" aria-hidden="true">download</span>
+        Exportar
+      </button>
+    }
+  </div>
+
+  <p class="table-toolbar__meta" aria-live="polite">
+    {{ resultText() }}
+    @if (selectedCount() > 0) {
+      <span>{{ selectedCount() }} seleccionados</span>
+    }
+  </p>
+</div>

@@ -1,0 +1,60 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.logistics-filters {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: $space-4;
+  align-items: end;
+  border: 1px solid var(--color-border);
+  border-radius: $radius-lg;
+  padding: $space-4;
+  background: var(--color-card);
+  min-width: 0;
+
+  label {
+    display: grid;
+    gap: $space-2;
+    color: var(--color-text-secondary);
+    font-size: $font-size-sm;
+    min-width: 0;
+  }
+
+  input,
+  select,
+  button {
+    min-width: 0;
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    padding: $space-3;
+    background: var(--color-card-elevated);
+    color: var(--color-text-primary);
+    font: inherit;
+  }
+
+  button {
+    background: var(--color-card);
+  }
+
+  &__check {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+
+  &__check input {
+    width: auto;
+  }
+}
+
+@media (max-width: 1180px) {
+  .logistics-filters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .logistics-filters {
+    grid-template-columns: 1fr;
+  }
+}

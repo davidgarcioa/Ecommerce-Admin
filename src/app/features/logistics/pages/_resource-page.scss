@@ -1,0 +1,45 @@
+@use '../../../styles/abstracts/variables' as *;
+
+.resource-page {
+  display: grid;
+  gap: $space-5;
+  min-width: 0;
+
+  h1,
+  p {
+    margin: 0;
+  }
+
+  h1 {
+    color: var(--color-text-primary);
+    font-size: $font-size-2xl;
+  }
+
+  p,
+  span {
+    color: var(--color-text-secondary);
+  }
+
+  button,
+  section,
+  article {
+    border: 1px solid var(--color-border);
+    border-radius: $radius-lg;
+    padding: $space-4;
+    background: var(--color-card);
+    color: var(--color-text-primary);
+  }
+
+  button {
+    justify-self: start;
+  }
+
+  section {
+    display: grid;
+    gap: $space-3;
+  }
+
+  article {
+    background: var(--color-card-elevated);
+  }
+}

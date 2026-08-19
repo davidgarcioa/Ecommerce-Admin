@@ -1,0 +1,9 @@
+<section class="visual-summary" aria-labelledby="visual-summary-title">
+  <h3 id="visual-summary-title" class="visual-summary__title">Estadisticas circulares</h3>
+  <div class="visual-summary__grid">
+    <app-visual-donut-card [metric]="confirmedVisual()" />
+    <app-visual-donut-card [metric]="deliveriesVisual()" />
+    <app-guide-status-donut [orders]="orders()" />
+    <app-visual-donut-card [metric]="profitVisual()" [compact]="true" />
+  </div>
+</section>

@@ -1,0 +1,54 @@
+<div class="order-detail-page">
+  <button type="button" class="order-detail-page__back" (click)="back()">
+    <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+    Volver
+  </button>
+
+  @if (error(); as message) {
+    <section class="order-detail-page__state" role="alert">{{ message }}</section>
+  } @else if (loading()) {
+    <section class="order-detail-page__state">Cargando pedido...</section>
+  } @else if (order(); as item) {
+    <header>
+      <div>
+        <p>{{ item.orderNumber }}</p>
+        <h1>{{ item.customerName }}</h1>
+        <span
+          >Creado {{ formatDate(item.createdAt) }} - Actualizado
+          {{ formatDate(item.updatedAt) }}</span
+        >
+      </div>
+      <div class="order-detail-page__actions">
+        @if (canUpdate()) {
+          <button type="button" (click)="edit()">Editar</button>
+          @if (item.orderStatus === 'Pending') {
+            <button type="button" [disabled]="changingStatus()" (click)="confirm()">
+              Confirmar
+            </button>
+          }
+          <button type="button" [disabled]="changingStatus()" (click)="nextOrderStatus()">
+            Estado: {{ orderNextLabel(item.orderStatus) }}
+          </button>
+          <button type="button" [disabled]="changingStatus()" (click)="nextPaymentStatus()">
+            Pago: {{ paymentNextLabel(item.paymentStatus) }}
+          </button>
+          <button type="button" [disabled]="changingStatus()" (click)="nextDeliveryStatus()">
+            Entrega: {{ deliveryNextLabel(item.deliveryStatus) }}
+          </button>
+        }
+        <button type="button" (click)="historyPage()">Historial</button>
+      </div>
+    </header>
+
+    <section class="order-detail-page__badges">
+      <span>{{ orderStatusLabel(item.orderStatus) }}</span>
+      <span>{{ paymentStatusLabel(item.paymentStatus) }}</span>
+      <span>{{ deliveryStatusLabel(item.deliveryStatus) }}</span>
+      @if (item.urgent) {
+        <span>Urgente</span>
+      }
+    </section>
+
+    <app-order-info-cards [order]="item" [history]="history()" [observations]="observations()" />
+  }
+</div>

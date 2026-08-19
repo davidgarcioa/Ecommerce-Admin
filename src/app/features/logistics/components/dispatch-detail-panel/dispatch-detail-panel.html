@@ -1,0 +1,59 @@
+<div class="dispatch-detail-panel">
+  <section>
+    <h2>Cliente y dirección</h2>
+    <p>
+      <strong>{{ order().customerName }}</strong>
+    </p>
+    <p>Teléfono: {{ maskPhone(order().customerPhone) }}</p>
+    <p>{{ order().address }}</p>
+    <p>{{ order().city }}, {{ order().department }}</p>
+  </section>
+
+  <section>
+    <h2>Contenido del envío</h2>
+    <p>
+      <strong>{{ order().productName }}</strong>
+    </p>
+    <p>Conjunto: {{ order().productGroupName }}</p>
+    <p>Cantidad: {{ order().quantity }}</p>
+    <p>Valor: {{ formatCurrency(order().total) }}</p>
+    <p>Pago: {{ paymentStatusLabel(order().paymentStatus) }}</p>
+  </section>
+
+  <section>
+    <h2>Envío</h2>
+    <p>Despacho: {{ dispatchStateLabel(order()) }}</p>
+    <p>Transportadora: {{ order().carrier || 'Sin transportadora' }}</p>
+    <p>Guía: {{ order().trackingNumber || 'Sin guía' }}</p>
+    <p>Actualizado: {{ formatDate(order().updatedAt) }}</p>
+  </section>
+
+  <section>
+    <h2>Entrega</h2>
+    <p>Estado: {{ deliveryStatusLabel(order().deliveryStatus) }}</p>
+    <p>Pedido: {{ orderStatusLabel(order().orderStatus) }}</p>
+    <p>Urgente: {{ order().urgent ? 'Sí' : 'No' }}</p>
+    @if (order().observations) {
+      <p>Observación: {{ order().observations }}</p>
+    }
+  </section>
+
+  <section class="dispatch-detail-panel__wide">
+    <h2>Historial logístico verificable</h2>
+    @if (history().length === 0) {
+      <p>No hay historial registrado para este pedido.</p>
+    } @else {
+      <ol>
+        @for (item of history(); track item.id) {
+          <li>
+            <strong>{{ item.action }}</strong>
+            <span>{{ formatDate(item.createdAt) }}</span>
+            @if (item.notes) {
+              <p>{{ item.notes }}</p>
+            }
+          </li>
+        }
+      </ol>
+    }
+  </section>
+</div>

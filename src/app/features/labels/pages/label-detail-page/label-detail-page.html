@@ -1,0 +1,25 @@
+<section class="label-detail-page" aria-labelledby="label-detail-title">
+  <header>
+    <p>Etiquetas</p>
+    <h2 id="label-detail-title">Detalle de etiqueta</h2>
+  </header>
+
+  @if (error(); as message) {
+    <p class="label-detail-page__error" role="alert">{{ message }}</p>
+  }
+
+  @if (tag(); as currentTag) {
+    <app-label-detail-card
+      [tag]="currentTag"
+      [canUpdate]="canUpdate()"
+      [canArchive]="canArchive()"
+      [canDelete]="canDelete()"
+      (edit)="edit()"
+      (archive)="archive()"
+      (restore)="restore()"
+      (deleteTag)="deleteTag()"
+    />
+  } @else if (!loading()) {
+    <p class="label-detail-page__empty">No se encontro la etiqueta solicitada.</p>
+  }
+</section>

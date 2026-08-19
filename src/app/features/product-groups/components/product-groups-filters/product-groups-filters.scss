@@ -1,0 +1,49 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.product-groups-filters {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: $radius-lg;
+  display: grid;
+  gap: $space-4;
+  grid-template-columns: minmax(12rem, 1.2fr) repeat(4, minmax(9rem, 1fr)) auto;
+  min-width: 0;
+  padding: $space-4;
+
+  label {
+    color: var(--color-text-secondary);
+    display: grid;
+    font-size: $font-size-sm;
+    gap: $space-2;
+    min-width: 0;
+  }
+
+  input,
+  select,
+  button {
+    background: var(--color-card-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    min-height: 2.75rem;
+    min-width: 0;
+    padding: 0 $space-4;
+  }
+
+  button {
+    align-self: end;
+    cursor: pointer;
+  }
+}
+
+@media (max-width: 1180px) {
+  .product-groups-filters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .product-groups-filters {
+    grid-template-columns: 1fr;
+  }
+}

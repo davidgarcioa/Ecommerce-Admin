@@ -1,0 +1,16 @@
+<section class="adset-table" aria-labelledby="adset-table-title">
+  <header>
+    <h3 id="adset-table-title">Rendimiento por conjunto de anuncios</h3>
+    <p>Lectura táctica de segmentos y optimizaciones disponibles.</p>
+  </header>
+  <app-data-table
+    [data]="adSets()"
+    [columns]="columns"
+    rowIdKey="id"
+    [loading]="loading()"
+    [compact]="true"
+    emptyTitle="Sin conjuntos"
+    emptyDescription="No hay conjuntos para los filtros aplicados."
+  />
+</section>
+

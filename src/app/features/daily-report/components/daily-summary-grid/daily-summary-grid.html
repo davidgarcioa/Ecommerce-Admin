@@ -1,0 +1,45 @@
+<section class="summary-grid" aria-labelledby="daily-summary-title" appAnimateOnView>
+  <header class="summary-grid__header">
+    <div>
+      <h3 id="daily-summary-title">Resumen general del día</h3>
+      <p>Indicadores comerciales, operativos y publicitarios.</p>
+    </div>
+    <span aria-hidden="true"></span>
+  </header>
+
+  <div class="summary-grid__cards">
+    @for (metric of visualMetrics(); track metric.id) {
+      <article
+        class="summary-card"
+        [class.summary-card--positive]="metric.status === 'positive'"
+        [class.summary-card--warning]="metric.status === 'warning'"
+        [class.summary-card--critical]="metric.status === 'critical'"
+      >
+        @if (loading()) {
+          <span class="summary-card__skeleton" aria-hidden="true"></span>
+        } @else {
+          <div class="summary-card__top">
+            <span class="material-symbols-rounded summary-card__icon" aria-hidden="true">
+              {{ metric.icon }}
+            </span>
+            <span class="summary-card__dot" aria-hidden="true"></span>
+          </div>
+
+          <div class="summary-card__body">
+            <p>{{ metric.title }}</p>
+            <strong>{{ metric.formattedValue }}</strong>
+            <small>{{ metric.subtitle }}</small>
+          </div>
+
+          <span
+            class="summary-card__meter"
+            [attr.aria-label]="metric.visualLabel"
+            [attr.title]="metric.visualLabel"
+          >
+            <span [style.width.%]="metric.visualWeight"></span>
+          </span>
+        }
+      </article>
+    }
+  </div>
+</section>

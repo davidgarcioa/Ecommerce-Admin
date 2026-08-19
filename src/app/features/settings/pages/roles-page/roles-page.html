@@ -1,0 +1,36 @@
+<section class="settings-page" aria-labelledby="roles-title">
+  <header class="settings-page__header">
+    <div>
+      <h2 id="roles-title" class="settings-page__title">Roles</h2>
+      <p class="settings-page__description">Define perfiles de acceso para cada tipo de colaborador.</p>
+    </div>
+    <div class="settings-page__actions">
+      <button type="button" class="settings-button settings-button--primary" (click)="create()">
+        <span class="material-symbols-rounded" aria-hidden="true">add</span>
+        Nuevo rol
+      </button>
+    </div>
+  </header>
+
+  <div class="settings-summary" aria-label="Resumen de roles">
+    <div class="settings-summary-card"><span>Roles</span><strong>{{ totalRoles() }}</strong></div>
+    <div class="settings-summary-card"><span>Permisos disponibles</span><strong>{{ totalPermissions() }}</strong></div>
+  </div>
+
+  <app-data-table
+    [data]="roles()"
+    [columns]="columns()"
+    [loading]="loading()"
+    [error]="error()"
+    rowIdKey="id"
+    [rowActions]="rowActions()"
+    [exportEnabled]="true"
+    [columnSelectorEnabled]="true"
+    preferencesKey="settings-roles-table"
+    emptyTitle="Sin roles"
+    emptyDescription="Crea roles para agrupar permisos de forma reusable."
+    (retry)="refresh()"
+    (rowClick)="openRole($event)"
+    (actionClick)="onAction($event)"
+  />
+</section>

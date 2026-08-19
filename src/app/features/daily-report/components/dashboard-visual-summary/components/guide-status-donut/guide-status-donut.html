@@ -1,0 +1,97 @@
+<article class="guide-status-donut" appAnimateOnView (appAnimateOnViewVisible)="onVisible()">
+  <button
+    class="guide-status-donut__edit"
+    type="button"
+    aria-label="Editar estados de guia"
+    [attr.aria-expanded]="guideStatusPanelOpen()"
+    (click)="toggleGuideStatusPanel()"
+  >
+    <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+  </button>
+
+  <div
+    class="guide-status-donut__chart"
+    [style.background]="statusDonutBackground()"
+    [attr.aria-label]="activeGuideStatusSegment()?.tooltip ?? 'Distribucion de guias'"
+    (mousemove)="setActiveGuideStatusSegment($event)"
+    (mouseleave)="clearActiveGuideStatusSegment()"
+  >
+    <span>{{ totalGuideStatuses() }}</span>
+    @if (activeGuideStatusSegment(); as segment) {
+      <div class="guide-status-donut__tooltip" role="tooltip">{{ segment.tooltip }}</div>
+    }
+  </div>
+
+  <div class="guide-status-donut__content">
+    <strong>Estado de guia</strong>
+    <p>Distribucion por colores</p>
+  </div>
+
+  <div class="guide-status-donut__legend">
+    @for (segment of leadingStatuses(); track segment.id) {
+      <span [style.border-color]="segment.color">{{ segment.label }}</span>
+    }
+  </div>
+
+  @if (guideStatusPanelOpen()) {
+    <div class="guide-status-donut__overlay" role="presentation" (click)="closeGuideStatusPanel()">
+      <div
+        class="guide-status-donut__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="guide-status-title"
+        (click)="$event.stopPropagation()"
+      >
+        <header>
+          <div>
+            <strong id="guide-status-title">Estados de guia</strong>
+            <small>Elige hasta 5 estados y su color.</small>
+          </div>
+          <button type="button" aria-label="Cerrar editor de estados" (click)="closeGuideStatusPanel()">
+            <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          </button>
+        </header>
+
+        <div class="guide-status-donut__list">
+          @for (option of guideStatusOptions(); track option.id) {
+            <article [class.guide-status-donut__option--disabled]="isGuideStatusDisabled(option.id)">
+              <label>
+                <input
+                  type="checkbox"
+                  [checked]="isGuideStatusSelected(option.id)"
+                  [disabled]="isGuideStatusDisabled(option.id)"
+                  (change)="toggleGuideStatus(option.id)"
+                />
+                <span>{{ option.label }}</span>
+                <strong>{{ option.count }}</strong>
+              </label>
+
+              <button
+                class="guide-status-donut__color"
+                type="button"
+                [style.background]="guideStatusColor(option.id)"
+                [attr.aria-label]="'Editar color de ' + option.label"
+                [attr.aria-expanded]="isColorPickerOpen(option.id)"
+                (click)="toggleColorPicker(option.id)"
+              ></button>
+
+              @if (isColorPickerOpen(option.id)) {
+                <div class="guide-status-donut__swatches" aria-label="Colores disponibles">
+                  @for (color of availableGuideColors(option.id); track color) {
+                    <button
+                      type="button"
+                      [style.background]="color"
+                      [class.guide-status-donut__swatch--active]="guideStatusColor(option.id) === color"
+                      [attr.aria-label]="'Usar color ' + color + ' en ' + option.label"
+                      (click)="updateGuideStatusColor(option.id, color)"
+                    ></button>
+                  }
+                </div>
+              }
+            </article>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</article>

@@ -1,0 +1,54 @@
+@use '../../../../../styles/abstracts/variables' as *;
+
+.table-pagination {
+  align-items: center;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  gap: $space-4;
+  justify-content: space-between;
+  padding-top: $space-4;
+
+  p,
+  span {
+    color: var(--color-text-secondary);
+    font-size: $font-size-sm;
+    margin: 0;
+  }
+
+  &__controls {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+  }
+
+  button,
+  select {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-sm;
+    color: var(--color-text-primary);
+    min-height: 2.25rem;
+  }
+
+  button {
+    cursor: pointer;
+    width: 2.25rem;
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+  }
+
+  select {
+    padding: 0 $space-2;
+  }
+}
+
+@media (max-width: 760px) {
+  .table-pagination {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

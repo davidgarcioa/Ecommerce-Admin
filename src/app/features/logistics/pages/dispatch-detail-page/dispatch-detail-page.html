@@ -1,0 +1,48 @@
+<div class="dispatch-detail-page">
+  <button type="button" class="dispatch-detail-page__back" (click)="back()">
+    <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+    Volver
+  </button>
+
+  @if (error(); as message) {
+    <section class="dispatch-detail-page__state" role="alert">{{ message }}</section>
+  } @else if (loading()) {
+    <section class="dispatch-detail-page__state">Cargando detalle logístico...</section>
+  } @else if (order(); as item) {
+    <header>
+      <div>
+        <p>{{ item.orderNumber }}</p>
+        <h1>{{ item.customerName }}</h1>
+        <span>{{ item.city }} · {{ deliveryStatusLabel(item.deliveryStatus) }}</span>
+      </div>
+      <div class="dispatch-detail-page__actions">
+        <button type="button" (click)="openOffice()">Abrir en Oficina</button>
+        @if (canUpdate()) {
+          <button type="button" [disabled]="updatingStatus()" (click)="nextDeliveryStatus()">
+            Entrega: {{ nextDeliveryLabel(item.deliveryStatus) }}
+          </button>
+        }
+      </div>
+    </header>
+
+    @if (canUpdate()) {
+      <form class="dispatch-detail-page__form" [formGroup]="form" (ngSubmit)="saveShipment()">
+        <label>
+          Transportadora
+          <input type="text" formControlName="carrier" />
+        </label>
+        <label>
+          Número de guía
+          <input type="text" formControlName="trackingNumber" />
+        </label>
+        <label class="dispatch-detail-page__wide">
+          Observación logística
+          <textarea rows="3" formControlName="observations"></textarea>
+        </label>
+        <button type="submit" [disabled]="saving()">Guardar envío</button>
+      </form>
+    }
+
+    <app-dispatch-detail-panel [order]="item" [history]="history()" />
+  }
+</div>

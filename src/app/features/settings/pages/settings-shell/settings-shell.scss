@@ -1,0 +1,79 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.settings-shell {
+  display: grid;
+  gap: $space-6;
+  min-width: 0;
+}
+
+.settings-shell__header {
+  align-items: flex-start;
+  display: flex;
+  gap: $space-4;
+  justify-content: space-between;
+
+  p,
+  span {
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  h1 {
+    color: var(--color-text-primary);
+    font-size: $font-size-2xl;
+    margin: $space-1 0;
+  }
+
+  button {
+    align-items: center;
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    display: inline-flex;
+    gap: $space-2;
+    min-height: 2.5rem;
+    padding: 0 $space-4;
+  }
+}
+
+.settings-shell__tabs {
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  gap: $space-2;
+  overflow-x: auto;
+}
+
+.settings-shell__tab {
+  color: var(--color-text-secondary);
+  padding: $space-3 $space-4;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.settings-shell__tab--active {
+  border-bottom: 1px solid var(--color-text-primary);
+  color: var(--color-text-primary);
+}
+
+.settings-shell__error {
+  align-items: center;
+  border: 1px solid var(--color-status-critical);
+  border-radius: $radius-lg;
+  color: var(--color-text-primary);
+  display: flex;
+  gap: $space-3;
+  padding: $space-4;
+}
+
+@media (max-width: 720px) {
+  .settings-shell__header {
+    display: grid;
+
+    button {
+      justify-content: center;
+      width: 100%;
+    }
+  }
+}

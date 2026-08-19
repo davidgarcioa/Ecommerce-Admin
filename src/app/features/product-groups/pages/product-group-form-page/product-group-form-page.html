@@ -1,0 +1,26 @@
+<div class="product-group-form-page">
+  <header>
+    <button type="button" (click)="cancel()">
+      <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+      Volver
+    </button>
+    <div>
+      <h1>{{ id() ? 'Editar conjunto' : 'Nuevo conjunto' }}</h1>
+      <p>Define la información base antes de administrar sus productos.</p>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <p class="product-group-form-page__state">Cargando conjunto...</p>
+  } @else {
+    <app-product-group-form
+      [mode]="id() ? 'edit' : 'create'"
+      [group]="group()"
+      [saving]="saving()"
+      [error]="error()"
+      (create)="create($event)"
+      (update)="update($event)"
+      (cancel)="cancel()"
+    />
+  }
+</div>

@@ -1,0 +1,7 @@
+@if (file(); as fileInfo) {
+  <section class="file-info" aria-label="Información del archivo">
+    <h3>{{ fileInfo.name }}</h3>
+    <p>{{ fileInfo.formattedSize }} · {{ fileInfo.extension }} · {{ fileInfo.status }}</p>
+    <p>Modificado {{ fileInfo.lastModified }}</p>
+  </section>
+}

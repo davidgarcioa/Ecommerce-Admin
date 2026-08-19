@@ -1,0 +1,67 @@
+<section class="group-performance" aria-labelledby="group-performance-title" appAnimateOnView>
+  <header class="group-performance__header">
+    <div>
+      <h3 id="group-performance-title">Rendimiento por conjunto</h3>
+      <p>Ranking visual de ventas, entrega y rentabilidad.</p>
+    </div>
+
+    @if (leader(); as topGroup) {
+      <aside aria-label="Conjunto líder">
+        <span>Líder</span>
+        <strong>{{ topGroup.name }}</strong>
+      </aside>
+    }
+  </header>
+
+  <div class="group-performance__list">
+    @for (group of insights(); track group.id; let index = $index) {
+      <article class="group-card" [class]="'group-card group-card--' + group.efficiencyTone">
+        <div class="group-card__rank">
+          <span>{{ index + 1 }}</span>
+        </div>
+
+        <div class="group-card__main">
+          <div class="group-card__title">
+            <div>
+              <strong>{{ group.name }}</strong>
+              <span>{{ group.productCount }} productos · {{ group.orders }} órdenes</span>
+            </div>
+            <em>{{ group.insight }}</em>
+          </div>
+
+          <div class="group-card__sales">
+            <span>{{ group.salesLabel }}</span>
+            <div class="group-card__track" title="Participación en ventas">
+              <i [style.width.%]="group.salesShare"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="group-card__signals">
+          <div>
+            <span>Entrega</span>
+            <strong>{{ group.deliveryRateLabel }}</strong>
+            <small title="Tasa de entrega">
+              <i [style.width.%]="group.deliveryScore"></i>
+            </small>
+          </div>
+          <div>
+            <span>ROAS</span>
+            <strong>{{ group.roasLabel }}</strong>
+          </div>
+          <div>
+            <span>CPA</span>
+            <strong>{{ group.cpaLabel }}</strong>
+          </div>
+          <div>
+            <span>Ganancia</span>
+            <strong>{{ group.profitLabel }}</strong>
+            <small title="Ganancia relativa">
+              <i [style.width.%]="group.profitShare"></i>
+            </small>
+          </div>
+        </div>
+      </article>
+    }
+  </div>
+</section>

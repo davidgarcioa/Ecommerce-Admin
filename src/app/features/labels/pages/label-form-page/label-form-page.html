@@ -1,0 +1,20 @@
+<section class="label-form-page" aria-labelledby="label-form-title">
+  <header>
+    <p>Etiquetas</p>
+    <h2 id="label-form-title">{{ title }}</h2>
+  </header>
+
+  @if (error(); as message) {
+    <p class="label-form-page__error" role="alert">{{ message }}</p>
+  }
+
+  @if (!loading()) {
+    <app-label-form
+      [tag]="tag()"
+      [saving]="saving()"
+      [validationErrors]="validationErrors()"
+      (submitForm)="save($event)"
+      (cancel)="cancel()"
+    />
+  }
+</section>

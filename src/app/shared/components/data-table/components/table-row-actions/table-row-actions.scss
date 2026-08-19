@@ -1,0 +1,57 @@
+@use '../../../../../styles/abstracts/variables' as *;
+
+.row-actions {
+  display: inline-flex;
+  justify-content: flex-end;
+  position: relative;
+
+  button {
+    align-items: center;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: $radius-sm;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    display: inline-flex;
+    gap: $space-2;
+    min-height: 2rem;
+    padding: 0 $space-2;
+
+    &:hover {
+      background: var(--color-hover);
+      color: var(--color-text-primary);
+    }
+  }
+
+  &__menu,
+  &__confirm {
+    background: var(--color-card-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    box-shadow: var(--shadow-md);
+    display: grid;
+    gap: $space-2;
+    min-width: 12rem;
+    padding: $space-2;
+    position: absolute;
+    right: 0;
+    top: calc(100% + #{$space-2});
+    z-index: 30;
+  }
+
+  &__menu button,
+  &__confirm button {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  &__item--danger {
+    color: var(--color-status-critical);
+  }
+
+  &__confirm p {
+    color: var(--color-text-secondary);
+    font-size: $font-size-xs;
+    margin: 0;
+  }
+}

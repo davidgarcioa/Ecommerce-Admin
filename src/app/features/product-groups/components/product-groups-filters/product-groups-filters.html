@@ -1,0 +1,61 @@
+<section class="product-groups-filters" aria-label="Filtros de conjuntos">
+  <label>
+    Buscar
+    <input
+      type="search"
+      placeholder="Nombre o código"
+      [value]="search()"
+      #searchInput
+      (input)="onSearch(searchInput.value)"
+    />
+  </label>
+
+  <label>
+    Estado
+    <select [value]="filters().status" #statusSelect (change)="onStatus(statusSelect.value)">
+      <option value="all">Todos</option>
+      <option value="active">Activos</option>
+      <option value="inactive">Inactivos</option>
+      <option value="archived">Archivados</option>
+    </select>
+  </label>
+
+  <label>
+    Destacado
+    <select
+      [value]="filters().featured"
+      #featuredSelect
+      (change)="onFeatured(featuredSelect.value)"
+    >
+      <option value="all">Todos</option>
+      <option value="featured">Destacados</option>
+      <option value="standard">Estándar</option>
+    </select>
+  </label>
+
+  <label>
+    Rentabilidad
+    <select
+      [value]="filters().rentability"
+      #rentabilitySelect
+      (change)="onRentability(rentabilitySelect.value)"
+    >
+      <option value="all">Todas</option>
+      <option value="profitable">Rentables</option>
+      <option value="low-margin">Margen bajo</option>
+      <option value="loss">Pérdida</option>
+    </select>
+  </label>
+
+  <label>
+    Orden
+    <select [value]="sort()" #sortSelect (change)="onSort(sortSelect.value)">
+      <option value="sortOrder">Orden manual</option>
+      <option value="name">Nombre</option>
+      <option value="updatedAt">Actualización</option>
+      <option value="estimatedProfit">Ganancia</option>
+    </select>
+  </label>
+
+  <button type="button" (click)="clear.emit()">Limpiar</button>
+</section>

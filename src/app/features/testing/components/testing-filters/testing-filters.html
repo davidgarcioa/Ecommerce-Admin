@@ -1,0 +1,28 @@
+<form class="testing-filters" [formGroup]="form" (ngSubmit)="onApply()" aria-label="Filtros de testeos">
+  <label>
+    Estado
+    <select formControlName="status">
+      @for (option of statusOptions; track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select>
+  </label>
+  <label>
+    Tipo
+    <select formControlName="type">
+      @for (option of typeOptions; track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select>
+  </label>
+  <label>
+    Asociacion
+    <select formControlName="associationType">
+      @for (option of associationOptions; track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select>
+  </label>
+  <button type="submit">Aplicar</button>
+  <button type="button" (click)="onClear()">Limpiar</button>
+</form>

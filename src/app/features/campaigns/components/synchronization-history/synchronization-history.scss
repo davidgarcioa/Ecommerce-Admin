@@ -1,0 +1,50 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.sync-history {
+  display: grid;
+  gap: $space-4;
+  min-width: 0;
+
+  h3,
+  p {
+    margin: 0;
+  }
+
+  header p,
+  small {
+    color: var(--color-text-secondary);
+    font-size: $font-size-xs;
+  }
+
+  &__list {
+    display: grid;
+    gap: $space-3;
+  }
+
+  article,
+  &__empty {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-secondary);
+    padding: $space-4;
+  }
+
+  article {
+    display: flex;
+    gap: $space-3;
+  }
+
+  strong {
+    color: var(--color-text-primary);
+  }
+
+  &__dot {
+    background: var(--color-status-positive);
+    border-radius: 50%;
+    flex: 0 0 auto;
+    height: 0.45rem;
+    margin-top: $space-2;
+    width: 0.45rem;
+  }
+}

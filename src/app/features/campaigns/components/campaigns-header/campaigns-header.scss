@@ -1,0 +1,199 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.campaigns-header {
+  align-items: start;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: $radius-lg;
+  display: flex;
+  gap: $space-5;
+  justify-content: space-between;
+  min-width: 0;
+  padding: $space-5;
+  position: relative;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+
+  &::after {
+    background: rgb(59 130 246);
+    border-radius: 999px;
+    bottom: $space-5;
+    content: '';
+    height: 0.15rem;
+    position: absolute;
+    right: $space-5;
+    width: 4.5rem;
+  }
+
+  &:hover {
+    background:
+      linear-gradient(135deg, rgb(59 130 246 / 10%), transparent 34%), var(--color-card-elevated);
+    border-color: rgb(59 130 246 / 44%);
+    box-shadow:
+      0 0 0 1px rgb(59 130 246 / 12%),
+      0 1rem 2.5rem rgb(59 130 246 / 8%);
+    transform: translateY(-0.0625rem);
+  }
+
+  &__copy {
+    display: grid;
+    gap: $space-2;
+    min-width: 0;
+  }
+
+  &__eyebrow {
+    color: rgb(59 130 246);
+    font-size: $font-size-xs;
+    font-weight: $font-weight-bold;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  h2 {
+    color: var(--color-text-primary);
+    font-size: clamp(1.8rem, 2.6vw, 2.6rem);
+    font-weight: $font-weight-bold;
+    line-height: 1;
+    margin: 0;
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    font-size: $font-size-md;
+    margin: 0;
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+    margin-top: $space-2;
+    min-width: 0;
+
+    > span {
+      align-items: center;
+      background: rgb(255 255 255 / 3%);
+      border: 1px solid rgb(255 255 255 / 8%);
+      border-radius: 999px;
+      color: var(--color-text-secondary);
+      display: inline-flex;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-semibold;
+      gap: 0.4rem;
+      min-height: 2rem;
+      min-width: 0;
+      padding: 0 $space-3;
+    }
+
+    .material-symbols-rounded {
+      color: rgb(59 130 246);
+      font-size: 1rem;
+      line-height: 1;
+      padding: 0;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    gap: $space-2;
+    justify-content: flex-end;
+    max-width: 34rem;
+    padding-right: 5.25rem;
+  }
+
+  &__action {
+    align-items: center;
+    background: rgb(255 255 255 / 2.5%);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    display: inline-flex;
+    font: inherit;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    gap: $space-2;
+    line-height: 1;
+    min-height: 2.55rem;
+    padding: 0 $space-3;
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      color 180ms ease,
+      transform 180ms ease;
+
+    .material-symbols-rounded {
+      align-items: center;
+      display: inline-flex;
+      font-size: 1rem;
+      height: 1rem;
+      justify-content: center;
+      line-height: 1;
+      transform: translateY(-0.03125rem);
+      width: 1rem;
+    }
+
+    &:hover:not(:disabled) {
+      background: rgb(59 130 246 / 9%);
+      border-color: rgb(59 130 246 / 48%);
+      color: var(--color-text-primary);
+      transform: translateY(-0.0625rem);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+  }
+
+  &__action--sync,
+  &__action--active {
+    background: rgb(59 130 246 / 10%);
+    border-color: rgb(59 130 246 / 46%);
+    color: var(--color-text-primary);
+
+    .material-symbols-rounded {
+      color: rgb(59 130 246);
+    }
+  }
+}
+
+@media (max-width: 980px) {
+  .campaigns-header {
+    align-items: stretch;
+    flex-direction: column;
+
+    &__actions {
+      justify-content: flex-start;
+      padding-right: 0;
+      width: 100%;
+    }
+  }
+}
+
+@media (max-width: 760px) {
+  .campaigns-header {
+    padding: $space-4;
+
+    &::after {
+      bottom: $space-4;
+      right: $space-4;
+      width: 3.5rem;
+    }
+
+    &__actions {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    &__action {
+      justify-content: center;
+      width: 100%;
+    }
+  }
+}

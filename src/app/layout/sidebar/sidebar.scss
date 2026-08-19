@@ -1,0 +1,233 @@
+@use '../../styles/abstracts/variables' as *;
+
+.sidebar {
+  background: var(--color-sidebar);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  overflow: hidden;
+  position: sticky;
+  top: 0;
+  transition:
+    width $transition-base,
+    transform $transition-base;
+
+  &__header {
+    align-items: center;
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    gap: $space-4;
+    height: $topbar-height;
+    justify-content: space-between;
+    padding: 0 $space-5;
+  }
+
+  &__brand {
+    align-items: center;
+    color: var(--color-text-primary);
+    display: inline-flex;
+    flex: 1;
+    justify-content: flex-start;
+    min-width: 0;
+    text-decoration: none;
+  }
+
+  &__brand-text {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__nav {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    padding: $space-6 $space-4;
+  }
+
+  &__link {
+    align-items: center;
+    animation: sidebar-link-in 220ms ease both;
+    border-left: 2px solid transparent;
+    border-radius: $radius-md;
+    color: var(--color-text-secondary);
+    display: flex;
+    gap: $space-3;
+    min-height: 2.75rem;
+    padding: 0 $space-4;
+    text-decoration: none;
+    transform: translateX(0);
+    transition:
+      background-color $transition-base,
+      border-color $transition-base,
+      color $transition-base,
+      transform $transition-base;
+
+    &:hover {
+      background: var(--color-hover);
+      color: var(--color-interaction);
+      transform: translateX(2px);
+    }
+
+    &--active {
+      background: var(--color-card-elevated);
+      border-left-color: var(--color-interaction);
+      color: var(--color-text-primary);
+    }
+
+    &:focus-visible {
+      border-color: var(--color-interaction);
+      outline: 2px solid var(--color-focus-ring);
+      outline-offset: 2px;
+    }
+  }
+
+  &__icon {
+    font-size: 1.125rem;
+    line-height: 1;
+    transition:
+      color $transition-base,
+      transform $transition-base;
+  }
+
+  &__link:hover &__icon,
+  &__link:focus-visible &__icon {
+    color: var(--color-interaction);
+    transform: translateY(-1px);
+  }
+
+  &__link--active &__icon {
+    color: var(--color-interaction);
+  }
+
+  &__label {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: transform $transition-base;
+    white-space: nowrap;
+  }
+
+  &__link:hover &__label,
+  &__link:focus-visible &__label {
+    transform: translateX(1px);
+  }
+
+  &__link:nth-child(1) {
+    animation-delay: 20ms;
+  }
+
+  &__link:nth-child(2) {
+    animation-delay: 35ms;
+  }
+
+  &__link:nth-child(3) {
+    animation-delay: 50ms;
+  }
+
+  &__link:nth-child(4) {
+    animation-delay: 65ms;
+  }
+
+  &__link:nth-child(5) {
+    animation-delay: 80ms;
+  }
+
+  &__link:nth-child(6) {
+    animation-delay: 95ms;
+  }
+
+  &__link:nth-child(7) {
+    animation-delay: 110ms;
+  }
+
+  &__link:nth-child(8) {
+    animation-delay: 125ms;
+  }
+
+  &__link:nth-child(9) {
+    animation-delay: 140ms;
+  }
+
+  &__link:nth-child(10) {
+    animation-delay: 155ms;
+  }
+
+  &__link:nth-child(11) {
+    animation-delay: 170ms;
+  }
+
+  &--collapsed {
+    .sidebar__header {
+      justify-content: center;
+      padding: 0 $space-2;
+    }
+
+    .sidebar__brand {
+      display: none;
+    }
+
+    .sidebar__nav {
+      padding-inline: $space-2;
+    }
+
+    .sidebar__link {
+      justify-content: center;
+      padding-inline: 0;
+
+      &:hover,
+      &:focus-visible {
+        transform: translateX(0);
+      }
+    }
+  }
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    min-height: auto;
+    position: relative;
+
+    &__nav {
+      display: grid;
+      grid-auto-columns: minmax(3rem, max-content);
+      grid-auto-flow: column;
+      overflow-x: auto;
+      padding: $space-4;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar__link {
+    animation: none;
+    transition: none;
+
+    &:hover,
+    &:focus-visible {
+      transform: none;
+    }
+  }
+
+  .sidebar__icon,
+  .sidebar__label {
+    transition: none;
+  }
+}
+
+@keyframes sidebar-link-in {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

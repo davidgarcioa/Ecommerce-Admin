@@ -1,0 +1,163 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.advertising-summary {
+  display: grid;
+  gap: $space-4;
+  min-width: 0;
+
+  h3 {
+    color: var(--color-text-primary);
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    margin: 0;
+  }
+
+  &__cards {
+    display: grid;
+    gap: $space-4;
+    grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+    min-width: 0;
+  }
+
+  &__card {
+    --summary-accent: 59 130 246;
+
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    display: grid;
+    gap: $space-4;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    min-height: 9.25rem;
+    min-width: 0;
+    padding: $space-4;
+    position: relative;
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      transform 180ms ease;
+
+    &:hover {
+      background:
+        radial-gradient(circle at 12% 0%, rgb(var(--summary-accent) / 13%), transparent 36%),
+        var(--color-card-elevated);
+      border-color: rgb(var(--summary-accent) / 42%);
+      box-shadow: 0 0 1.25rem rgb(var(--summary-accent) / 12%);
+      transform: translateY(-0.075rem);
+    }
+
+    div {
+      align-self: end;
+      display: grid;
+      gap: $space-1;
+      min-width: 0;
+    }
+
+    span:not(.material-symbols-rounded),
+    small {
+      color: var(--color-text-secondary);
+      font-size: $font-size-sm;
+    }
+
+    strong {
+      color: var(--color-text-primary);
+      font-size: clamp(1.55rem, 2.2vw, 2rem);
+      font-weight: $font-weight-bold;
+      line-height: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    small {
+      font-size: $font-size-xs;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  &__icon {
+    align-items: center;
+    background: rgb(255 255 255 / 3%);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-sm;
+    color: var(--color-text-secondary);
+    display: inline-flex;
+    font-size: 1.05rem;
+    height: 2.35rem;
+    justify-content: center;
+    width: 2.35rem;
+  }
+
+  &__dot {
+    background: var(--color-text-disabled);
+    border-radius: 999px;
+    height: 0.42rem;
+    width: 0.42rem;
+  }
+
+  &__bar {
+    background: rgb(255 255 255 / 7%);
+    border-radius: 999px;
+    grid-column: 1 / -1;
+    height: 0.38rem;
+    overflow: hidden;
+
+    span {
+      animation: campaignBarReveal 760ms ease-out both;
+      background: rgb(59 130 246 / 78%);
+      border-radius: inherit;
+      display: block;
+      height: 100%;
+      transform-origin: left;
+    }
+  }
+
+  &__card--positive {
+    --summary-accent: 16 185 129;
+
+    .advertising-summary__bar span,
+    .advertising-summary__dot {
+      background: rgb(16 185 129 / 76%);
+    }
+  }
+
+  &__card--warning {
+    --summary-accent: 245 158 11;
+
+    .advertising-summary__bar span,
+    .advertising-summary__dot {
+      background: rgb(245 158 11 / 74%);
+    }
+  }
+
+  &__card--negative {
+    --summary-accent: 239 68 68;
+
+    .advertising-summary__bar span,
+    .advertising-summary__dot {
+      background: rgb(239 68 68 / 70%);
+    }
+  }
+
+  &__card--critical {
+    --summary-accent: 239 68 68;
+
+    .advertising-summary__bar span,
+    .advertising-summary__dot {
+      background: rgb(239 68 68 / 74%);
+    }
+  }
+}
+
+@keyframes campaignBarReveal {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}

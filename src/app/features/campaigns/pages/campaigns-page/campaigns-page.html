@@ -1,0 +1,140 @@
+<div class="campaigns-page">
+  <app-campaigns-header
+    [lastSynchronization]="lastSynchronization()"
+    [adAccountName]="report().adAccountName"
+    [periodLabel]="report().selectedPeriodLabel"
+    [loading]="loading()"
+    [filtersOpen]="filtersVisible()"
+    (synchronize)="synchronize()"
+    (createCampaign)="openCreate()"
+    (toggleFilters)="toggleFilters()"
+  />
+
+  @if (filtersVisible()) {
+    <app-campaigns-filters
+      class="campaigns-page__filters"
+      [filters]="filters()"
+      (applyFilters)="onApplyFilters($event)"
+      (clearFilters)="onClearFilters()"
+    />
+  }
+
+  @if (toastMessage(); as message) {
+    <p class="campaigns-page__toast" aria-live="polite">{{ message }}</p>
+  }
+
+  @if (error(); as message) {
+    <app-campaigns-error-state [message]="message" (retry)="retry()" />
+  } @else {
+    <app-advertising-summary-grid [metrics]="summaryMetrics()" [loading]="loading()" />
+
+    <app-campaign-status-summary [items]="statusSummary()" />
+
+    @if (!loading() && campaigns().length === 0) {
+      <app-campaigns-empty-state (clear)="onClearFilters()" />
+    }
+
+    <section class="campaigns-page__performance" aria-labelledby="campaigns-performance-title">
+      <header class="campaigns-page__performance-header">
+        <div>
+          <span>Rendimiento</span>
+          <h3 id="campaigns-performance-title">Vista de análisis</h3>
+        </div>
+
+        <div class="campaigns-page__tabs" role="tablist" aria-label="Cambiar vista de rendimiento">
+          <button
+            type="button"
+            role="tab"
+            [class.campaigns-page__tab--active]="performanceView() === 'campaigns'"
+            [attr.aria-selected]="performanceView() === 'campaigns'"
+            (click)="setPerformanceView('campaigns')"
+          >
+            Campañas
+          </button>
+          <button
+            type="button"
+            role="tab"
+            [class.campaigns-page__tab--active]="performanceView() === 'products'"
+            [attr.aria-selected]="performanceView() === 'products'"
+            (click)="setPerformanceView('products')"
+          >
+            Productos
+          </button>
+          <button
+            type="button"
+            role="tab"
+            [class.campaigns-page__tab--active]="performanceView() === 'adSets'"
+            [attr.aria-selected]="performanceView() === 'adSets'"
+            (click)="setPerformanceView('adSets')"
+          >
+            Conjuntos
+          </button>
+          <button
+            type="button"
+            role="tab"
+            [class.campaigns-page__tab--active]="performanceView() === 'ads'"
+            [attr.aria-selected]="performanceView() === 'ads'"
+            (click)="setPerformanceView('ads')"
+          >
+            Anuncios
+          </button>
+          <button
+            type="button"
+            role="tab"
+            [class.campaigns-page__tab--active]="performanceView() === 'history'"
+            [attr.aria-selected]="performanceView() === 'history'"
+            (click)="setPerformanceView('history')"
+          >
+            Historial
+          </button>
+        </div>
+      </header>
+
+      <div class="campaigns-page__performance-body">
+        @switch (performanceView()) {
+          @case ('campaigns') {
+            <app-campaign-performance-table
+              [campaigns]="campaigns()"
+              [loading]="loading()"
+              (rowClick)="onSelectCampaign($event)"
+              (actionClick)="onCampaignAction($event)"
+            />
+          }
+          @case ('products') {
+            <app-product-performance-table [products]="productPerformance()" [loading]="loading()" />
+          }
+          @case ('adSets') {
+            <app-adset-performance-table [adSets]="adSets()" [loading]="loading()" />
+          }
+          @case ('ads') {
+            <app-ad-performance-table [advertisements]="advertisements()" [loading]="loading()" />
+          }
+          @case ('history') {
+            <app-synchronization-history [records]="synchronizationHistory()" />
+          }
+        }
+      </div>
+    </section>
+  }
+
+  @if (selectedCampaign(); as campaign) {
+    <app-campaign-detail-drawer
+      [campaign]="campaign"
+      (close)="closeDetail()"
+      (edit)="editCampaign($event)"
+      (duplicate)="duplicateCampaign($event)"
+      (archive)="archiveCampaign($event)"
+      (toggleStatus)="onToggleCampaignStatus($event)"
+    />
+  }
+
+  @if (campaignFormVisible()) {
+    <app-campaign-form
+      [mode]="campaignFormMode()"
+      [campaign]="selectedCampaign()"
+      (close)="closeForm()"
+      (save)="onSaveCampaign($event)"
+    />
+  }
+
+</div>

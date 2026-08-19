@@ -1,0 +1,39 @@
+<section class="quick-access" aria-labelledby="quick-access-title">
+  <div class="quick-access__heading">
+    <h2 id="quick-access-title">Accesos principales</h2>
+    @if (availableItems().length > 0) {
+      <button
+        class="quick-access__customize"
+        type="button"
+        aria-label="Personalizar accesos principales"
+        (click)="openPreferences()"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+      </button>
+    }
+  </div>
+
+  @if (items().length > 0) {
+    <nav class="quick-access__grid" aria-label="Accesos principales autorizados">
+      @for (item of items(); track item.id) {
+        <a [routerLink]="item.route" class="quick-access__card" [attr.aria-label]="'Abrir ' + item.title">
+          <span class="material-symbols-rounded" aria-hidden="true">{{ item.icon }}</span>
+          <strong>{{ item.title }}</strong>
+          <p>{{ item.description }}</p>
+          <small aria-hidden="true">{{ item.actionLabel }}</small>
+        </a>
+      }
+    </nav>
+  } @else {
+    <p class="quick-access__empty">No hay modulos disponibles con los permisos actuales.</p>
+  }
+
+  @if (preferencesOpen()) {
+    <app-quick-access-preferences-modal
+      [items]="availableItems()"
+      [selectedItemIds]="selectedItemIds()"
+      (close)="closePreferences()"
+      (toggleItem)="onToggleItem($event)"
+    />
+  }
+</section>

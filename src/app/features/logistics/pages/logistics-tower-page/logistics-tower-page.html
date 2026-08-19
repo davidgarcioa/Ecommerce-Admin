@@ -1,0 +1,46 @@
+<div class="logistics-page">
+  <app-logistics-header
+    [loading]="loading()"
+    [lastUpdated]="lastUpdated()"
+    [incidentCount]="ordersWithIncidents()"
+    (refresh)="refresh()"
+    (openPending)="openPending()"
+    (openIncidents)="openIncidents()"
+  />
+
+  <app-logistics-summary
+    [pending]="pendingDispatches()"
+    [ready]="readyForDispatch()"
+    [inTransit]="inTransitOrders()"
+    [deliveredToday]="deliveredToday()"
+    [failed]="failedDeliveries()"
+    [incidents]="ordersWithIncidents()"
+    [inReturn]="pendingReturns()"
+    [returned]="returnedOrders()"
+  />
+
+  <app-logistics-filters
+    [search]="search()"
+    [filters]="filters()"
+    (searchChange)="applySearch($event)"
+    (filtersChange)="applyFilters($event)"
+    (clear)="clearFilters()"
+  />
+
+  @if (error(); as message) {
+    <section class="logistics-page__state" role="alert">
+      <strong>No fue posible cargar Torre Logística</strong>
+      <p>{{ message }}</p>
+      <button type="button" (click)="refresh()">Intentar nuevamente</button>
+    </section>
+  }
+
+  <app-logistics-orders-table
+    [orders]="orders()"
+    [loading]="loading()"
+    [canUpdate]="canUpdateShipment()"
+    (rowClick)="openOrder($event)"
+    (actionClick)="onAction($event)"
+    (retry)="refresh()"
+  />
+</div>

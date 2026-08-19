@@ -1,0 +1,33 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.office-summary {
+  display: grid;
+  gap: $space-4;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  article {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-lg;
+    display: grid;
+    gap: $space-3;
+    min-height: 6.5rem;
+    padding: $space-4;
+  }
+
+  span {
+    color: var(--color-text-secondary);
+    font-size: $font-size-sm;
+  }
+
+  strong {
+    font-size: $font-size-lg;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 900px) {
+  .office-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

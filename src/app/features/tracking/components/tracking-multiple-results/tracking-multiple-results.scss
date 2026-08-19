@@ -1,0 +1,56 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.tracking-multiple-results {
+  display: grid;
+  gap: $space-4;
+  border: 1px solid var(--color-border);
+  border-radius: $radius-lg;
+  padding: $space-5;
+  background: var(--color-card);
+
+  h2 {
+    margin: 0;
+    color: var(--color-text-primary);
+    font-size: $font-size-lg;
+  }
+
+  div {
+    display: grid;
+    gap: $space-3;
+  }
+
+  article {
+    display: flex;
+    gap: $space-4;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    padding: $space-4;
+    background: var(--color-card-elevated);
+  }
+
+  span,
+  small {
+    display: block;
+    color: var(--color-text-secondary);
+  }
+
+  strong {
+    color: var(--color-text-primary);
+  }
+
+  button {
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    padding: $space-2 $space-3;
+    background: var(--color-card);
+    color: var(--color-text-primary);
+  }
+}
+
+@media (max-width: 680px) {
+  .tracking-multiple-results article {
+    display: grid;
+  }
+}

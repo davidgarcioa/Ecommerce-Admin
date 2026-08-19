@@ -1,0 +1,131 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.order-edit-page {
+  display: grid;
+  gap: $space-5;
+  min-width: 0;
+
+  header {
+    display: flex;
+    gap: $space-4;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  h1,
+  h2,
+  p {
+    margin: 0;
+  }
+
+  h1 {
+    color: var(--color-text-primary);
+    font-size: $font-size-2xl;
+  }
+
+  h2 {
+    grid-column: 1 / -1;
+    color: var(--color-text-primary);
+    font-size: $font-size-lg;
+  }
+
+  p,
+  span,
+  label {
+    color: var(--color-text-secondary);
+  }
+
+  section {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: $space-4;
+    border: 1px solid var(--color-border);
+    border-radius: $radius-lg;
+    padding: $space-5;
+    background: var(--color-card);
+    min-width: 0;
+  }
+
+  label {
+    display: grid;
+    gap: $space-2;
+    min-width: 0;
+    font-size: $font-size-sm;
+  }
+
+  input,
+  textarea {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    padding: $space-3;
+    background: var(--color-card-elevated);
+    color: var(--color-text-primary);
+    font: inherit;
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  button {
+    display: inline-flex;
+    gap: $space-2;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-border);
+    border-radius: $radius-lg;
+    padding: $space-3 $space-4;
+    background: var(--color-card);
+    color: var(--color-text-primary);
+  }
+
+  button[type='submit'] {
+    background: var(--color-primary);
+    color: var(--color-bg);
+  }
+
+  &__back {
+    justify-self: start;
+  }
+
+  &__wide {
+    grid-column: span 2;
+  }
+
+  &__check {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  &__check input {
+    width: auto;
+  }
+
+  &__state {
+    border: 1px solid var(--color-border);
+    border-radius: $radius-lg;
+    padding: $space-4;
+    background: var(--color-card);
+    color: var(--color-text-secondary);
+  }
+}
+
+@media (max-width: 900px) {
+  .order-edit-page {
+    header,
+    section {
+      grid-template-columns: 1fr;
+    }
+
+    header {
+      display: grid;
+    }
+
+    &__wide {
+      grid-column: auto;
+    }
+  }
+}

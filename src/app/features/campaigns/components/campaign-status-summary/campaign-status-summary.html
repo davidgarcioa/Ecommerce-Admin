@@ -1,0 +1,35 @@
+<section class="campaign-status-summary" aria-labelledby="campaign-status-title">
+  <header>
+    <h3 id="campaign-status-title">Estado de campañas</h3>
+  </header>
+
+  <div class="campaign-status-summary__grid">
+    @for (item of items(); track item.status) {
+      <article>
+        <div class="campaign-status-summary__top">
+          <span>{{ item.status }}</span>
+          <strong>{{ item.count }}</strong>
+        </div>
+
+        <div class="campaign-status-summary__bar" [title]="item.status + ' · ' + item.percentage + ' %'">
+          <span [style.width.%]="item.percentage"></span>
+        </div>
+
+        <dl>
+          <div>
+            <dt>Inversión</dt>
+            <dd>{{ formatValue(item.amountSpent, 'currency') }}</dd>
+          </div>
+          <div>
+            <dt>Ventas</dt>
+            <dd>{{ formatValue(item.attributedRevenue, 'currency') }}</dd>
+          </div>
+          <div>
+            <dt>ROAS</dt>
+            <dd>{{ formatValue(item.averageRoas, 'multiplier') }}</dd>
+          </div>
+        </dl>
+      </article>
+    }
+  </div>
+</section>

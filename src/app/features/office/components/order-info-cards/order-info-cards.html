@@ -1,0 +1,85 @@
+<div class="order-info-cards">
+  <section>
+    <h2>Cliente</h2>
+    <p>
+      <strong>{{ order().customerName }}</strong>
+    </p>
+    <p>Teléfono: {{ maskPhone(order().customerPhone) }}</p>
+    @if (order().customerEmail) {
+      <p>Correo: {{ order().customerEmail }}</p>
+    }
+    <p>{{ order().address }}</p>
+    <p>{{ order().city }}, {{ order().department }}</p>
+  </section>
+
+  <section>
+    <h2>Pedido</h2>
+    <p>
+      <strong>{{ order().productName }}</strong>
+    </p>
+    <p>Conjunto: {{ order().productGroupName }}</p>
+    <p>Cantidad: {{ order().quantity }}</p>
+    <p>Subtotal: {{ formatCurrency(order().subtotal) }}</p>
+    <p>Envío: {{ formatCurrency(order().shippingCost) }}</p>
+    <p>Descuento: {{ formatCurrency(order().discount) }}</p>
+    <p>Total: {{ formatCurrency(order().total) }}</p>
+  </section>
+
+  <section>
+    <h2>Pago</h2>
+    <p>Método: {{ order().paymentMethod }}</p>
+    <p>Estado: {{ paymentStatusLabel(order().paymentStatus) }}</p>
+    <p>Total: {{ formatCurrency(order().total) }}</p>
+    <p>
+      Pendiente:
+      {{ order().paymentStatus === 'Paid' ? formatCurrency(0) : formatCurrency(order().total) }}
+    </p>
+  </section>
+
+  <section>
+    <h2>Entrega</h2>
+    <p>Estado: {{ deliveryStatusLabel(order().deliveryStatus) }}</p>
+    <p>Dirección: {{ order().address }}</p>
+    <p>Ciudad: {{ order().city }}</p>
+    @if (order().carrier) {
+      <p>Transportadora: {{ order().carrier }}</p>
+    }
+    @if (order().trackingNumber) {
+      <p>Guía: {{ order().trackingNumber }}</p>
+    }
+  </section>
+
+  <section>
+    <h2>Gestión</h2>
+    <p>Estado: {{ orderStatusLabel(order().orderStatus) }}</p>
+    <p>Urgente: {{ order().urgent ? 'Sí' : 'No' }}</p>
+    <p>Origen: {{ order().source }}</p>
+    <p>Actualizado: {{ formatDate(order().updatedAt) }}</p>
+    @if (observations().length === 0) {
+      <p>Sin observaciones.</p>
+    } @else {
+      @for (item of observations(); track item.id) {
+        <p>{{ item.content }}</p>
+      }
+    }
+  </section>
+
+  <section>
+    <h2>Historial</h2>
+    @if (history().length === 0) {
+      <p>No hay historial registrado.</p>
+    } @else {
+      <ol>
+        @for (item of history(); track item.id) {
+          <li>
+            <strong>{{ item.action }}</strong>
+            <span>{{ formatDate(item.createdAt) }}</span>
+            @if (item.notes) {
+              <p>{{ item.notes }}</p>
+            }
+          </li>
+        }
+      </ol>
+    }
+  </section>
+</div>

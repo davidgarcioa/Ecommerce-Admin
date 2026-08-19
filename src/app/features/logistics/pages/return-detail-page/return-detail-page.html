@@ -1,0 +1,22 @@
+<div class="resource-page">
+  <button type="button" (click)="back()">Volver</button>
+  <header>
+    <p>Torre Logística</p>
+    <h1>Detalle de devolución</h1>
+  </header>
+
+  @if (error(); as message) {
+    <section role="alert">{{ message }}</section>
+  } @else if (loading()) {
+    <section>Cargando devolución...</section>
+  } @else if (item(); as detail) {
+    <section>
+      <article>
+        <strong>{{ detail.name }}</strong>
+        <span>{{ detail.description || 'Sin descripción' }}</span>
+      </article>
+    </section>
+  } @else {
+    <section>La devolución solicitada no existe.</section>
+  }
+</div>

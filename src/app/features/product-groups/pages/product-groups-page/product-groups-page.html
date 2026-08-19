@@ -1,0 +1,65 @@
+<div class="product-groups-page">
+  <app-product-groups-header
+    [canCreate]="canCreate()"
+    [loading]="loading()"
+    [lastUpdated]="lastUpdated()"
+    (create)="create()"
+    (refresh)="refresh()"
+  />
+
+  <app-product-group-summary
+    [total]="totalGroups()"
+    [active]="activeGroups()"
+    [archived]="archivedGroups()"
+    [products]="totalAssociatedProducts()"
+    [revenue]="estimatedRevenue()"
+    [profit]="estimatedProfit()"
+    [margin]="averageMargin()"
+    [loading]="loading()"
+  />
+
+  <app-product-groups-filters
+    [search]="search()"
+    [filters]="filters()"
+    [sort]="sort()"
+    (searchChange)="applySearch($event)"
+    (filtersChange)="applyFilters($event)"
+    (sortChange)="setSort($event)"
+    (clear)="clearFilters()"
+  />
+
+  @if (error(); as message) {
+    <section class="product-groups-page__error" role="alert">
+      <span class="material-symbols-rounded" aria-hidden="true">error</span>
+      <div>
+        <strong>No fue posible cargar conjuntos</strong>
+        <p>{{ message }}</p>
+      </div>
+      <button type="button" (click)="refresh()">Intentar nuevamente</button>
+    </section>
+  }
+
+  <app-data-table
+    [data]="groups()"
+    [columns]="columns()"
+    [loading]="loading()"
+    [error]="null"
+    rowIdKey="id"
+    [selectable]="true"
+    [multiSelect]="true"
+    [sortable]="true"
+    [pageable]="true"
+    [pageSize]="20"
+    [stickyHeader]="true"
+    [compact]="true"
+    emptyTitle="Sin conjuntos"
+    emptyDescription="Crea un conjunto para administrar sus productos y rentabilidad."
+    [exportEnabled]="true"
+    [columnSelectorEnabled]="true"
+    [rowActions]="rowActions()"
+    [preferencesKey]="preferencesKey"
+    (rowClick)="openGroup($event)"
+    (actionClick)="onAction($event)"
+    (retry)="refresh()"
+  />
+</div>

@@ -1,0 +1,6 @@
+<section class="dashboard-state" aria-live="assertive">
+  <span class="material-symbols-rounded" aria-hidden="true">error</span>
+  <h3>No fue posible cargar el Dashboard</h3>
+  <p>{{ message() }}</p>
+  <button type="button" (click)="retry.emit()">Intentar nuevamente</button>
+</section>

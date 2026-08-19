@@ -1,0 +1,15 @@
+<section class="expense-detail-page">
+  @if (loading()) {
+    <p>Cargando gasto...</p>
+  } @else if (error(); as message) {
+    <p role="alert">{{ message }}</p>
+  } @else if (expense(); as currentExpense) {
+    <app-expense-detail-card
+      [expense]="currentExpense"
+      (edit)="edit($event)"
+      (delete)="delete($event)"
+    />
+  } @else {
+    <p>No encontramos el gasto solicitado.</p>
+  }
+</section>

@@ -1,0 +1,68 @@
+<form class="product-group-form" [formGroup]="form" (ngSubmit)="submit()">
+  @if (error(); as message) {
+    <p class="product-group-form__error" role="alert">{{ message }}</p>
+  }
+
+  <div class="product-group-form__grid">
+    <label>
+      Código
+      <input formControlName="code" type="text" autocomplete="off" aria-describedby="code-error" />
+      @if (codeError(); as message) {
+        <small id="code-error">{{ message }}</small>
+      }
+    </label>
+
+    <label>
+      Nombre
+      <input formControlName="name" type="text" autocomplete="off" aria-describedby="name-error" />
+      @if (nameError(); as message) {
+        <small id="name-error">{{ message }}</small>
+      }
+    </label>
+
+    <label class="product-group-form__wide">
+      Descripción
+      <textarea formControlName="description" rows="4"></textarea>
+    </label>
+
+    <label>
+      Color
+      <select formControlName="color">
+        @for (color of colorOptions; track color) {
+          <option [value]="color">{{ color }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      Icono
+      <select formControlName="icon">
+        @for (icon of iconOptions; track icon) {
+          <option [value]="icon">{{ icon }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      Orden
+      <input formControlName="sortOrder" type="number" min="0" />
+    </label>
+
+    <label class="product-group-form__check">
+      <input formControlName="active" type="checkbox" />
+      Activo
+    </label>
+
+    <label class="product-group-form__check">
+      <input formControlName="featured" type="checkbox" />
+      Destacado
+    </label>
+  </div>
+
+  <footer>
+    <button type="button" class="button button--ghost" (click)="cancel.emit()">Cancelar</button>
+    <button type="submit" class="button button--primary" [disabled]="form.invalid || saving()">
+      {{ saving() ? 'Guardando' : mode() === 'create' ? 'Crear conjunto' : 'Guardar cambios' }}
+    </button>
+  </footer>
+</form>

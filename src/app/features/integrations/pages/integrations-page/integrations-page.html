@@ -1,0 +1,215 @@
+﻿<section class="integrations-page" aria-labelledby="integrations-title">
+  <header class="integrations-page__header">
+    <div>
+      <p class="integrations-page__eyebrow">Centro de conexiones</p>
+      <h1 id="integrations-title">Integraciones</h1>
+      <p class="integrations-page__summary">Estado real de los servicios que alimentan la operación.</p>
+    </div>
+
+    <div class="integrations-page__actions">
+      <span class="integrations-page__updated">{{ formatLastChecked(lastChecked()) }}</span>
+      <button type="button" class="integrations-page__button" (click)="refresh()" [disabled]="loading()">
+        <span class="material-symbols-rounded" aria-hidden="true">sync</span>
+        {{ loading() ? 'Revisando' : 'Revisar conexiones' }}
+      </button>
+    </div>
+  </header>
+
+  @if (errorMessage()) {
+    <div class="integrations-page__notice integrations-page__notice--error" role="alert">
+      <span class="material-symbols-rounded" aria-hidden="true">error</span>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <nav class="integrations-page__tabs" aria-label="Secciones de integraciones">
+    @for (section of sections; track section.id) {
+      <button
+        type="button"
+        class="integrations-page__tab"
+        [class.integrations-page__tab--active]="activeSection() === section.id"
+        (click)="setSection(section.id)"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">{{ section.icon }}</span>
+        {{ section.label }}
+      </button>
+    }
+  </nav>
+
+  @if (activeSection() === 'general') {
+    <div class="integrations-page__grid" aria-live="polite">
+      @for (card of connectionCards(); track card.id) {
+        <article class="integration-card" [attr.data-status]="card.status">
+          <div class="integration-card__icon">
+            <span class="material-symbols-rounded" aria-hidden="true">{{ card.icon }}</span>
+          </div>
+          <div class="integration-card__body">
+            <div class="integration-card__topline">
+              <h2>{{ card.title }}</h2>
+              <span class="integration-card__status">{{ statusLabel(card.status) }}</span>
+            </div>
+            <p>{{ card.subtitle }}</p>
+            <span>{{ card.detail }}</span>
+          </div>
+        </article>
+      }
+    </div>
+  }
+
+  @if (activeSection() === 'dropi') {
+    <section class="integration-panel" aria-labelledby="dropi-title">
+      <div class="integration-panel__header">
+        <div>
+          <p class="integrations-page__eyebrow">Dropi</p>
+          <h2 id="dropi-title">Órdenes y guías</h2>
+        </div>
+        <div class="integration-panel__actions">
+          <button
+            type="button"
+            class="integrations-page__button"
+            (click)="testDropi()"
+            [disabled]="testingDropi() || syncingDropi()"
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">verified_user</span>
+            {{ testingDropi() ? 'Probando' : 'Probar conexión' }}
+          </button>
+          <button
+            type="button"
+            class="integrations-page__button integrations-page__button--accent"
+            (click)="syncDropiNow()"
+            [disabled]="syncingDropi()"
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">sync</span>
+            {{ syncingDropi() ? 'Sincronizando' : 'Sincronizar Dropi' }}
+          </button>
+        </div>
+      </div>
+
+      @if (dropiSyncSummary()) {
+        <div class="integration-panel__result" aria-live="polite">
+          <strong>Última sincronización</strong>
+          <div class="integration-panel__result-grid">
+            <span><b>{{ dropiSyncSummary()?.received }}</b> recibidas desde Dropi</span>
+            <span><b>{{ dropiSyncSummary()?.imported }}</b> nuevas</span>
+            <span><b>{{ dropiSyncSummary()?.updated }}</b> actualizadas</span>
+            <span><b>{{ dropiSyncSummary()?.skipped }}</b> omitidas</span>
+          </div>
+        </div>
+      }
+
+      @if (dropiSyncError()) {
+        <div class="integrations-page__notice integrations-page__notice--error" role="alert">
+          <span class="material-symbols-rounded" aria-hidden="true">error</span>
+          <span>{{ dropiSyncError() }}</span>
+        </div>
+      }
+
+      <div class="integration-panel__checks">
+        @for (check of dropiChecks(); track check.label) {
+          <div class="integration-check" [attr.data-status]="check.status">
+            <span class="integration-check__dot" aria-hidden="true"></span>
+            <div>
+              <strong>{{ check.label }}</strong>
+              <span>{{ check.value }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  @if (activeSection() === 'firebase') {
+    <section class="integration-panel" aria-labelledby="firebase-title">
+      <div class="integration-panel__header">
+        <div>
+          <p class="integrations-page__eyebrow">Firebase</p>
+          <h2 id="firebase-title">Base de datos y archivos</h2>
+        </div>
+      </div>
+
+      <div class="integration-panel__checks">
+        @for (check of firebaseChecks(); track check.label) {
+          <div class="integration-check" [attr.data-status]="check.status">
+            <span class="integration-check__dot" aria-hidden="true"></span>
+            <div>
+              <strong>{{ check.label }}</strong>
+              <span>{{ check.value }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  @if (activeSection() === 'meta') {
+    <section class="integration-panel" aria-labelledby="meta-title">
+      <div class="integration-panel__header">
+        <div>
+          <p class="integrations-page__eyebrow">Meta Ads</p>
+          <h2 id="meta-title">Campañas y pauta</h2>
+        </div>
+        <div class="integration-panel__actions">
+          <button
+            type="button"
+            class="integrations-page__button"
+            (click)="testMeta()"
+            [disabled]="testingMeta() || loadingMetaPreview()"
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">verified_user</span>
+            {{ testingMeta() ? 'Probando' : 'Probar conexión' }}
+          </button>
+          <button
+            type="button"
+            class="integrations-page__button integrations-page__button--accent"
+            (click)="previewMeta()"
+            [disabled]="loadingMetaPreview() || testingMeta()"
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">visibility</span>
+            {{ loadingMetaPreview() ? 'Leyendo' : 'Leer campañas' }}
+          </button>
+        </div>
+      </div>
+
+      @if (metaConnection()) {
+        <div class="integration-panel__result" aria-live="polite">
+          <strong>Conexión validada</strong>
+          <div class="integration-panel__result-grid">
+            <span><b>{{ metaConnection()?.accountName ?? 'Cuenta Meta' }}</b> cuenta publicitaria</span>
+            <span><b>{{ metaConnection()?.currency ?? 'Sin moneda' }}</b> moneda</span>
+            <span><b>{{ metaConnection()?.timezoneName ?? 'Sin zona horaria' }}</b> zona horaria</span>
+          </div>
+        </div>
+      }
+
+      @if (metaConnectionError()) {
+        <div class="integrations-page__notice integrations-page__notice--error" role="alert">
+          <span class="material-symbols-rounded" aria-hidden="true">error</span>
+          <span>{{ metaConnectionError() }}</span>
+        </div>
+      }
+
+      @if (metaPreviewError()) {
+        <div class="integrations-page__notice integrations-page__notice--error" role="alert">
+          <span class="material-symbols-rounded" aria-hidden="true">error</span>
+          <span>{{ metaPreviewError() }}</span>
+        </div>
+      }
+
+      <div class="integration-panel__checks">
+        @for (check of metaChecks(); track check.label) {
+          <div class="integration-check" [attr.data-status]="check.status">
+            <span class="integration-check__dot" aria-hidden="true"></span>
+            <div>
+              <strong>{{ check.label }}</strong>
+              <span>{{ check.value }}</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (metaPreview(); as preview) {
+        <app-meta-ads-preview [preview]="preview" />
+      }
+    </section>
+  }
+</section>

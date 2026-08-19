@@ -1,0 +1,30 @@
+@if (result(); as importResult) {
+  <section class="import-result">
+    <h3>Resultado de importación</h3>
+    <p>{{ importResult.message }}</p>
+    <dl>
+      <div>
+        <dt>Importados</dt>
+        <dd>{{ importResult.importedRows }}</dd>
+      </div>
+      <div>
+        <dt>Omitidos</dt>
+        <dd>{{ importResult.omittedRows }}</dd>
+      </div>
+      <div>
+        <dt>Advertencias</dt>
+        <dd>{{ importResult.warnings }}</dd>
+      </div>
+      <div>
+        <dt>Duración</dt>
+        <dd>{{ importResult.durationMs }} ms</dd>
+      </div>
+    </dl>
+    <footer>
+      <button type="button" (click)="download.emit()">Descargar resultado</button>
+      <button type="button" (click)="newImport.emit()">Nueva importación</button>
+      <button type="button" (click)="history.emit()">Ir al historial</button>
+      <button class="import-result__finish" type="button" (click)="finish.emit()">Finalizar</button>
+    </footer>
+  </section>
+}

@@ -1,0 +1,26 @@
+<section class="logistics-summary" aria-label="Resumen logístico">
+  <article>
+    <span>Pendientes</span><strong>{{ formatNumber(pending()) }}</strong>
+  </article>
+  <article>
+    <span>Preparados</span><strong>{{ formatNumber(ready()) }}</strong>
+  </article>
+  <article>
+    <span>En tránsito</span><strong>{{ formatNumber(inTransit()) }}</strong>
+  </article>
+  <article>
+    <span>Entregados hoy</span><strong>{{ formatNumber(deliveredToday()) }}</strong>
+  </article>
+  <article>
+    <span>Intento fallido</span><strong>{{ formatNumber(failed()) }}</strong>
+  </article>
+  <article>
+    <span>Incidencias</span><strong>{{ formatNumber(incidents()) }}</strong>
+  </article>
+  <article>
+    <span>En devolución</span><strong>{{ formatNumber(inReturn()) }}</strong>
+  </article>
+  <article>
+    <span>Devueltos</span><strong>{{ formatNumber(returned()) }}</strong>
+  </article>
+</section>

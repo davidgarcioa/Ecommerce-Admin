@@ -1,0 +1,44 @@
+<div class="office-page">
+  <app-office-header
+    [loading]="loading()"
+    [lastUpdated]="lastUpdated()"
+    (refresh)="refresh()"
+    (openPending)="openPending()"
+  />
+
+  <app-office-summary
+    [total]="totalOrders()"
+    [pending]="pendingOrders()"
+    [confirmed]="confirmedOrders()"
+    [pendingPayment]="ordersPendingPayment()"
+    [novelties]="ordersWithNovelty()"
+    [cancelled]="cancelledOrders()"
+    [today]="todayOrders()"
+    [pendingValue]="statistics().pendingValue"
+  />
+
+  <app-office-filters
+    [search]="search()"
+    [filters]="filters()"
+    (searchChange)="applySearch($event)"
+    (filtersChange)="applyFilters($event)"
+    (clear)="clearFilters()"
+  />
+
+  @if (error(); as message) {
+    <section class="office-page__error" role="alert">
+      <strong>No fue posible cargar Oficina</strong>
+      <p>{{ message }}</p>
+      <button type="button" (click)="refresh()">Intentar nuevamente</button>
+    </section>
+  }
+
+  <app-orders-table
+    [orders]="orders()"
+    [loading]="loading()"
+    [canUpdate]="canUpdateOrders()"
+    (rowClick)="openOrder($event)"
+    (actionClick)="onAction($event)"
+    (retry)="refresh()"
+  />
+</div>

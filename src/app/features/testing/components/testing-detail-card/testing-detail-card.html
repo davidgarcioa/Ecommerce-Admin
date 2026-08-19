@@ -1,0 +1,28 @@
+<article class="testing-detail">
+  <header>
+    <p>{{ test().code }} · {{ type(test().type) }}</p>
+    <h2>{{ test().name }}</h2>
+    <span>{{ status(test().status) }} · Responsable {{ test().owner }}</span>
+  </header>
+
+  <dl>
+    <div><dt>Objetivo</dt><dd>{{ test().objective }}</dd></div>
+    <div><dt>Hipotesis</dt><dd>{{ test().hypothesis }}</dd></div>
+    <div><dt>Asociacion</dt><dd>{{ test().association.label }}</dd></div>
+    <div><dt>Fecha inicial</dt><dd>{{ date(test().startDate) }}</dd></div>
+    <div><dt>Fecha final</dt><dd>{{ date(test().endDate) }}</dd></div>
+    <div><dt>Resultado</dt><dd>{{ test().resultSummary || 'Sin resultado registrado' }}</dd></div>
+    <div><dt>Ganador</dt><dd>{{ test().winner || 'Sin ganador marcado' }}</dd></div>
+    <div><dt>Actualizacion</dt><dd>{{ date(test().updatedAt) }}</dd></div>
+  </dl>
+
+  <div class="testing-detail__actions">
+    <button type="button" (click)="edit.emit()" [disabled]="!canUpdate()">Editar</button>
+    @if (test().status === 'archived') {
+      <button type="button" (click)="restore.emit()" [disabled]="!canArchive()">Restaurar</button>
+    } @else {
+      <button type="button" (click)="archive.emit()" [disabled]="!canArchive()">Archivar</button>
+    }
+    <button type="button" class="testing-detail__danger" (click)="deleteTest.emit()" [disabled]="!canDelete()">Eliminar</button>
+  </div>
+</article>

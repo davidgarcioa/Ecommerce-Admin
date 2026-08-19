@@ -1,0 +1,35 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.expenses-page {
+  display: grid;
+  gap: $space-6;
+  min-width: 0;
+
+  &__error {
+    align-items: center;
+    background: var(--color-card);
+    border: 1px solid color-mix(in srgb, var(--color-error) 45%, var(--color-border));
+    border-radius: $radius-lg;
+    color: var(--color-text-primary);
+    display: flex;
+    gap: $space-4;
+    justify-content: space-between;
+    padding: $space-4;
+
+    p {
+      color: var(--color-text-secondary);
+      margin: $space-1 0 0;
+    }
+
+    button {
+      background: var(--color-card-elevated);
+      border: 1px solid var(--color-border);
+      border-radius: $radius-md;
+      color: var(--color-text-primary);
+      cursor: pointer;
+      font: inherit;
+      min-height: 2.5rem;
+      padding: 0 $space-4;
+    }
+  }
+}

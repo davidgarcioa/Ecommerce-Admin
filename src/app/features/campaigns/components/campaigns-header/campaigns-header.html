@@ -1,0 +1,50 @@
+<section class="campaigns-header">
+  <div class="campaigns-header__copy">
+    <span class="campaigns-header__eyebrow">Meta Ads Control</span>
+    <h2>Campañas publicitarias</h2>
+    <p>Seguimiento de pauta, conjuntos, anuncios y productos vendidos.</p>
+
+    <div class="campaigns-header__meta" aria-label="Estado de sincronización">
+      <span>
+        <span class="material-symbols-rounded" aria-hidden="true">storefront</span>
+        {{ adAccountName() }}
+      </span>
+      <span>
+        <span class="material-symbols-rounded" aria-hidden="true">date_range</span>
+        {{ periodLabel() }}
+      </span>
+      <span>
+        <span class="material-symbols-rounded" aria-hidden="true">sync</span>
+        {{ formatLastSync(lastSynchronization()) }}
+      </span>
+    </div>
+  </div>
+
+  <div class="campaigns-header__actions" aria-label="Acciones de campañas">
+    <button
+      type="button"
+      class="campaigns-header__action campaigns-header__action--sync"
+      [disabled]="loading()"
+      (click)="synchronize.emit()"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">sync</span>
+      Sincronizar
+    </button>
+
+    <button type="button" class="campaigns-header__action" (click)="createCampaign.emit()">
+      <span class="material-symbols-rounded" aria-hidden="true">add</span>
+      Crear campaña
+    </button>
+
+    <button
+      type="button"
+      class="campaigns-header__action campaigns-header__action--filter"
+      [class.campaigns-header__action--active]="filtersOpen()"
+      [attr.aria-expanded]="filtersOpen()"
+      (click)="toggleFilters.emit()"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+      Filtros
+    </button>
+  </div>
+</section>

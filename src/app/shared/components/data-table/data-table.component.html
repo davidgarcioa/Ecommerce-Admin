@@ -1,0 +1,235 @@
+<section class="data-table" [class.data-table--compact]="compact()">
+  <app-table-toolbar
+    [searchable]="searchable()"
+    [searchTerm]="searchTerm()"
+    [filterPanelVisible]="filterPanelVisible()"
+    [activeFilterCount]="activeFilterCount()"
+    [exportEnabled]="exportEnabled()"
+    [columnSelectorEnabled]="columnSelectorEnabled()"
+    [totalResults]="filteredData().length"
+    [selectedCount]="selectedRows().length"
+    (searchChange)="onSearchChange($event)"
+    (clearSearch)="onClearSearch()"
+    (toggleFilters)="onToggleFilters()"
+    (exportTable)="onExport()"
+    (toggleColumnSelector)="onToggleColumnSelector()"
+  />
+
+  @if (columnSelectorVisible()) {
+    <app-table-column-selector
+      [columns]="columns()"
+      [visibleColumnKeys]="visibleColumnKeysForSelector()"
+      (visibleColumnKeysChange)="onVisibleColumnKeysChange($event)"
+    />
+  }
+
+  @if (filterPanelVisible()) {
+    <div
+      class="data-table__filters"
+      role="region"
+      aria-label="Filtros de tabla"
+      (keydown.escape)="onCloseFilterMenus()"
+    >
+      @if (activeFilters().length > 0) {
+        <div class="data-table__filter-grid">
+          @for (filter of activeFilters(); track filter.key) {
+            <label class="data-table__filter-field">
+              <span>{{ filter.label }}</span>
+
+              @if (filter.type === 'select' || filter.type === 'status' || filter.type === 'boolean') {
+                <div class="data-table__select">
+                  <button
+                    class="data-table__select-trigger"
+                    type="button"
+                    [attr.aria-expanded]="isFilterMenuOpen(filter)"
+                    (click)="onToggleFilterMenu(filter)"
+                  >
+                    <span>{{ getFilterDisplayValue(filter) }}</span>
+                    <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+                  </button>
+
+                  @if (isFilterMenuOpen(filter)) {
+                    <div class="data-table__select-menu" role="listbox">
+                      <button
+                        type="button"
+                        role="option"
+                        [class.data-table__select-option--selected]="isFilterOptionSelected(filter, null)"
+                        [attr.aria-selected]="isFilterOptionSelected(filter, null)"
+                        (click)="onFilterOptionSelect(filter, null)"
+                      >
+                        Todos
+                      </button>
+
+                      @for (option of getFilterOptions(filter); track option.value) {
+                        <button
+                          type="button"
+                          role="option"
+                          [class.data-table__select-option--selected]="isFilterOptionSelected(filter, option.value)"
+                          [attr.aria-selected]="isFilterOptionSelected(filter, option.value)"
+                          (click)="onFilterOptionSelect(filter, option.value)"
+                        >
+                          {{ option.label }}
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              } @else if (filter.type === 'number-range') {
+                <div class="data-table__range">
+                  <input
+                    type="number"
+                    placeholder="Mín."
+                    [value]="$any(filter.value)?.[0] ?? ''"
+                    (input)="onRangeFilterValueChange(filter, 'from', $any($event.target).value)"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Máx."
+                    [value]="$any(filter.value)?.[1] ?? ''"
+                    (input)="onRangeFilterValueChange(filter, 'to', $any($event.target).value)"
+                  />
+                </div>
+              } @else if (filter.type === 'date-range') {
+                <div class="data-table__range">
+                  <input
+                    type="date"
+                    [value]="$any(filter.value)?.[0] ?? ''"
+                    (input)="onRangeFilterValueChange(filter, 'from', $any($event.target).value)"
+                  />
+                  <input
+                    type="date"
+                    [value]="$any(filter.value)?.[1] ?? ''"
+                    (input)="onRangeFilterValueChange(filter, 'to', $any($event.target).value)"
+                  />
+                </div>
+              } @else {
+                <input
+                  type="text"
+                  [value]="filter.value ?? ''"
+                  (input)="onFilterValueChange(filter, $any($event.target).value)"
+                />
+              }
+            </label>
+          }
+        </div>
+        <button class="data-table__clear-filters" type="button" (click)="onClearFilters()">
+          Limpiar filtros
+        </button>
+      } @else {
+        <p>No hay filtros configurados para esta tabla.</p>
+      }
+    </div>
+  }
+
+  <div class="data-table__viewport">
+    <table>
+      <thead [class.data-table__sticky-header]="stickyHeader()">
+        <tr>
+          @if (selectable()) {
+            <th scope="col" class="data-table__selection-cell">
+              <input
+                type="checkbox"
+                aria-label="Seleccionar registros visibles"
+                [checked]="allVisibleSelected()"
+                (change)="onToggleAllVisible($event)"
+              />
+            </th>
+          }
+
+          @for (column of visibleColumns(); track column.key) {
+            <th
+              scope="col"
+              [class]="column.headerClass ?? ''"
+              [style.width]="column.width ?? null"
+              [style.min-width]="column.minWidth ?? null"
+              [attr.aria-sort]="getAriaSort(column)"
+            >
+              <button
+                type="button"
+                [disabled]="!sortable() || !column.sortable"
+                (click)="onSort(column)"
+              >
+                {{ column.label }}
+                @if (sort().key === column.key && sort().direction) {
+                  <span class="material-symbols-rounded" aria-hidden="true">
+                    {{ sort().direction === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
+                  </span>
+                }
+              </button>
+            </th>
+          }
+
+          @if (rowActions().length > 0) {
+            <th scope="col" class="data-table__actions-header">Acciones</th>
+          }
+        </tr>
+      </thead>
+
+      @if (loading()) {
+        <app-table-skeleton [rows]="currentPageSize()" [columns]="visibleColumns().length + 1" />
+      } @else {
+        <tbody>
+          @for (row of pagedData(); track row[rowIdKey()]) {
+            <tr [class.data-table__row--selected]="isRowSelected(row)" (click)="onRowClick(row)">
+              @if (selectable()) {
+                <td class="data-table__selection-cell">
+                  <input
+                    type="checkbox"
+                    [attr.aria-label]="'Seleccionar fila ' + row[rowIdKey()]"
+                    [checked]="isRowSelected(row)"
+                    (click)="onToggleRow(row, $event)"
+                  />
+                </td>
+              }
+
+              @for (column of visibleColumns(); track column.key) {
+                <td [class]="'data-table__cell--' + column.align + ' ' + (column.cellClass ?? '')">
+                  @if (column.type === 'status') {
+                    <span [class]="'data-table__status data-table__status--' + getStatusTone(getCellValue(row, column))">
+                      {{ getCellValue(row, column) }}
+                    </span>
+                  } @else {
+                    <span [title]="getCellValue(row, column)">{{ getCellValue(row, column) }}</span>
+                  }
+                </td>
+              }
+
+              @if (rowActions().length > 0) {
+                <td class="data-table__actions-cell" (click)="$event.stopPropagation()">
+                  <app-table-row-actions
+                    [row]="row"
+                    [actions]="rowActions()"
+                    (actionClick)="onActionClick($event)"
+                  />
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      }
+    </table>
+  </div>
+
+  @if (error(); as errorMessage) {
+    <app-table-error-state [message]="errorMessage" (retry)="retry.emit()" />
+  } @else if (!loading() && data().length === 0) {
+    <app-table-empty-state [title]="emptyTitle()" [description]="emptyDescription()" />
+  } @else if (!loading() && filteredData().length === 0) {
+    <app-table-empty-state
+      title="Sin resultados"
+      description="No hay registros para la búsqueda o filtros actuales."
+      actionLabel="Limpiar búsqueda"
+      (action)="onClearSearch()"
+    />
+  }
+
+  @if (pageable()) {
+    <app-table-pagination
+      [pageIndex]="pageIndex()"
+      [pageSize]="currentPageSize()"
+      [totalItems]="filteredData().length"
+      [pageSizeOptions]="pageSizeOptions()"
+      (pageChange)="onPageChange($event)"
+    />
+  }
+</section>

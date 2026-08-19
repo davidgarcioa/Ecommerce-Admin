@@ -1,0 +1,43 @@
+<section class="labels-page" aria-labelledby="labels-title">
+  <app-labels-header
+    [loading]="loading()"
+    [lastUpdated]="lastUpdated()"
+    [canCreate]="canCreate()"
+    (create)="create()"
+    (refresh)="refresh()"
+  />
+
+  <app-labels-summary
+    [total]="totalTags()"
+    [active]="activeTags()"
+    [archived]="archivedTags()"
+    [used]="usedTags()"
+    [unused]="unusedTags()"
+    [associations]="totalAssociations()"
+  />
+
+  <app-labels-filters
+    [filters]="filters()"
+    (applyFilters)="applyFilters($event)"
+    (clear)="clearFilters()"
+  />
+
+  <app-data-table
+    [data]="tags()"
+    [columns]="columns()"
+    [loading]="loading()"
+    [error]="error()"
+    rowIdKey="id"
+    [selectable]="true"
+    [rowActions]="rowActions()"
+    [exportEnabled]="true"
+    [columnSelectorEnabled]="true"
+    [preferencesKey]="preferencesKey"
+    emptyTitle="Sin etiquetas"
+    emptyDescription="Crea una etiqueta para clasificar la operacion de forma reutilizable."
+    (searchChange)="applySearch($event)"
+    (retry)="refresh()"
+    (rowClick)="openTag($event)"
+    (actionClick)="onAction($event)"
+  />
+</section>

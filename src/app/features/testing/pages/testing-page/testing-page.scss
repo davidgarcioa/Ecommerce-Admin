@@ -1,0 +1,8 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.testing-page {
+  display: grid;
+  gap: $space-6;
+  min-width: 0;
+  overflow: hidden;
+}

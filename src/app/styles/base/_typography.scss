@@ -1,0 +1,32 @@
+@use '../abstracts/variables' as *;
+
+h1,
+h2,
+h3,
+p {
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--color-text-primary);
+  font-weight: $font-weight-semibold;
+}
+
+p {
+  color: var(--color-text-secondary);
+}
+
+.material-symbols-rounded {
+  font-family: 'Material Symbols Rounded';
+  font-feature-settings: 'liga';
+  font-size: 1.25rem;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+}

@@ -1,0 +1,62 @@
+<div
+  class="import-detail"
+  role="presentation"
+  tabindex="-1"
+  (click)="close.emit()"
+  (keydown)="onKeydown($event)"
+>
+  <aside
+    class="import-detail__panel"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="import-detail-title"
+    (click)="$event.stopPropagation()"
+  >
+    <header>
+      <div>
+        <span>Detalle de importación</span>
+        <h3 id="import-detail-title">{{ record().id }}</h3>
+        <p>{{ record().typeName }} · {{ record().status }}</p>
+      </div>
+      <button type="button" (click)="close.emit()">Cerrar</button>
+    </header>
+    <dl>
+      <div>
+        <dt>Archivo</dt>
+        <dd>{{ record().fileName }}</dd>
+      </div>
+      <div>
+        <dt>Tamaño</dt>
+        <dd>{{ record().fileSize }}</dd>
+      </div>
+      <div>
+        <dt>Hoja</dt>
+        <dd>{{ record().sheetName }}</dd>
+      </div>
+      <div>
+        <dt>Procesados</dt>
+        <dd>{{ record().processedRows }}</dd>
+      </div>
+      <div>
+        <dt>Exitosos</dt>
+        <dd>{{ record().successfulRows }}</dd>
+      </div>
+      <div>
+        <dt>Errores</dt>
+        <dd>{{ record().errorCount }}</dd>
+      </div>
+      <div>
+        <dt>Advertencias</dt>
+        <dd>{{ record().warningCount }}</dd>
+      </div>
+      <div>
+        <dt>Columnas mapeadas</dt>
+        <dd>{{ record().mappedColumns }}</dd>
+      </div>
+    </dl>
+    <footer>
+      <button type="button" (click)="retry.emit()">Reintentar</button>
+      <button type="button" (click)="delete.emit(record().id)">Eliminar</button>
+    </footer>
+  </aside>
+</div>

@@ -1,0 +1,39 @@
+<section class="settings-page" aria-labelledby="user-detail-title">
+  <header class="settings-page__header">
+    <div>
+      <h2 id="user-detail-title" class="settings-page__title">Detalle de usuario</h2>
+      <p class="settings-page__description">Información operativa y permisos asignados.</p>
+    </div>
+    <div class="settings-page__actions">
+      <a class="settings-button" routerLink="/configuracion/usuarios">Volver</a>
+      <button type="button" class="settings-button settings-button--primary" (click)="edit()">Editar</button>
+    </div>
+  </header>
+
+  @if (user(); as selectedUser) {
+    <article class="settings-card">
+      <div class="settings-grid">
+        <div><p class="settings-muted">Nombre</p><strong>{{ selectedUser.firstName }} {{ selectedUser.lastName }}</strong></div>
+        <div><p class="settings-muted">Correo</p><strong>{{ selectedUser.email }}</strong></div>
+        <div><p class="settings-muted">Alias</p><strong>{{ selectedUser.username }}</strong></div>
+        <div><p class="settings-muted">Acceso</p><strong>{{ selectedUser.active ? 'Aprobado' : 'Pendiente' }}</strong></div>
+        <div><p class="settings-muted">Verificación</p><strong>{{ selectedUser.emailVerified ? 'Correo verificado' : 'Correo pendiente' }}</strong></div>
+        <div><p class="settings-muted">Rol</p><strong>{{ selectedUser.roleId }}</strong></div>
+        <div><p class="settings-muted">Teléfono</p><strong>{{ selectedUser.phone || 'Sin teléfono' }}</strong></div>
+      </div>
+
+      <div>
+        <p class="settings-muted">Permisos asignados</p>
+        <div class="settings-permissions">
+          @for (permission of selectedUser.permissions; track permission) {
+            <span>{{ permission }}</span>
+          } @empty {
+            <span>Sin permisos directos.</span>
+          }
+        </div>
+      </div>
+    </article>
+  } @else {
+    <article class="settings-card"><p class="settings-muted">No se encontro el usuario solicitado.</p></article>
+  }
+</section>

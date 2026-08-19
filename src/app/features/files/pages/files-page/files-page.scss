@@ -1,0 +1,168 @@
+@use '../../../../styles/abstracts/variables' as *;
+@use '../../../../styles/abstracts/mixins' as *;
+
+.files-page {
+  @include fade-in;
+
+  display: grid;
+  gap: $space-5;
+  min-width: 0;
+
+  &__tabs {
+    display: flex;
+    gap: $space-2;
+  }
+
+  &__tabs button,
+  &__primary,
+  &__secondary {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    font-weight: 650;
+    min-height: 2.5rem;
+    padding: 0 $space-3;
+    transition:
+      background-color $transition-base,
+      border-color $transition-base,
+      color $transition-base,
+      transform $transition-base;
+  }
+
+  &__tabs button {
+    align-items: center;
+    display: inline-flex;
+    background: var(--color-card);
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+  }
+
+  &__tabs button:hover {
+    background: var(--color-card-elevated);
+    border-color: var(--color-separator);
+    transform: translateY(-1px);
+  }
+
+  &__primary {
+    border-color: rgb(59 130 246 / 58%);
+  }
+
+  &__tabs button.files-page__tab--active {
+    background: rgb(59 130 246 / 18%);
+    border-color: rgb(59 130 246 / 82%);
+    color: var(--color-text-primary);
+    box-shadow: inset 0 0 0 1px rgb(59 130 246 / 18%);
+  }
+
+  &__tabs button.files-page__tab--active:hover {
+    background: rgb(59 130 246 / 24%);
+    border-color: rgb(59 130 246);
+    color: var(--color-text-primary);
+  }
+
+  &__import-hero {
+    align-items: center;
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-lg;
+    display: grid;
+    gap: $space-4;
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-height: 8rem;
+    overflow: hidden;
+    padding: $space-5;
+    position: relative;
+  }
+
+  &__import-hero::before {
+    background: rgb(59 130 246);
+    content: '';
+    height: calc(100% - #{$space-6});
+    left: 0;
+    opacity: 0.72;
+    position: absolute;
+    top: $space-3;
+    width: 2px;
+  }
+
+  &__import-hero h3,
+  &__import-hero p {
+    margin: 0;
+  }
+
+  &__import-hero h3 {
+    font-size: clamp(1.5rem, 2vw, 2.2rem);
+    line-height: 1.05;
+  }
+
+  &__import-hero p {
+    color: var(--color-text-secondary);
+    max-width: 44rem;
+  }
+
+  &__eyebrow {
+    color: rgb(59 130 246);
+    display: inline-flex;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-bottom: $space-2;
+    text-transform: uppercase;
+  }
+
+  &__detection {
+    background: rgb(5 5 5 / 64%);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-lg;
+    display: grid;
+    gap: $space-1;
+    min-width: 13rem;
+    padding: $space-4;
+
+    span,
+    small {
+      color: var(--color-text-secondary);
+    }
+
+    strong {
+      color: var(--color-text-primary);
+      font-size: 1.15rem;
+    }
+
+    button {
+      background: transparent;
+      border: 0;
+      color: rgb(59 130 246);
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+      justify-self: start;
+      padding: $space-1 0 0;
+    }
+  }
+
+  &__detection--ready {
+    border-color: rgb(59 130 246 / 42%);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+  }
+
+  &__secondary {
+    color: var(--color-text-secondary);
+  }
+
+  @media (max-width: 900px) {
+    &__import-hero {
+      grid-template-columns: 1fr;
+    }
+
+    &__detection {
+      min-width: 0;
+    }
+  }
+}

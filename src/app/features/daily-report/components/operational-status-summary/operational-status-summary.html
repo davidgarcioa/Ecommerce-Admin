@@ -1,0 +1,47 @@
+<section
+  class="status-summary"
+  aria-labelledby="status-summary-title"
+  appAnimateOnView
+  [appAnimateOnViewMinVisibleRatio]="0.18"
+>
+  <header class="status-summary__header">
+    <div>
+      <div class="status-summary__title-row">
+        <h3 id="status-summary-title">Resumen operativo</h3>
+
+        <aside aria-label="Total de órdenes operativas">
+          <span>Total</span>
+          <strong>{{ totalCount() }}</strong>
+        </aside>
+      </div>
+
+      <p>Flujo de órdenes por estado.</p>
+    </div>
+  </header>
+
+  <div class="status-summary__grid">
+    @for (item of statusItems(); track item.status) {
+      <article class="status-card" [class]="'status-card status-card--' + item.tone">
+        <span class="material-symbols-rounded status-card__icon" aria-hidden="true">{{ item.icon }}</span>
+
+        <div class="status-card__content">
+          <strong>{{ item.count }}</strong>
+          <span>{{ item.shortLabel }}</span>
+        </div>
+
+        <p>{{ item.percentageLabel }}</p>
+
+        <span class="status-card__bar" [attr.title]="item.status + ' · ' + item.percentageLabel">
+          <i [style.width.%]="item.percentage" [style.background]="item.accent"></i>
+        </span>
+      </article>
+    }
+  </div>
+
+  @if (primaryStatus(); as leader) {
+    <footer class="status-summary__footer">
+      <span [style.background]="leader.accent"></span>
+      <p>Mayor concentración: {{ leader.shortLabel }} · {{ leader.percentageLabel }}</p>
+    </footer>
+  }
+</section>

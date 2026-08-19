@@ -1,0 +1,8 @@
+<section class="table-state" aria-live="polite">
+  <span class="material-symbols-rounded" aria-hidden="true">inbox</span>
+  <h3>{{ title() }}</h3>
+  <p>{{ description() }}</p>
+  @if (actionLabel(); as label) {
+    <button type="button" (click)="action.emit()">{{ label }}</button>
+  }
+</section>

@@ -1,0 +1,28 @@
+<div
+  class="template-panel"
+  role="presentation"
+  tabindex="-1"
+  (click)="close.emit()"
+  (keydown)="onKeydown($event)"
+>
+  <aside
+    class="template-panel__content"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="templates-title"
+    (click)="$event.stopPropagation()"
+  >
+    <header>
+      <h3 id="templates-title">Plantillas de importación</h3>
+      <button type="button" (click)="close.emit()">Cerrar</button>
+    </header>
+    @for (template of templates(); track template.id) {
+      <article>
+        <strong>{{ template.name }}</strong>
+        <p>{{ template.description }}</p>
+        <small>Obligatorias: {{ template.requiredColumns.join(', ') }}</small>
+        <button type="button" (click)="download.emit(template.id)">Descargar CSV</button>
+      </article>
+    }
+  </aside>
+</div>

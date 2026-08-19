@@ -1,0 +1,18 @@
+<div class="admin-layout" [class.admin-layout--collapsed]="isSidebarCollapsed()">
+  <app-sidebar [collapsed]="isSidebarCollapsed()" (toggleSidebar)="toggleSidebar()" />
+
+  <div class="admin-layout__workspace">
+    <app-topbar (toggleSidebar)="toggleSidebar()" />
+
+    <main class="admin-layout__content">
+      <app-page-container>
+        <router-outlet />
+      </app-page-container>
+    </main>
+
+    <footer class="admin-layout__footer">
+      <span>Ecommerce Control Center</span>
+      <span>Arquitectura administrativa inicial</span>
+    </footer>
+  </div>
+</div>

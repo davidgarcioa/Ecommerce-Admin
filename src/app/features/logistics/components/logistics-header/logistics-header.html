@@ -1,0 +1,25 @@
+<header class="logistics-header">
+  <div>
+    <p>Torre operativa</p>
+    <h1>Torre Logística</h1>
+    <span>Centraliza despachos, guías, entregas y devoluciones conectadas a pedidos reales.</span>
+    @if (lastUpdated(); as date) {
+      <small>Actualizado {{ date | date: 'dd/MM/yyyy HH:mm' }}</small>
+    }
+  </div>
+
+  <div class="logistics-header__actions">
+    <button type="button" [disabled]="loading()" (click)="openPending.emit()">
+      <span class="material-symbols-rounded" aria-hidden="true">pending_actions</span>
+      Pendientes
+    </button>
+    <button type="button" [disabled]="loading()" (click)="openIncidents.emit()">
+      <span class="material-symbols-rounded" aria-hidden="true">report</span>
+      Incidencias {{ incidentCount() }}
+    </button>
+    <button type="button" [disabled]="loading()" (click)="refresh.emit()">
+      <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
+      Actualizar
+    </button>
+  </div>
+</header>

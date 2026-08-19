@@ -1,0 +1,25 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.label-detail-page {
+  display: grid;
+  gap: $space-5;
+  max-width: 58rem;
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  header p,
+  &__empty {
+    color: var(--color-text-secondary);
+    font-size: $font-size-sm;
+  }
+
+  &__error {
+    border: 1px solid var(--color-error);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    padding: $space-3;
+  }
+}

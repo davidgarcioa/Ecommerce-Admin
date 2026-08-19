@@ -1,0 +1,28 @@
+<div class="tracking-detail-page">
+  <button type="button" class="tracking-detail-page__back" (click)="back()">
+    <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+    Volver
+  </button>
+
+  @if (loading() || searching()) {
+    <section class="tracking-detail-page__state" aria-live="polite">Cargando rastreo...</section>
+  } @else if (error(); as message) {
+    <section class="tracking-detail-page__state" role="alert">{{ message }}</section>
+  } @else if (selected(); as item) {
+    <app-tracking-result-summary
+      [result]="item"
+      [canViewOrder]="canViewOrder()"
+      [canViewLogistics]="canViewLogistics()"
+      (copyOrder)="copy($event)"
+      (copyTracking)="copy($event)"
+      (openOffice)="openOffice($event)"
+      (openLogistics)="openLogistics($event)"
+    />
+    <app-tracking-info-cards [result]="item" />
+    <app-tracking-timeline [events]="item.timeline" />
+  } @else {
+    <section class="tracking-detail-page__state">
+      No encontramos resultados con los datos ingresados.
+    </section>
+  }
+</div>

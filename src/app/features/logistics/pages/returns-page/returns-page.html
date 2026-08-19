@@ -1,0 +1,29 @@
+<div class="resource-page">
+  <button type="button" (click)="back()">Volver</button>
+  <header>
+    <p>Torre Logística</p>
+    <h1>Devoluciones</h1>
+    <span
+      >El backend expone devoluciones como recurso genérico. Los pedidos devueltos también se ven
+      por estado.</span
+    >
+  </header>
+
+  @if (error(); as message) {
+    <section role="alert">{{ message }}</section>
+  } @else if (loading()) {
+    <section>Cargando devoluciones...</section>
+  } @else if (returns().length === 0) {
+    <section>No hay registros de devoluciones independientes.</section>
+  } @else {
+    <section>
+      @for (item of returns(); track item.id) {
+        <article>
+          <strong>{{ item.name }}</strong>
+          <span>{{ item.description || 'Sin descripción' }}</span>
+          <button type="button" (click)="openReturn(item.id)">Ver detalle</button>
+        </article>
+      }
+    </section>
+  }
+</div>

@@ -1,0 +1,51 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.template-panel {
+  background: rgb(0 0 0 / 62%);
+  inset: 0;
+  position: fixed;
+  z-index: 45;
+
+  &__content {
+    background: var(--color-bg-secondary);
+    border-left: 1px solid var(--color-border);
+    display: grid;
+    gap: $space-4;
+    height: 100%;
+    margin-left: auto;
+    max-width: 34rem;
+    overflow-y: auto;
+    padding: $space-6;
+    width: min(34rem, 100%);
+  }
+
+  header,
+  article {
+    display: grid;
+    gap: $space-2;
+  }
+
+  article {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    padding: $space-4;
+  }
+
+  p,
+  small {
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  button {
+    background: var(--color-card-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    min-height: 2.5rem;
+    padding: 0 $space-3;
+    width: fit-content;
+  }
+}

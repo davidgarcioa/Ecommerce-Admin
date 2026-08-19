@@ -1,0 +1,51 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.import-result {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: $radius-md;
+  display: grid;
+  gap: $space-4;
+  padding: $space-5;
+
+  h3,
+  p,
+  dl,
+  dd {
+    margin: 0;
+  }
+
+  p,
+  dt {
+    color: var(--color-text-secondary);
+  }
+
+  dl {
+    display: grid;
+    gap: $space-3;
+    grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr));
+  }
+
+  footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+  }
+
+  button {
+    background: var(--color-card-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    min-height: 2.5rem;
+    padding: 0 $space-3;
+  }
+
+  .import-result__finish {
+    background: color-mix(in srgb, #3b82f6 18%, var(--color-card-elevated));
+    border-color: color-mix(in srgb, #3b82f6 70%, var(--color-border));
+    color: var(--color-text-primary);
+    font-weight: 700;
+  }
+}

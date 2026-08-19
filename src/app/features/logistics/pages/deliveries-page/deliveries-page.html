@@ -1,0 +1,28 @@
+<div class="resource-page">
+  <button type="button" (click)="back()">Volver</button>
+  <header>
+    <p>Torre Logística</p>
+    <h1>Entregas</h1>
+    <span
+      >El backend expone entregas como recurso genérico; los estados operativos se gestionan en
+      pedidos.</span
+    >
+  </header>
+
+  @if (error(); as message) {
+    <section role="alert">{{ message }}</section>
+  } @else if (loading()) {
+    <section>Cargando entregas...</section>
+  } @else if (deliveries().length === 0) {
+    <section>No hay registros de entregas independientes.</section>
+  } @else {
+    <section>
+      @for (delivery of deliveries(); track delivery.id) {
+        <article>
+          <strong>{{ delivery.name }}</strong>
+          <span>{{ delivery.description || 'Sin descripción' }}</span>
+        </article>
+      }
+    </section>
+  }
+</div>

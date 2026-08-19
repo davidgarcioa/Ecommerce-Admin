@@ -1,0 +1,26 @@
+<section class="office-summary" aria-label="Resumen de Oficina">
+  <article>
+    <span>Total</span><strong>{{ formatNumber(total()) }}</strong>
+  </article>
+  <article>
+    <span>Nuevos</span><strong>{{ formatNumber(pending()) }}</strong>
+  </article>
+  <article>
+    <span>Confirmados</span><strong>{{ formatNumber(confirmed()) }}</strong>
+  </article>
+  <article>
+    <span>Pago pendiente</span><strong>{{ formatNumber(pendingPayment()) }}</strong>
+  </article>
+  <article>
+    <span>Novedades</span><strong>{{ formatNumber(novelties()) }}</strong>
+  </article>
+  <article>
+    <span>Cancelados</span><strong>{{ formatNumber(cancelled()) }}</strong>
+  </article>
+  <article>
+    <span>Hoy</span><strong>{{ formatNumber(today()) }}</strong>
+  </article>
+  <article>
+    <span>Valor pendiente</span><strong>{{ formatCurrency(pendingValue()) }}</strong>
+  </article>
+</section>

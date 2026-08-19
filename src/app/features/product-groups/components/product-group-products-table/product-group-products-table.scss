@@ -1,0 +1,16 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.product-group-products-table {
+  display: grid;
+  gap: $space-4;
+  min-width: 0;
+
+  h2 {
+    margin: 0 0 $space-2;
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+}

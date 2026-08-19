@@ -1,0 +1,47 @@
+<article class="label-detail">
+  <header>
+    <span class="label-detail__swatch" [style.background]="color(tag().color)" aria-hidden="true"></span>
+    <div>
+      <p>{{ tag().code }}</p>
+      <h2>{{ tag().name }}</h2>
+      <span>{{ statusLabel(tag().status) }} · {{ tag().usageCount }} usos registrados</span>
+    </div>
+  </header>
+
+  <dl>
+    <div>
+      <dt>Descripcion</dt>
+      <dd>{{ tag().description || 'Sin descripcion' }}</dd>
+    </div>
+    <div>
+      <dt>Activa</dt>
+      <dd>{{ tag().active ? 'Si' : 'No' }}</dd>
+    </div>
+    <div>
+      <dt>Creada</dt>
+      <dd>{{ formatDate(tag().createdAt) }}</dd>
+    </div>
+    <div>
+      <dt>Actualizada</dt>
+      <dd>{{ formatDate(tag().updatedAt) }}</dd>
+    </div>
+    @if (tag().archivedAt) {
+      <div>
+        <dt>Archivada</dt>
+        <dd>{{ formatDate(tag().archivedAt ?? '') }}</dd>
+      </div>
+    }
+  </dl>
+
+  <div class="label-detail__actions">
+    <button type="button" (click)="edit.emit()" [disabled]="!canUpdate()">Editar</button>
+    @if (tag().status === 'archived') {
+      <button type="button" (click)="restore.emit()" [disabled]="!canArchive()">Restaurar</button>
+    } @else {
+      <button type="button" (click)="archive.emit()" [disabled]="!canArchive()">Archivar</button>
+    }
+    <button type="button" class="label-detail__danger" (click)="deleteTag.emit()" [disabled]="!canDelete()">
+      Eliminar
+    </button>
+  </div>
+</article>

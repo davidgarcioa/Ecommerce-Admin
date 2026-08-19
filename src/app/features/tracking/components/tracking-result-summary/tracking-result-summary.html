@@ -1,0 +1,29 @@
+<section class="tracking-result-summary">
+  <div>
+    <p>{{ result().order.orderNumber }}</p>
+    <h2>{{ deliveryStatusLabel(result().shipment.deliveryStatus) }}</h2>
+    <span>{{ result().currentStatus.description }}</span>
+    <small>Último evento {{ formatDate(result().currentStatus.date) }}</small>
+  </div>
+
+  <div class="tracking-result-summary__meta">
+    <span>Transportadora: {{ result().shipment.carrier || 'Sin transportadora' }}</span>
+    <span>Guía: {{ result().shipment.trackingNumber || 'Sin guía' }}</span>
+    <span>Pedido: {{ orderStatusLabel(result().order.orderStatus) }}</span>
+  </div>
+
+  <div class="tracking-result-summary__actions">
+    <button type="button" (click)="copyOrder.emit(result().order.orderNumber)">
+      Copiar pedido
+    </button>
+    @if (result().shipment.trackingNumber; as trackingNumber) {
+      <button type="button" (click)="copyTracking.emit(trackingNumber)">Copiar guía</button>
+    }
+    @if (canViewOrder()) {
+      <button type="button" (click)="openOffice.emit(result().id)">Oficina</button>
+    }
+    @if (canViewLogistics()) {
+      <button type="button" (click)="openLogistics.emit(result().id)">Torre Logística</button>
+    }
+  </div>
+</section>

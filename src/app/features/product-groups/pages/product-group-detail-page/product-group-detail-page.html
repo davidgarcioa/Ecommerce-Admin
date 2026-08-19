@@ -1,0 +1,66 @@
+<div class="product-group-detail-page">
+  <button type="button" class="product-group-detail-page__back" (click)="back()">
+    <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+    Volver
+  </button>
+
+  @if (error(); as message) {
+    <section class="product-group-detail-page__state" role="alert">{{ message }}</section>
+  } @else if (loading()) {
+    <section class="product-group-detail-page__state">Cargando conjunto...</section>
+  } @else if (group(); as item) {
+    <header class="product-group-detail-page__header">
+      <div>
+        <p>{{ item.code }}</p>
+        <h1>{{ item.name }}</h1>
+        <span>{{ item.description || 'Sin descripción registrada.' }}</span>
+      </div>
+      <div class="product-group-detail-page__actions">
+        @if (canManageProducts()) {
+          <button type="button" (click)="productsPage()">Productos</button>
+        }
+        @if (canEdit()) {
+          <button type="button" (click)="edit()">Editar</button>
+        }
+        @if (canArchive() && !item.archivedAt) {
+          <button type="button" (click)="archive()">Archivar</button>
+        }
+        @if (canArchive() && item.archivedAt) {
+          <button type="button" (click)="restore()">Restaurar</button>
+        }
+      </div>
+    </header>
+
+    <section class="product-group-detail-page__meta">
+      <span>Estado: {{ item.archivedAt ? 'Archivado' : item.active ? 'Activo' : 'Inactivo' }}</span>
+      <span>Destacado: {{ item.featured ? 'Sí' : 'No' }}</span>
+      <span>Orden: {{ item.sortOrder }}</span>
+      <span>Creado: {{ formatDate(item.createdAt) }}</span>
+      <span>Actualizado: {{ formatDate(item.updatedAt) }}</span>
+    </section>
+
+    <app-product-group-metrics [group]="item" [profitability]="profitability()" />
+
+    <app-product-group-products-table
+      [products]="products()"
+      [loading]="loading()"
+      [canManage]="false"
+    />
+
+    <section class="product-group-detail-page__history">
+      <h2>Actividad</h2>
+      @if (history().length === 0) {
+        <p>No hay actividad registrada.</p>
+      } @else {
+        <ol>
+          @for (record of history(); track record.id) {
+            <li>
+              <strong>{{ record.action }}</strong>
+              <span>{{ formatDate(record.createdAt) }}</span>
+            </li>
+          }
+        </ol>
+      }
+    </section>
+  }
+</div>

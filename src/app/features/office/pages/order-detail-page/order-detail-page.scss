@@ -1,0 +1,65 @@
+@use '../../../../styles/abstracts/variables' as *;
+@use '../../../../styles/abstracts/mixins' as *;
+
+.order-detail-page {
+  @include fade-in;
+
+  display: grid;
+  gap: $space-6;
+  min-width: 0;
+
+  button {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    min-height: 2.5rem;
+    padding: 0 $space-4;
+  }
+
+  &__back {
+    align-items: center;
+    display: inline-flex;
+    gap: $space-2;
+    justify-self: start;
+  }
+
+  header {
+    align-items: start;
+    display: flex;
+    gap: $space-4;
+    justify-content: space-between;
+  }
+
+  h1 {
+    margin: $space-2 0;
+  }
+
+  p,
+  span {
+    color: var(--color-text-secondary);
+  }
+
+  &__actions,
+  &__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-3;
+    justify-content: end;
+  }
+
+  &__badges span,
+  &__state {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    padding: $space-3 $space-4;
+  }
+}
+
+@media (max-width: 840px) {
+  .order-detail-page header {
+    display: grid;
+  }
+}

@@ -1,0 +1,72 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.associate-products-dialog {
+  inset: 0;
+  position: fixed;
+  z-index: 40;
+
+  &__overlay {
+    background: rgb(0 0 0 / 70%);
+    border: 0;
+    inset: 0;
+    position: absolute;
+  }
+
+  &__panel {
+    background: var(--color-bg);
+    border-left: 1px solid var(--color-border);
+    display: grid;
+    gap: $space-5;
+    height: 100%;
+    margin-left: auto;
+    max-width: 58rem;
+    min-width: 0;
+    overflow: auto;
+    padding: $space-6;
+    position: relative;
+    width: min(58rem, 100vw);
+  }
+
+  header {
+    align-items: start;
+    display: flex;
+    gap: $space-4;
+    justify-content: space-between;
+
+    h2 {
+      margin: 0 0 $space-2;
+    }
+
+    p {
+      color: var(--color-text-secondary);
+      margin: 0;
+    }
+  }
+
+  label {
+    color: var(--color-text-secondary);
+    display: grid;
+    gap: $space-2;
+  }
+
+  input,
+  button {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    min-height: 2.5rem;
+    padding: 0 $space-4;
+  }
+
+  footer {
+    display: flex;
+    gap: $space-3;
+    justify-content: flex-end;
+
+    button:last-child {
+      background: var(--color-primary);
+      color: var(--color-bg);
+    }
+  }
+}

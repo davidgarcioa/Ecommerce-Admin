@@ -1,0 +1,39 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.import-types {
+  display: grid;
+  gap: $space-4;
+
+  h3,
+  p {
+    margin: 0;
+  }
+
+  p,
+  small {
+    color: var(--color-text-secondary);
+  }
+
+  &__grid {
+    display: grid;
+    gap: $space-3;
+    grid-template-columns: repeat(auto-fit, minmax(min(13rem, 100%), 1fr));
+  }
+
+  button {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    display: grid;
+    gap: $space-2;
+    min-height: 9rem;
+    padding: $space-4;
+    text-align: left;
+  }
+
+  &__card--active {
+    border-color: var(--color-separator);
+  }
+}

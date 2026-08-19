@@ -1,0 +1,49 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.tracking-result-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+  gap: $space-4;
+  border: 1px solid var(--color-border);
+  border-radius: $radius-lg;
+  padding: $space-5;
+  background: var(--color-card);
+  min-width: 0;
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  h2 {
+    color: var(--color-text-primary);
+    font-size: $font-size-xl;
+  }
+
+  p,
+  span,
+  small {
+    display: block;
+    color: var(--color-text-secondary);
+  }
+
+  &__meta,
+  &__actions {
+    display: grid;
+    gap: $space-2;
+  }
+
+  button {
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    padding: $space-2 $space-3;
+    background: var(--color-card-elevated);
+    color: var(--color-text-primary);
+  }
+}
+
+@media (max-width: 900px) {
+  .tracking-result-summary {
+    grid-template-columns: 1fr;
+  }
+}

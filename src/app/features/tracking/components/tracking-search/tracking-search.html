@@ -1,0 +1,38 @@
+<section class="tracking-search" aria-label="Buscar rastreo">
+  <div class="tracking-search__controls">
+    <label>
+      Tipo
+      <select #typeSelect [value]="type()" (change)="setType(typeSelect.value)">
+        @for (item of types; track item.id) {
+          <option [value]="item.id">{{ item.label }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="tracking-search__query">
+      Búsqueda
+      <input
+        #queryInput
+        type="search"
+        [placeholder]="currentType().placeholder"
+        [value]="value()"
+        (input)="valueChange.emit(queryInput.value)"
+        (keydown.enter)="search.emit()"
+      />
+      <small>{{ currentType().example }}</small>
+    </label>
+
+    <button type="button" [disabled]="loading()" (click)="search.emit()">Buscar</button>
+    <button type="button" [disabled]="loading()" (click)="clear.emit()">Limpiar</button>
+  </div>
+
+  @if (recentSearches().length > 0) {
+    <div class="tracking-search__recent" aria-label="Búsquedas recientes">
+      @for (item of recentSearches(); track item.searchedAt) {
+        <button type="button" (click)="recentSelected.emit(item)">
+          {{ item.valueMasked }}
+        </button>
+      }
+    </div>
+  }
+</section>

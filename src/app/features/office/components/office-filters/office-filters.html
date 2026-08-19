@@ -1,0 +1,75 @@
+<section class="office-filters" aria-label="Filtros de pedidos">
+  <label>
+    Buscar
+    <input
+      #searchInput
+      type="search"
+      placeholder="Pedido, cliente o teléfono"
+      [value]="search()"
+      (input)="searchChange.emit(searchInput.value)"
+    />
+  </label>
+
+  <label>
+    Estado
+    <select
+      #orderSelect
+      [value]="filters().orderStatus"
+      (change)="setOrderStatus(orderSelect.value)"
+    >
+      <option value="all">Todos</option>
+      @for (status of orderStatuses; track status) {
+        <option [value]="status">{{ status }}</option>
+      }
+    </select>
+  </label>
+
+  <label>
+    Pago
+    <select
+      #paymentSelect
+      [value]="filters().paymentStatus"
+      (change)="setPaymentStatus(paymentSelect.value)"
+    >
+      <option value="all">Todos</option>
+      @for (status of paymentStatuses; track status) {
+        <option [value]="status">{{ status }}</option>
+      }
+    </select>
+  </label>
+
+  <label>
+    Entrega
+    <select
+      #deliverySelect
+      [value]="filters().deliveryStatus"
+      (change)="setDeliveryStatus(deliverySelect.value)"
+    >
+      <option value="all">Todos</option>
+      @for (status of deliveryStatuses; track status) {
+        <option [value]="status">{{ status }}</option>
+      }
+    </select>
+  </label>
+
+  <label>
+    Prioridad
+    <select #urgentSelect [value]="filters().urgent" (change)="setUrgent(urgentSelect.value)">
+      <option value="all">Todas</option>
+      <option value="urgent">Urgentes</option>
+      <option value="standard">Normal</option>
+    </select>
+  </label>
+
+  <label class="office-filters__check">
+    <input
+      #pendingConfirmationInput
+      type="checkbox"
+      [checked]="filters().pendingConfirmation"
+      (change)="setPendingConfirmation(pendingConfirmationInput.checked)"
+    />
+    Pendientes de confirmación
+  </label>
+
+  <button type="button" (click)="clear.emit()">Limpiar</button>
+</section>

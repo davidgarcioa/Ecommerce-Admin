@@ -1,0 +1,165 @@
+@use '../../../../styles/abstracts/variables' as *;
+@use '../../../../styles/abstracts/mixins' as *;
+
+.campaigns-page {
+  @include fade-in;
+
+  display: grid;
+  gap: $space-6;
+  min-width: 0;
+
+  &__filters {
+    animation: campaigns-filter-enter 180ms ease both;
+    display: block;
+    margin-top: -$space-3;
+    min-width: 0;
+  }
+
+  &__toast {
+    background: var(--color-card);
+    border: 1px solid rgb(16 185 129 / 24%);
+    border-radius: $radius-md;
+    color: var(--color-text-secondary);
+    margin: 0;
+    padding: $space-3 $space-4;
+  }
+
+  &__performance {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-lg;
+    display: grid;
+    gap: $space-5;
+    min-width: 0;
+    padding: $space-5;
+    transition:
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      transform 180ms ease;
+
+    &:hover {
+      background:
+        radial-gradient(circle at 92% 0%, rgb(59 130 246 / 9%), transparent 26%),
+        var(--color-card-elevated);
+      border-color: rgb(59 130 246 / 36%);
+      box-shadow: 0 0 1.35rem rgb(59 130 246 / 9%);
+      transform: translateY(-0.0625rem);
+    }
+  }
+
+  &__performance-header {
+    align-items: end;
+    display: flex;
+    gap: $space-4;
+    justify-content: space-between;
+    min-width: 0;
+
+    span {
+      color: rgb(59 130 246);
+      display: block;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-bold;
+      margin-bottom: $space-1;
+      text-transform: uppercase;
+    }
+
+    h3 {
+      color: var(--color-text-primary);
+      font-size: $font-size-xl;
+      font-weight: $font-weight-bold;
+      margin: 0;
+    }
+  }
+
+  &__tabs {
+    align-items: center;
+    background: rgb(255 255 255 / 2%);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-1;
+    padding: $space-1;
+  }
+
+  &__tabs button {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: $radius-sm;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    font: inherit;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    min-height: 2.15rem;
+    padding: 0 $space-3;
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      color 180ms ease,
+      transform 180ms ease;
+
+    &:hover {
+      background: rgb(59 130 246 / 8%);
+      border-color: rgb(59 130 246 / 26%);
+      color: var(--color-text-primary);
+      transform: translateY(-0.0625rem);
+    }
+  }
+
+  &__tab--active {
+    background: rgb(59 130 246 / 12%) !important;
+    border-color: rgb(59 130 246 / 42%) !important;
+    color: var(--color-text-primary) !important;
+  }
+
+  &__performance-body {
+    animation: campaigns-panel-enter 200ms ease both;
+    min-width: 0;
+  }
+}
+
+@keyframes campaigns-filter-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-0.375rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes campaigns-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 760px) {
+  .campaigns-page {
+    &__performance {
+      padding: $space-4;
+    }
+
+    &__performance-header {
+      align-items: start;
+      flex-direction: column;
+    }
+
+    &__tabs {
+      width: 100%;
+    }
+
+    &__tabs button {
+      flex: 1 1 8rem;
+    }
+  }
+}

@@ -1,0 +1,41 @@
+<div class="daily-report-page">
+  @if (error(); as errorMessage) {
+    <app-report-error-state [message]="errorMessage" (retry)="onRetryReport()" />
+  } @else {
+    <app-dashboard-visual-summary
+      [metrics]="summaryMetrics()"
+      [productGroups]="productGroupPerformance()"
+      [orders]="filteredOrders()"
+    />
+
+    <app-daily-summary-grid [metrics]="summaryMetrics()" [loading]="loading()" />
+
+    @if (comparisonEnabled()) {
+      <div #comparisonSection class="daily-report-page__comparison-anchor">
+        <app-performance-comparison [comparison]="comparison()" />
+      </div>
+    }
+
+    <app-product-group-performance [data]="productGroupPerformance()" />
+    <app-operational-status-summary [items]="operationalStatus()" />
+    <app-daily-orders-section
+      [orders]="filteredOrders()"
+      [loading]="loading()"
+      (rowClick)="onSelectOrder($event)"
+      (actionClick)="onOrderAction($event)"
+    />
+  }
+
+  @if (exportPanelVisible()) {
+    <app-report-export-panel (close)="onCloseExportPanel()" (exportReport)="onExport($event)" />
+  }
+
+  @if (selectedOrder(); as order) {
+    <app-daily-order-detail
+      [order]="order"
+      (close)="onCloseOrderDetail()"
+      (updateStatus)="onUpdateSelectedOrderStatus($event)"
+      (toggleUrgent)="onToggleSelectedOrderUrgent()"
+    />
+  }
+</div>

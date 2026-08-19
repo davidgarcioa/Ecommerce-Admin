@@ -1,0 +1,37 @@
+<aside class="sidebar" [class.sidebar--collapsed]="collapsed()" aria-label="Navegación principal">
+  <div class="sidebar__header">
+    <a class="sidebar__brand" routerLink="/inicio" aria-label="Ecommerce Control Center">
+      @if (!collapsed()) {
+        <span class="sidebar__brand-text">Control Center</span>
+      }
+    </a>
+
+    <button
+      class="icon-button"
+      type="button"
+      (click)="onToggleSidebar()"
+      aria-label="Contraer menu"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">dock_to_left</span>
+    </button>
+  </div>
+
+  <nav class="sidebar__nav">
+    @for (item of navigationItems(); track item.route) {
+      <a
+        class="sidebar__link"
+        [routerLink]="item.route"
+        routerLinkActive="sidebar__link--active"
+        [routerLinkActiveOptions]="{ exact: item.exact }"
+        [attr.aria-label]="item.label"
+      >
+        <span class="material-symbols-rounded sidebar__icon" aria-hidden="true">{{
+          item.icon
+        }}</span>
+        @if (!collapsed()) {
+          <span class="sidebar__label">{{ item.label }}</span>
+        }
+      </a>
+    }
+  </nav>
+</aside>

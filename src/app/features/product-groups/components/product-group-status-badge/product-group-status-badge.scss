@@ -1,0 +1,20 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.status-badge {
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-text-secondary);
+  display: inline-flex;
+  font-size: $font-size-xs;
+  padding: $space-1 $space-3;
+
+  &--active {
+    border-color: rgb(94 130 111 / 60%);
+    color: rgb(154 184 166);
+  }
+
+  &--archived {
+    border-color: rgb(139 87 87 / 55%);
+    color: rgb(178 139 139);
+  }
+}

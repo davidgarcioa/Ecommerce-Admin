@@ -1,0 +1,33 @@
+<section
+  class="dropzone"
+  [class.dropzone--active]="dragOver()"
+  [class.dropzone--error]="error()"
+  aria-describedby="dropzone-help"
+  (drop)="onDrop($event)"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave()"
+>
+  <input id="file-input" type="file" accept=".xlsx,.xls,.csv" (change)="onInputChange($event)" />
+  <label for="file-input" tabindex="0">
+    <span class="dropzone__icon material-symbols-rounded" aria-hidden="true">upload_file</span>
+    <strong>{{ importedFile() ? 'Cambiar archivo' : 'Suelta aquí el archivo de Dropi' }}</strong>
+    <small id="dropzone-help">
+      Excel o CSV, máximo 15 MB. Detectamos tipo, hoja y columnas automáticamente.
+    </small>
+  </label>
+
+  @if (importedFile(); as file) {
+    <div class="dropzone__file">
+      <span>{{ file.name }} - {{ file.formattedSize }} - {{ file.extension }}</span>
+      <button type="button" (click)="removeFile.emit()">Eliminar</button>
+    </div>
+  }
+
+  @if (loading()) {
+    <p aria-live="polite">Leyendo archivo...</p>
+  }
+
+  @if (error(); as message) {
+    <p role="alert">{{ message }}</p>
+  }
+</section>

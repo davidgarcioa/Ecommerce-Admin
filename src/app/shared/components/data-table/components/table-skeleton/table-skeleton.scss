@@ -1,0 +1,33 @@
+@use '../../../../../styles/abstracts/variables' as *;
+
+.table-skeleton {
+  td {
+    border-top: 1px solid var(--color-border);
+    padding: $space-4;
+  }
+
+  span {
+    animation: table-skeleton-pulse 900ms ease infinite alternate;
+    background: var(--color-card-elevated);
+    border-radius: $radius-sm;
+    display: block;
+    height: 0.875rem;
+    width: 72%;
+  }
+}
+
+@keyframes table-skeleton-pulse {
+  from {
+    opacity: 0.45;
+  }
+
+  to {
+    opacity: 0.8;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .table-skeleton span {
+    animation: none;
+  }
+}

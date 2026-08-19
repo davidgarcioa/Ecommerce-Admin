@@ -1,0 +1,47 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.validation-summary {
+  display: grid;
+  gap: $space-4;
+
+  h3,
+  p {
+    margin: 0;
+  }
+
+  p,
+  span {
+    color: var(--color-text-secondary);
+  }
+
+  > div {
+    display: grid;
+    gap: $space-3;
+    grid-template-columns: repeat(auto-fit, minmax(min(9rem, 100%), 1fr));
+  }
+
+  article {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    display: grid;
+    gap: $space-1;
+    padding: $space-4;
+  }
+
+  footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+  }
+
+  button {
+    background: var(--color-card-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    min-height: 2.5rem;
+    padding: 0 $space-3;
+  }
+}

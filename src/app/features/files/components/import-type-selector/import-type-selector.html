@@ -1,0 +1,20 @@
+<section class="import-types" aria-labelledby="import-type-title">
+  <header>
+    <h3 id="import-type-title">Selecciona el tipo de importación</h3>
+    <p>El tipo define columnas esperadas, validaciones y plantilla sugerida.</p>
+  </header>
+  <div class="import-types__grid">
+    @for (type of types(); track type.id) {
+      <button
+        type="button"
+        [class.import-types__card--active]="selectedType()?.id === type.id"
+        [disabled]="!type.enabled"
+        (click)="selectType.emit(type)"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">{{ type.icon }}</span>
+        <strong>{{ type.name }}</strong>
+        <small>{{ type.description }}</small>
+      </button>
+    }
+  </div>
+</section>

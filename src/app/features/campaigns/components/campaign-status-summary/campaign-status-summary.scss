@@ -1,0 +1,140 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.campaign-status-summary {
+  display: grid;
+  gap: $space-4;
+  min-width: 0;
+
+  h3 {
+    color: var(--color-text-primary);
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    margin: 0;
+  }
+
+  &__grid {
+    display: grid;
+    gap: $space-3;
+    grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+    min-width: 0;
+  }
+
+  article {
+    --status-accent: rgb(59 130 246 / 78%);
+
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    display: grid;
+    gap: $space-3;
+    padding: $space-4;
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      transform 180ms ease;
+
+    &:hover {
+      background: var(--color-card-elevated);
+      border-color: var(--status-accent);
+      box-shadow: 0 0 1.15rem color-mix(in srgb, var(--status-accent), transparent 72%);
+      transform: translateY(-0.0625rem);
+    }
+
+    &:nth-child(2) {
+      --status-accent: rgb(245 158 11 / 72%);
+    }
+
+    &:nth-child(3) {
+      --status-accent: rgb(56 189 248 / 68%);
+    }
+
+    &:nth-child(4) {
+      --status-accent: rgb(16 185 129 / 72%);
+    }
+
+    &:nth-child(5) {
+      --status-accent: rgb(239 68 68 / 70%);
+    }
+
+    &:nth-child(6) {
+      --status-accent: rgb(148 163 184 / 48%);
+    }
+  }
+
+  &__top {
+    align-items: end;
+    display: flex;
+    justify-content: space-between;
+    min-width: 0;
+
+    span {
+      color: var(--color-text-secondary);
+      font-size: $font-size-sm;
+      font-weight: $font-weight-semibold;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    strong {
+      color: var(--color-text-primary);
+      font-size: $font-size-2xl;
+      font-weight: $font-weight-bold;
+      line-height: 1;
+    }
+  }
+
+  &__bar {
+    background: rgb(255 255 255 / 7%);
+    border-radius: 999px;
+    height: 0.45rem;
+    overflow: hidden;
+
+    span {
+      animation: campaignStatusBarReveal 820ms ease-out both;
+      background: var(--status-accent);
+      border-radius: inherit;
+      display: block;
+      height: 100%;
+      transform-origin: left;
+    }
+  }
+
+  dl {
+    display: grid;
+    gap: $space-2;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+  }
+
+  dt,
+  dd {
+    margin: 0;
+  }
+
+  dt {
+    color: var(--color-text-disabled);
+    font-size: $font-size-xs;
+  }
+
+  dd {
+    color: var(--color-text-primary);
+    font-size: $font-size-xs;
+    font-weight: $font-weight-bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@keyframes campaignStatusBarReveal {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}

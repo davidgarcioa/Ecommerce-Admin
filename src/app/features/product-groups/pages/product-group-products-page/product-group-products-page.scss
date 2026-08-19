@@ -1,0 +1,57 @@
+@use '../../../../styles/abstracts/variables' as *;
+@use '../../../../styles/abstracts/mixins' as *;
+
+.product-group-products-page {
+  @include fade-in;
+
+  display: grid;
+  gap: $space-6;
+  min-width: 0;
+
+  button {
+    align-items: center;
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    display: inline-flex;
+    gap: $space-2;
+    min-height: 2.5rem;
+    padding: 0 $space-4;
+  }
+
+  &__back {
+    justify-self: start;
+  }
+
+  header {
+    align-items: start;
+    display: flex;
+    gap: $space-4;
+    justify-content: space-between;
+
+    p,
+    span {
+      color: var(--color-text-secondary);
+      margin: 0;
+    }
+
+    h1 {
+      margin: $space-2 0;
+    }
+  }
+
+  &__state {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-lg;
+    padding: $space-5;
+  }
+}
+
+@media (max-width: 760px) {
+  .product-group-products-page header {
+    display: grid;
+  }
+}

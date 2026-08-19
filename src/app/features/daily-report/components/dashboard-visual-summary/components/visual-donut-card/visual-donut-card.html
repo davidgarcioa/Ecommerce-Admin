@@ -1,0 +1,12 @@
+<article class="visual-donut-card" appAnimateOnView (appAnimateOnViewVisible)="onVisible()">
+  <div class="visual-donut-card__donut" [style.background]="donutBackground()" aria-hidden="true">
+    <span [class.visual-donut-card__value--compact]="compact()">
+      {{ metric().compactValue }}
+    </span>
+  </div>
+
+  <div>
+    <strong>{{ metric().label }}</strong>
+    <p>{{ metric().helper }}</p>
+  </div>
+</article>

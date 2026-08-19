@@ -1,0 +1,53 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.metrics-section {
+  display: grid;
+  gap: $space-4;
+
+  &__header {
+    display: grid;
+    gap: $space-1;
+
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h3 {
+      font-size: $font-size-md;
+    }
+
+    p {
+      color: var(--color-text-secondary);
+      font-size: $font-size-sm;
+    }
+  }
+}
+
+.metrics-grid {
+  display: grid;
+  align-items: stretch;
+  gap: $space-4;
+  grid-auto-rows: 13.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+}
+
+.metrics-section:not(.metrics-section--compact) .metrics-grid {
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.metrics-section--compact .metrics-grid {
+  grid-auto-rows: 12.75rem;
+}
+
+@media (max-width: 1280px) {
+  .metrics-grid {
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .metrics-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

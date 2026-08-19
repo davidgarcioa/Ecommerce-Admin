@@ -1,0 +1,46 @@
+<section class="orders-section" aria-labelledby="orders-title">
+  <header class="orders-section__header">
+    <div>
+      <h3 id="orders-title">Órdenes del día</h3>
+      <p>Detalle operativo con cliente, logística, valores y estado.</p>
+    </div>
+  </header>
+
+  <div class="orders-section__insights" aria-label="Filtros rápidos de órdenes">
+    @for (insight of orderInsights(); track insight.id) {
+      <button
+        class="orders-section__insight"
+        [class]="'orders-section__insight orders-section__insight--' + insight.tone"
+        [class.orders-section__insight--active]="selectedInsight() === insight.id"
+        type="button"
+        [attr.aria-pressed]="selectedInsight() === insight.id"
+        (click)="selectInsight(insight.id)"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">{{ insight.icon }}</span>
+        <div>
+          <strong>{{ insight.value }}</strong>
+          <p>{{ insight.label }}</p>
+        </div>
+        <small>{{ insight.detail }}</small>
+      </button>
+    }
+  </div>
+
+  <app-data-table
+    [data]="filteredOrders()"
+    [columns]="columns"
+    rowIdKey="id"
+    [loading]="loading()"
+    [selectable]="true"
+    [rowActions]="actions"
+    [filters]="tableFilters()"
+    [exportEnabled]="true"
+    [columnSelectorEnabled]="true"
+    [compact]="true"
+    emptyTitle="Sin órdenes"
+    emptyDescription="No hay órdenes para el filtro seleccionado."
+    preferencesKey="ecommerce-control-center.daily-report.orders-table"
+    (rowClick)="rowClick.emit($event)"
+    (actionClick)="actionClick.emit($event)"
+  />
+</section>

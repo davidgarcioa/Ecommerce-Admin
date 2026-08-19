@@ -1,0 +1,39 @@
+<section class="testing-page" aria-labelledby="testing-title">
+  <app-testing-header
+    [loading]="loading()"
+    [lastUpdated]="lastUpdated()"
+    [canCreate]="canCreate()"
+    (create)="create()"
+    (refresh)="refresh()"
+  />
+
+  <app-testing-summary
+    [total]="total()"
+    [active]="active()"
+    [completed]="completed()"
+    [archived]="archived()"
+    [draft]="draft()"
+    [paused]="paused()"
+  />
+
+  <app-testing-filters (applyFilters)="applyFilters($event)" (clear)="clearFilters()" />
+
+  <app-data-table
+    [data]="tests()"
+    [columns]="columns()"
+    [loading]="loading()"
+    [error]="error()"
+    rowIdKey="id"
+    [selectable]="true"
+    [rowActions]="rowActions()"
+    [exportEnabled]="true"
+    [columnSelectorEnabled]="true"
+    [preferencesKey]="preferencesKey"
+    emptyTitle="Sin testeos"
+    emptyDescription="Crea un testeo para validar una hipotesis comercial u operativa."
+    (searchChange)="applySearch($event)"
+    (retry)="refresh()"
+    (rowClick)="openTest($event)"
+    (actionClick)="onAction($event)"
+  />
+</section>

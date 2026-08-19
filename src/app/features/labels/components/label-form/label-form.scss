@@ -1,0 +1,85 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.label-form {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: $radius-lg;
+  display: grid;
+  gap: $space-4;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: $space-5;
+
+  label {
+    color: var(--color-text-secondary);
+    display: grid;
+    font-size: $font-size-sm;
+    gap: $space-2;
+  }
+
+  input,
+  textarea,
+  button {
+    background: var(--color-surface-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    font: inherit;
+    min-height: 2.75rem;
+    padding: 0 $space-3;
+  }
+
+  textarea {
+    padding: $space-3;
+    resize: vertical;
+  }
+
+  &__wide,
+  &__error,
+  &__actions {
+    grid-column: 1 / -1;
+  }
+
+  &__check {
+    align-items: center;
+    display: flex !important;
+
+    input {
+      min-height: auto;
+      width: auto;
+    }
+  }
+
+  &__error {
+    border: 1px solid var(--color-error);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    padding: $space-3;
+
+    p {
+      margin: 0;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: $space-2;
+    justify-content: flex-end;
+  }
+
+  button {
+    cursor: pointer;
+    font-weight: 700;
+    min-width: 8rem;
+  }
+
+  &__primary {
+    background: var(--color-primary) !important;
+    color: var(--color-bg) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .label-form {
+    grid-template-columns: 1fr;
+  }
+}

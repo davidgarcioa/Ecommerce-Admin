@@ -1,0 +1,22 @@
+<form class="labels-filters" [formGroup]="form" (ngSubmit)="onApply()" aria-label="Filtros de etiquetas">
+  <label>
+    Estado
+    <select formControlName="status">
+      @for (option of statusOptions; track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select>
+  </label>
+
+  <label>
+    Uso
+    <select formControlName="usage">
+      @for (option of usageOptions; track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select>
+  </label>
+
+  <button type="submit">Aplicar</button>
+  <button type="button" (click)="onClear()">Limpiar</button>
+</form>

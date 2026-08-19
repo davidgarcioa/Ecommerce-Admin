@@ -1,0 +1,9 @@
+<tbody class="table-skeleton" aria-hidden="true">
+  @for (row of [].constructor(rows()); track $index) {
+    <tr>
+      @for (column of [].constructor(columns()); track $index) {
+        <td><span></span></td>
+      }
+    </tr>
+  }
+</tbody>

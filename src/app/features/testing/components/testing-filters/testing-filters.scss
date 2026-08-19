@@ -1,0 +1,41 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.testing-filters {
+  align-items: end;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: $radius-lg;
+  display: grid;
+  gap: $space-3;
+  grid-template-columns: repeat(3, minmax(10rem, 1fr)) repeat(2, minmax(7rem, auto));
+  padding: $space-4;
+
+  label {
+    color: var(--color-text-secondary);
+    display: grid;
+    font-size: $font-size-sm;
+    gap: $space-2;
+  }
+
+  select,
+  button {
+    background: var(--color-surface-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    font: inherit;
+    min-height: 2.75rem;
+    padding: 0 $space-3;
+  }
+
+  button {
+    cursor: pointer;
+    font-weight: 700;
+  }
+}
+
+@media (max-width: 920px) {
+  .testing-filters {
+    grid-template-columns: 1fr;
+  }
+}

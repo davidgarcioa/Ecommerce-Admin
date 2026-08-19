@@ -1,0 +1,41 @@
+<form class="label-form" [formGroup]="form" (ngSubmit)="onSubmit()" aria-label="Formulario de etiqueta">
+  @if (validationErrors().length > 0) {
+    <div class="label-form__error" role="alert">
+      @for (error of validationErrors(); track error) {
+        <p>{{ error }}</p>
+      }
+    </div>
+  }
+
+  <label>
+    Codigo
+    <input formControlName="code" maxlength="28" autocomplete="off" />
+  </label>
+
+  <label>
+    Nombre
+    <input formControlName="name" maxlength="64" autocomplete="off" />
+  </label>
+
+  <label class="label-form__wide">
+    Descripcion
+    <textarea formControlName="description" rows="4" maxlength="240"></textarea>
+  </label>
+
+  <label>
+    Color opcional
+    <input formControlName="color" placeholder="#A1A1A1" maxlength="7" autocomplete="off" />
+  </label>
+
+  <label class="label-form__check">
+    <input type="checkbox" formControlName="active" />
+    Activa
+  </label>
+
+  <div class="label-form__actions">
+    <button type="button" (click)="cancel.emit()">Cancelar</button>
+    <button type="submit" class="label-form__primary" [disabled]="saving()">
+      {{ saving() ? 'Guardando' : 'Guardar' }}
+    </button>
+  </div>
+</form>

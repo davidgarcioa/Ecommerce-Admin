@@ -1,0 +1,24 @@
+<section class="tracking-timeline" aria-label="Línea de tiempo de rastreo">
+  <h2>Línea de tiempo</h2>
+  @if (events().length === 0) {
+    <p>No hay eventos verificables para mostrar.</p>
+  } @else {
+    <ol>
+      @for (event of events(); track event.id) {
+        <li>
+          <div>
+            <strong>{{ event.title }}</strong>
+            <span>{{ formatDate(event.date) }} · {{ sourceLabel(event.source) }}</span>
+          </div>
+          <p>{{ event.description }}</p>
+          @if (event.previousValue || event.nextValue) {
+            <small
+              >{{ event.previousValue || 'Sin valor anterior' }} →
+              {{ event.nextValue || 'Sin valor nuevo' }}</small
+            >
+          }
+        </li>
+      }
+    </ol>
+  }
+</section>

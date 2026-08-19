@@ -1,0 +1,36 @@
+<section class="product-group-metrics" aria-label="Métricas del conjunto">
+  <article>
+    <span>Productos</span>
+    <strong>{{ formatNumber(profitability()?.productCount ?? group().productCount) }}</strong>
+  </article>
+  <article>
+    <span>Campañas</span>
+    <strong>{{ formatNumber(group().campaignCount) }}</strong>
+  </article>
+  <article>
+    <span>Pedidos</span>
+    <strong>{{ formatNumber(group().orderCount) }}</strong>
+  </article>
+  <article>
+    <span>Ingresos</span>
+    <strong>{{
+      formatCurrency(profitability()?.estimatedRevenue ?? group().estimatedRevenue)
+    }}</strong>
+  </article>
+  <article>
+    <span>Costos</span>
+    <strong>{{ formatCurrency(profitability()?.estimatedCost ?? group().estimatedCost) }}</strong>
+  </article>
+  <article>
+    <span>Ganancia</span>
+    <strong>{{
+      formatCurrency(profitability()?.estimatedProfit ?? group().estimatedProfit)
+    }}</strong>
+  </article>
+  <article>
+    <span>Margen</span>
+    <strong>{{
+      formatPercentage(profitability()?.estimatedMargin ?? group().estimatedMargin)
+    }}</strong>
+  </article>
+</section>

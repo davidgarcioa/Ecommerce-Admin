@@ -1,0 +1,15 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.expense-form-page {
+  display: grid;
+  gap: $space-5;
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  p {
+    color: var(--color-text-secondary);
+  }
+}

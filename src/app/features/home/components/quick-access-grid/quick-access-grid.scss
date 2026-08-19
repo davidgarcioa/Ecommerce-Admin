@@ -1,0 +1,280 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.quick-access {
+  display: grid;
+  gap: $space-4;
+  min-width: 0;
+
+  &__heading {
+    align-items: start;
+    display: flex;
+    gap: $space-4;
+    justify-content: space-between;
+
+    h2 {
+      color: var(--color-text-primary);
+      font-size: $font-size-lg;
+      font-weight: $font-weight-bold;
+      margin: 0;
+      position: relative;
+
+      &::after {
+        background: var(--color-interaction);
+        content: '';
+        display: block;
+        height: 1px;
+        margin-top: $space-3;
+        opacity: 0.55;
+        width: 2.25rem;
+      }
+    }
+
+    .quick-access__customize {
+      align-items: center;
+      background:
+        radial-gradient(circle at 30% 20%, rgb(59 130 246 / 12%), transparent 52%),
+        var(--color-card);
+      border: 1px solid var(--color-border);
+      border-radius: $radius-md;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      display: inline-flex;
+      font: inherit;
+      font-weight: $font-weight-semibold;
+      height: 2.25rem;
+      justify-content: center;
+      min-height: 2.25rem;
+      padding: 0;
+      transition:
+        background-color $transition-base,
+        border-color $transition-base,
+        box-shadow 180ms ease,
+        color $transition-base,
+        transform $transition-base;
+      width: 2.25rem;
+
+      &:hover,
+      &:focus-visible {
+        background: rgb(59 130 246 / 9%);
+        border-color: var(--color-interaction);
+        box-shadow: 0 0 1rem rgb(59 130 246 / 16%);
+        color: var(--color-interaction);
+        transform: translateY(-0.0625rem);
+      }
+
+      .material-symbols-rounded {
+        font-size: 1rem;
+        line-height: 1;
+      }
+    }
+  }
+
+  &__empty {
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  &__grid {
+    display: grid;
+    gap: $space-4;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    min-width: 0;
+  }
+
+  &__card {
+    align-items: center;
+    animation: access-card-in 260ms ease both;
+    background:
+      radial-gradient(circle at 10% 0%, rgb(59 130 246 / 7%), transparent 32%), var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-lg;
+    color: var(--color-text-secondary);
+    display: grid;
+    column-gap: $space-4;
+    row-gap: $space-1;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    min-height: 5.75rem;
+    padding: $space-4;
+    position: relative;
+    text-decoration: none;
+    transition:
+      background 180ms ease,
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      transform 180ms ease;
+
+    &::before {
+      background: var(--color-interaction);
+      border-radius: 999px;
+      content: '';
+      height: calc(100% - #{$space-6});
+      left: -1px;
+      opacity: 0;
+      position: absolute;
+      top: $space-3;
+      transform: scaleY(0.45);
+      transition:
+        opacity 180ms ease,
+        transform 180ms ease;
+      width: 1px;
+    }
+
+    &:hover,
+    &:focus-visible {
+      background:
+        radial-gradient(circle at 10% 0%, rgb(59 130 246 / 12%), transparent 36%),
+        var(--color-card-elevated);
+      border-color: rgb(59 130 246 / 46%);
+      box-shadow: 0 0 1.35rem rgb(59 130 246 / 13%);
+      transform: translateY(-2px);
+    }
+
+    &:hover::before,
+    &:focus-visible::before {
+      opacity: 0.75;
+      transform: scaleY(1);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-focus-ring);
+      outline-offset: 3px;
+    }
+
+    .material-symbols-rounded {
+      align-items: center;
+      background: var(--color-card-elevated);
+      border: 1px solid var(--color-border);
+      border-radius: $radius-md;
+      color: var(--color-text-primary);
+      display: inline-flex;
+      font-size: 1.15rem;
+      grid-row: span 2;
+      height: 2.25rem;
+      justify-content: center;
+      line-height: 1;
+      transition:
+        background-color 180ms ease,
+        border-color 180ms ease,
+        box-shadow 180ms ease,
+        color 180ms ease,
+        transform 180ms ease;
+      width: 2.25rem;
+    }
+
+    &:hover .material-symbols-rounded,
+    &:focus-visible .material-symbols-rounded {
+      background: rgb(59 130 246 / 9%);
+      border-color: var(--color-interaction);
+      box-shadow: 0 0 0.9rem rgb(59 130 246 / 14%);
+      color: var(--color-interaction);
+      transform: translateY(-1px);
+    }
+
+    strong,
+    p {
+      min-width: 0;
+    }
+
+    strong {
+      color: var(--color-text-primary);
+      font-size: $font-size-md;
+      font-weight: $font-weight-bold;
+      line-height: 1.15;
+    }
+
+    p {
+      color: var(--color-text-secondary);
+      grid-column: 2;
+      font-weight: $font-weight-medium;
+      margin: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.25;
+      white-space: nowrap;
+    }
+
+    small {
+      color: var(--color-text-primary);
+      font-weight: $font-weight-semibold;
+      grid-column: 3;
+      grid-row: 1 / span 2;
+      opacity: 0.86;
+      transform: translateX(0);
+      transition:
+        color 180ms ease,
+        opacity 180ms ease,
+        transform 180ms ease;
+    }
+
+    &:hover small,
+    &:focus-visible small {
+      color: var(--color-interaction);
+      opacity: 1;
+      transform: translateX(2px);
+    }
+  }
+
+  &__card:nth-child(1) {
+    animation-delay: 20ms;
+  }
+
+  &__card:nth-child(2) {
+    animation-delay: 45ms;
+  }
+
+  &__card:nth-child(3) {
+    animation-delay: 70ms;
+  }
+
+  &__card:nth-child(4) {
+    animation-delay: 95ms;
+  }
+
+  &__card:nth-child(5) {
+    animation-delay: 120ms;
+  }
+
+  &__card:nth-child(6) {
+    animation-delay: 145ms;
+  }
+}
+
+@media (max-width: 1180px) {
+  .quick-access__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .quick-access__heading {
+    display: grid;
+  }
+
+  .quick-access__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quick-access__card {
+    animation: none;
+    transition: none;
+
+    &:hover,
+    &:focus-visible {
+      transform: none;
+    }
+  }
+}
+
+@keyframes access-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

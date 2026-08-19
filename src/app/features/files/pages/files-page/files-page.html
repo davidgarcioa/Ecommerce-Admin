@@ -1,0 +1,171 @@
+﻿<div class="files-page">
+  <app-files-header (newImport)="startNewImport()" (openTemplates)="openTemplates()" />
+
+  <div class="files-page__tabs" role="tablist" aria-label="Vistas de archivos">
+    <button
+      type="button"
+      role="tab"
+      [class.files-page__tab--active]="activeTab() === 'new-import'"
+      [attr.aria-selected]="activeTab() === 'new-import'"
+      (click)="startNewImport()"
+    >
+      Nueva importación
+    </button>
+    <button
+      type="button"
+      role="tab"
+      [class.files-page__tab--active]="activeTab() === 'history'"
+      [attr.aria-selected]="activeTab() === 'history'"
+      (click)="openHistory()"
+    >
+      Historial
+    </button>
+  </div>
+
+  @if (activeTab() === 'new-import') {
+    <section class="files-page__import-hero" aria-labelledby="smart-import-title">
+      <div>
+        <span class="files-page__eyebrow">Importación inteligente</span>
+        <h3 id="smart-import-title">Sube el archivo y lo clasificamos automáticamente</h3>
+        <p>
+          Detectamos el tipo de archivo, la hoja y las columnas principales antes de guardar en
+          Firebase Storage y Firestore.
+        </p>
+      </div>
+
+      @if (importDetection(); as detection) {
+        <aside
+          class="files-page__detection"
+          [class.files-page__detection--ready]="detection.status === 'ready'"
+        >
+          <span>{{
+            detection.status === 'ready' ? 'Listo para validar' : 'Requiere revisión'
+          }}</span>
+          <strong>{{ detection.typeName }}</strong>
+          <small
+            >{{ detection.confidence }} % confianza · {{ detection.mappedColumns }} columnas</small
+          >
+          <button type="button" (click)="reviewMapping()">Revisar</button>
+        </aside>
+      }
+    </section>
+
+    <app-import-stepper
+      [steps]="steps()"
+      [currentStep]="currentStep()"
+      (stepClick)="goToStep($event)"
+    />
+
+    @switch (currentStep()) {
+      @case ('file') {
+        <app-file-upload-dropzone
+          [importedFile]="importedFile()"
+          [loading]="loading()"
+          [error]="error()"
+          (fileSelected)="onFileSelected($event)"
+          (removeFile)="removeFile()"
+        />
+        <app-file-information-card [file]="importedFile()" />
+      }
+      @case ('sheet') {
+        <app-file-upload-dropzone
+          [importedFile]="importedFile()"
+          [loading]="loading()"
+          [error]="error()"
+          (fileSelected)="onFileSelected($event)"
+          (removeFile)="removeFile()"
+        />
+        <app-sheet-selector
+          [sheets]="sheets()"
+          [selectedSheet]="selectedSheet()"
+          (selectSheet)="selectSheet($event)"
+        />
+      }
+      @case ('preview') {
+        <app-data-preview-table
+          [rows]="previewRows()"
+          [headerDetection]="headerDetection()"
+          (setHeaderRow)="setHeaderRow($event)"
+        />
+        <div class="files-page__actions">
+          <button type="button" class="files-page__primary" (click)="validateRows()">
+            Validar automáticamente
+          </button>
+          <button type="button" class="files-page__secondary" (click)="goToStep('mapping')">
+            Revisar columnas
+          </button>
+        </div>
+      }
+      @case ('mapping') {
+        <app-column-mapping
+          [definitions]="columnDefinitions"
+          [mappings]="columnMappings()"
+          [headers]="detectedHeaders()"
+          (mappingChange)="updateMapping($event)"
+          (validate)="validateRows()"
+        />
+      }
+      @case ('validation') {
+        <app-validation-summary
+          [result]="validationResult()"
+          (applyFixes)="applyFixes()"
+          (exportErrors)="exportErrors()"
+          (continue)="goToConfirmation()"
+        />
+        <app-validation-errors-table
+          [issues]="validationResult()?.issues ?? []"
+          (actionClick)="onValidationAction($event)"
+        />
+      }
+      @case ('confirmation') {
+        <app-import-confirmation
+          [type]="selectedImportType()"
+          [file]="importedFile()"
+          [sheet]="selectedSheet()"
+          [validation]="validationResult()"
+          [accepted]="confirmationAccepted()"
+          (acceptedChange)="setConfirmationAccepted($event)"
+          (back)="goToStep('validation')"
+          (confirm)="confirmImport()"
+        />
+      }
+      @case ('result') {
+        <app-import-progress [progress]="importProgress()" (cancel)="cancelImport()" />
+        <app-import-result
+          [result]="importResult()"
+          (download)="exportSummary()"
+          (newImport)="resetImport()"
+          (history)="openHistory()"
+          (finish)="openHistory()"
+        />
+      }
+    }
+
+    @if (error(); as message) {
+      <app-files-error-state [message]="message" />
+    }
+  } @else {
+    <app-import-history-table
+      [records]="importHistory()"
+      (rowClick)="openImportDetail($event)"
+      (actionClick)="onHistoryAction($event)"
+    />
+  }
+
+  @if (templatePanelVisible()) {
+    <app-template-download-panel
+      [templates]="templates()"
+      (close)="closeTemplates()"
+      (download)="downloadTemplate($event)"
+    />
+  }
+
+  @if (importDetailVisible() && selectedHistoryRecord(); as record) {
+    <app-import-detail-drawer
+      [record]="record"
+      (close)="closeImportDetail()"
+      (retry)="retryImport()"
+      (delete)="deleteHistoryRecord($event)"
+    />
+  }
+</div>

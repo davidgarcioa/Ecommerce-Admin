@@ -1,0 +1,41 @@
+<main class="home-page">
+  <app-home-header
+    [greeting]="greeting()"
+    [userName]="userName()"
+    [roleLabel]="userRoleLabel()"
+    [currentDate]="currentDate()"
+  />
+
+  @if (error(); as message) {
+    <section class="home-page__error" role="alert">
+      <span class="material-symbols-rounded" aria-hidden="true">error</span>
+      <div>
+        <strong>Inicio con información limitada</strong>
+        <p>{{ message }}</p>
+      </div>
+      <button type="button" (click)="refresh()">Intentar nuevamente</button>
+    </section>
+  }
+
+  @if (partialErrors().length > 0) {
+    <section class="home-page__notice" aria-live="polite">
+      <span class="material-symbols-rounded" aria-hidden="true">info</span>
+      <p>Algunos resúmenes no se pudieron cargar: {{ partialErrors().join(' · ') }}</p>
+    </section>
+  }
+
+  <app-quick-access-grid
+    [items]="quickAccessItems()"
+    [availableItems]="availableQuickAccessItems()"
+    [selectedItemIds]="selectedQuickAccessItemIds()"
+    (toggleItem)="toggleQuickAccessItem($event)"
+  />
+
+  @if (hasWorkItems()) {
+    <app-home-work-items
+      title="Requiere atención"
+      emptyText="No hay señales operativas disponibles."
+      [items]="workItems()"
+    />
+  }
+</main>

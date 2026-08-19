@@ -1,0 +1,34 @@
+@use '../../../../../styles/abstracts/variables' as *;
+
+.table-state {
+  align-items: center;
+  display: grid;
+  gap: $space-2;
+  justify-items: center;
+  padding: $space-12 $space-4;
+  text-align: center;
+
+  h3,
+  p {
+    margin: 0;
+  }
+
+  h3 {
+    font-size: $font-size-lg;
+  }
+
+  p,
+  span {
+    color: var(--color-text-secondary);
+  }
+
+  button {
+    background: var(--color-primary);
+    border: 0;
+    border-radius: $radius-md;
+    color: var(--color-bg);
+    cursor: pointer;
+    min-height: 2.5rem;
+    padding: 0 $space-4;
+  }
+}

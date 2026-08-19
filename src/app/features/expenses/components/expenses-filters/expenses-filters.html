@@ -1,0 +1,65 @@
+<section class="expenses-filters" aria-label="Filtros de gastos">
+  <label>
+    Buscar
+    <input
+      type="search"
+      [ngModel]="search()"
+      (ngModelChange)="searchChange.emit($event)"
+      placeholder="Concepto, proveedor o referencia"
+    />
+  </label>
+
+  <label>
+    Estado
+    <select [ngModel]="filters().status" (ngModelChange)="updateFilter('status', $event)">
+      <option value="all">Todos</option>
+      @for (status of statuses; track status.value) {
+        <option [value]="status.value">{{ status.label }}</option>
+      }
+    </select>
+  </label>
+
+  <label>
+    Categoría
+    <select [ngModel]="filters().category" (ngModelChange)="updateFilter('category', $event)">
+      <option value="all">Todas</option>
+      @for (category of categories; track category.value) {
+        <option [value]="category.value">{{ category.label }}</option>
+      }
+    </select>
+  </label>
+
+  <label>
+    Método
+    <select
+      [ngModel]="filters().paymentMethod"
+      (ngModelChange)="updateFilter('paymentMethod', $event)"
+    >
+      <option value="all">Todos</option>
+      @for (method of paymentMethods; track method.value) {
+        <option [value]="method.value">{{ method.label }}</option>
+      }
+    </select>
+  </label>
+
+  <label>
+    Comprobante
+    <select [ngModel]="filters().receipt" (ngModelChange)="updateFilter('receipt', $event)">
+      <option value="all">Todos</option>
+      <option value="with-receipt">Con comprobante</option>
+      <option value="without-receipt">Sin comprobante</option>
+    </select>
+  </label>
+
+  <label>
+    Orden
+    <select [ngModel]="sort()" (ngModelChange)="sortChange.emit($event)">
+      <option value="expenseDate">Fecha</option>
+      <option value="amount">Valor</option>
+      <option value="name">Concepto</option>
+      <option value="updatedAt">Actualización</option>
+    </select>
+  </label>
+
+  <button type="button" (click)="clear.emit()">Limpiar</button>
+</section>

@@ -1,0 +1,30 @@
+<section class="expenses-summary" aria-label="Resumen de gastos">
+  <article>
+    <span>Total del periodo</span>
+    <strong>{{ formatCurrency(totalAmount()) }}</strong>
+  </article>
+  <article>
+    <span>Pagados</span>
+    <strong>{{ formatCurrency(paidAmount()) }}</strong>
+  </article>
+  <article>
+    <span>Pendientes</span>
+    <strong>{{ formatCurrency(pendingAmount()) }}</strong>
+  </article>
+  <article>
+    <span>Cantidad</span>
+    <strong>{{ expenseCount() }}</strong>
+  </article>
+  <article>
+    <span>Promedio</span>
+    <strong>{{ formatCurrency(averageExpense()) }}</strong>
+  </article>
+  <article>
+    <span>Categoría mayor</span>
+    <strong>{{ topCategory() }}</strong>
+  </article>
+  <article>
+    <span>Sin comprobante</span>
+    <strong>{{ withoutReceipt() }}</strong>
+  </article>
+</section>

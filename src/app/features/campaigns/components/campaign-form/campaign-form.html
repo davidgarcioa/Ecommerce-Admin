@@ -1,0 +1,112 @@
+<div
+  class="campaign-form"
+  role="presentation"
+  tabindex="-1"
+  (click)="close.emit()"
+  (keydown)="onKeydown($event)"
+>
+  <form
+    class="campaign-form__panel"
+    aria-labelledby="campaign-form-title"
+    (click)="$event.stopPropagation()"
+  >
+    <header>
+      <h3 id="campaign-form-title">{{ title() }}</h3>
+      <button type="button" aria-label="Cerrar formulario" (click)="close.emit()">Cerrar</button>
+    </header>
+
+    <label>
+      Nombre
+      <input type="text" [value]="form().name" (input)="onTextChange('name', $event)" />
+    </label>
+
+    <label>
+      Objetivo
+      <select [value]="form().objective" (change)="onSelectChange('objective', $event)">
+        @for (objective of objectives; track objective) {
+          <option [value]="objective">{{ objective }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      Cuenta publicitaria
+      <select [value]="form().adAccountId" (change)="onSelectChange('adAccountId', $event)">
+        @for (account of accounts; track account.id) {
+          <option [value]="account.id">{{ account.name }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      Estado inicial
+      <select [value]="form().status" (change)="onSelectChange('status', $event)">
+        @for (status of statuses; track status) {
+          <option [value]="status">{{ status }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      Conjunto
+      <select [value]="form().productGroupId" (change)="onSelectChange('productGroupId', $event)">
+        @for (group of groups; track group.id) {
+          <option [value]="group.id">{{ group.name }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      Plataforma
+      <select [value]="form().platform" (change)="onSelectChange('platform', $event)">
+        @for (platform of platforms; track platform) {
+          <option [value]="platform">{{ platform }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      Tipo de presupuesto
+      <select [value]="form().budgetType" (change)="onSelectChange('budgetType', $event)">
+        @for (type of budgetTypes; track type) {
+          <option [value]="type">{{ type }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      Presupuesto diario
+      <input
+        type="number"
+        min="1"
+        [value]="form().dailyBudget ?? 0"
+        (input)="onBudgetChange('dailyBudget', $event)"
+      />
+    </label>
+
+    <label>
+      Presupuesto total
+      <input
+        type="number"
+        min="1"
+        [value]="form().lifetimeBudget ?? 0"
+        (input)="onBudgetChange('lifetimeBudget', $event)"
+      />
+    </label>
+
+    <label>
+      Fecha inicio
+      <input type="date" [value]="form().startDate" (input)="onTextChange('startDate', $event)" />
+    </label>
+
+    <label>
+      Fecha final
+      <input type="date" [value]="form().endDate ?? ''" (input)="onTextChange('endDate', $event)" />
+    </label>
+
+    <footer>
+      <button type="button" (click)="close.emit()">Cancelar</button>
+      <button type="button" [disabled]="invalid()" (click)="onSubmit()">Guardar</button>
+    </footer>
+  </form>
+</div>

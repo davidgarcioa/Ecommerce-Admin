@@ -1,0 +1,30 @@
+<section class="product-group-summary" aria-label="Resumen de conjuntos">
+  <article>
+    <span>Total</span>
+    <strong>{{ formatNumber(total()) }}</strong>
+  </article>
+  <article>
+    <span>Activos</span>
+    <strong>{{ formatNumber(active()) }}</strong>
+  </article>
+  <article>
+    <span>Archivados</span>
+    <strong>{{ formatNumber(archived()) }}</strong>
+  </article>
+  <article>
+    <span>Productos asociados</span>
+    <strong>{{ formatNumber(products()) }}</strong>
+  </article>
+  <article>
+    <span>Ingresos estimados</span>
+    <strong>{{ formatCurrency(revenue()) }}</strong>
+  </article>
+  <article>
+    <span>Ganancia estimada</span>
+    <strong>{{ formatCurrency(profit()) }}</strong>
+  </article>
+  <article>
+    <span>Margen promedio</span>
+    <strong>{{ formatPercentage(margin()) }}</strong>
+  </article>
+</section>

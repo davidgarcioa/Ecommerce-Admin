@@ -1,0 +1,92 @@
+@use '../../../../styles/abstracts/variables' as *;
+@use '../../../../styles/abstracts/mixins' as *;
+
+.file-detail {
+  @include fade-in;
+
+  display: grid;
+  gap: $space-6;
+  min-width: 0;
+
+  header {
+    align-items: center;
+    display: flex;
+    gap: $space-4;
+    justify-content: space-between;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+    justify-content: flex-end;
+  }
+
+  button {
+    align-items: center;
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    display: inline-flex;
+    gap: $space-2;
+    justify-content: center;
+    min-height: 2.5rem;
+    padding: 0 $space-4;
+  }
+
+  &__danger {
+    border-color: rgb(139 87 87 / 55%) !important;
+  }
+
+  &__panel,
+  &__error {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-lg;
+    color: var(--color-text-secondary);
+    padding: $space-5;
+  }
+
+  &__error {
+    border-color: rgb(139 87 87 / 55%);
+    color: var(--color-text-primary);
+    margin: 0;
+  }
+
+  h1,
+  h2,
+  dd {
+    color: var(--color-text-primary);
+  }
+
+  h1 {
+    font-size: $font-size-2xl;
+    margin: $space-2 0;
+  }
+
+  dl {
+    display: grid;
+    gap: $space-4;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    margin: $space-6 0 0;
+  }
+
+  dt {
+    color: var(--color-text-disabled);
+    margin-bottom: $space-1;
+  }
+
+  dd {
+    margin: 0;
+    word-break: break-word;
+  }
+}
+
+@media (max-width: 640px) {
+  .file-detail header {
+    align-items: stretch;
+    display: grid;
+  }
+}

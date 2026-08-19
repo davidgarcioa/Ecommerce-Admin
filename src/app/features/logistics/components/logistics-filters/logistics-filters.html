@@ -1,0 +1,101 @@
+<section class="logistics-filters" aria-label="Filtros logísticos">
+  <label>
+    Buscar
+    <input
+      #searchInput
+      type="search"
+      placeholder="Pedido, cliente, guía o teléfono"
+      [value]="search()"
+      (input)="searchChange.emit(searchInput.value)"
+    />
+  </label>
+
+  <label>
+    Estado pedido
+    <select
+      #orderSelect
+      [value]="filters().orderStatus"
+      (change)="setOrderStatus(orderSelect.value)"
+    >
+      <option value="all">Todos</option>
+      @for (status of orderStatuses; track status) {
+        <option [value]="status">{{ status }}</option>
+      }
+    </select>
+  </label>
+
+  <label>
+    Entrega
+    <select
+      #deliverySelect
+      [value]="filters().deliveryStatus"
+      (change)="setDeliveryStatus(deliverySelect.value)"
+    >
+      <option value="all">Todas</option>
+      @for (status of deliveryStatuses; track status) {
+        <option [value]="status">{{ status }}</option>
+      }
+    </select>
+  </label>
+
+  <label>
+    Pago
+    <select
+      #paymentSelect
+      [value]="filters().paymentStatus"
+      (change)="setPaymentStatus(paymentSelect.value)"
+    >
+      <option value="all">Todos</option>
+      @for (status of paymentStatuses; track status) {
+        <option [value]="status">{{ status }}</option>
+      }
+    </select>
+  </label>
+
+  <label>
+    Transportadora
+    <input
+      #carrierInput
+      type="text"
+      [value]="filters().carrier"
+      (input)="setCarrier(carrierInput.value)"
+    />
+  </label>
+
+  <label>
+    Ciudad
+    <input #cityInput type="text" [value]="filters().city" (input)="setCity(cityInput.value)" />
+  </label>
+
+  <label class="logistics-filters__check">
+    <input
+      #withoutTrackingInput
+      type="checkbox"
+      [checked]="filters().withoutTracking"
+      (change)="setWithoutTracking(withoutTrackingInput.checked)"
+    />
+    Sin guía
+  </label>
+
+  <label class="logistics-filters__check">
+    <input
+      #incidentInput
+      type="checkbox"
+      [checked]="filters().withIncident"
+      (change)="setWithIncident(incidentInput.checked)"
+    />
+    Con incidencia
+  </label>
+
+  <label class="logistics-filters__check">
+    <input
+      #returnInput
+      type="checkbox"
+      [checked]="filters().withReturn"
+      (change)="setWithReturn(returnInput.checked)"
+    />
+    Con devolución
+  </label>
+
+  <button type="button" (click)="clear.emit()">Limpiar</button>
+</section>

@@ -1,0 +1,57 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.skeleton-card {
+  display: grid;
+  gap: $space-4;
+
+  &__icon,
+  &__line {
+    animation: skeleton-pulse 900ms ease infinite alternate;
+    background: var(--color-card-elevated);
+    border-radius: $radius-sm;
+    display: block;
+  }
+
+  &__icon {
+    height: 2.25rem;
+    width: 2.25rem;
+  }
+
+  &__line {
+    height: 0.75rem;
+
+    &--title {
+      width: 45%;
+    }
+
+    &--value {
+      height: 1.75rem;
+      width: 68%;
+    }
+
+    &--subtitle {
+      width: 78%;
+    }
+
+    &--footer {
+      width: 36%;
+    }
+  }
+}
+
+@keyframes skeleton-pulse {
+  from {
+    opacity: 0.45;
+  }
+
+  to {
+    opacity: 0.85;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-card__icon,
+  .skeleton-card__line {
+    animation: none;
+  }
+}

@@ -1,0 +1,18 @@
+<section class="testing-detail-page" aria-labelledby="testing-detail-title">
+  <header><p>Testeos</p><h2 id="testing-detail-title">Detalle de testeo</h2></header>
+  @if (error(); as message) { <p class="testing-detail-page__error" role="alert">{{ message }}</p> }
+  @if (test(); as currentTest) {
+    <app-testing-detail-card
+      [test]="currentTest"
+      [canUpdate]="canUpdate()"
+      [canArchive]="canArchive()"
+      [canDelete]="canDelete()"
+      (edit)="edit()"
+      (archive)="archive()"
+      (restore)="restore()"
+      (deleteTest)="deleteTest()"
+    />
+  } @else if (!loading()) {
+    <p class="testing-detail-page__empty">No se encontro el testeo solicitado.</p>
+  }
+</section>

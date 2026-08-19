@@ -1,0 +1,127 @@
+@use '../../../../styles/abstracts/variables' as *;
+@use '../../../../styles/abstracts/mixins' as *;
+
+.file-form {
+  @include fade-in;
+
+  display: grid;
+  gap: $space-6;
+  min-width: 0;
+
+  header {
+    align-items: start;
+    display: flex;
+    gap: $space-4;
+    justify-content: space-between;
+  }
+
+  h1 {
+    color: var(--color-text-primary);
+    font-size: $font-size-2xl;
+    margin: 0 0 $space-2;
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  &__actions {
+    display: flex;
+    gap: $space-2;
+  }
+
+  &__panel {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-lg;
+    display: grid;
+    gap: $space-4;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: $space-5;
+  }
+
+  label {
+    color: var(--color-text-secondary);
+    display: grid;
+    gap: $space-2;
+    min-width: 0;
+  }
+
+  input,
+  select,
+  textarea {
+    background: var(--color-card-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    min-height: 2.75rem;
+    padding: 0 $space-4;
+    width: 100%;
+  }
+
+  textarea {
+    padding-block: $space-3;
+    resize: vertical;
+  }
+
+  &__dropzone {
+    grid-column: 1 / -1;
+
+    span {
+      align-items: center;
+      background: var(--color-card-elevated);
+      border: 1px dashed var(--color-separator);
+      border-radius: $radius-lg;
+      color: var(--color-text-primary);
+      display: flex;
+      min-height: 5.5rem;
+      padding: $space-4;
+    }
+  }
+
+  &__wide {
+    grid-column: 1 / -1;
+  }
+
+  &__error {
+    background: var(--color-card);
+    border: 1px solid rgb(139 87 87 / 55%);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    margin: 0;
+    padding: $space-4;
+  }
+
+  button {
+    align-items: center;
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    display: inline-flex;
+    font-weight: $font-weight-medium;
+    justify-content: center;
+    min-height: 2.5rem;
+    padding: 0 $space-4;
+  }
+
+  &__primary {
+    background: var(--color-primary) !important;
+    color: var(--color-bg) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .file-form {
+    header,
+    &__actions {
+      display: grid;
+    }
+
+    &__panel {
+      grid-template-columns: 1fr;
+    }
+  }
+}

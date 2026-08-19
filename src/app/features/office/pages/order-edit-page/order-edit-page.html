@@ -1,0 +1,73 @@
+<form class="order-edit-page" [formGroup]="form" (ngSubmit)="save()">
+  <button type="button" class="order-edit-page__back" (click)="back()">
+    <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+    Volver
+  </button>
+
+  <header>
+    <div>
+      <p>{{ order()?.orderNumber || 'Pedido' }}</p>
+      <h1>Editar pedido</h1>
+      <span>Actualiza solo los datos permitidos por el backend de pedidos.</span>
+    </div>
+    <button type="submit" [disabled]="loading() || saving()">Guardar cambios</button>
+  </header>
+
+  @if (error(); as message) {
+    <section class="order-edit-page__state" role="alert">{{ message }}</section>
+  } @else if (loading()) {
+    <section class="order-edit-page__state">Cargando pedido...</section>
+  }
+
+  <section>
+    <h2>Cliente</h2>
+    <label>
+      Nombre
+      <input type="text" formControlName="customerName" />
+    </label>
+    <label>
+      Teléfono
+      <input type="tel" formControlName="customerPhone" />
+    </label>
+    <label>
+      Correo
+      <input type="email" formControlName="customerEmail" />
+    </label>
+  </section>
+
+  <section>
+    <h2>Entrega</h2>
+    <label>
+      Ciudad
+      <input type="text" formControlName="city" />
+    </label>
+    <label>
+      Departamento
+      <input type="text" formControlName="department" />
+    </label>
+    <label class="order-edit-page__wide">
+      Dirección
+      <input type="text" formControlName="address" />
+    </label>
+    <label>
+      Transportadora
+      <input type="text" formControlName="carrier" />
+    </label>
+    <label>
+      Guía
+      <input type="text" formControlName="trackingNumber" />
+    </label>
+  </section>
+
+  <section>
+    <h2>Gestión</h2>
+    <label class="order-edit-page__check">
+      <input type="checkbox" formControlName="urgent" />
+      Marcar como urgente
+    </label>
+    <label class="order-edit-page__wide">
+      Observaciones
+      <textarea rows="5" formControlName="observations"></textarea>
+    </label>
+  </section>
+</form>

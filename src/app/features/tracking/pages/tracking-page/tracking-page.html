@@ -1,0 +1,39 @@
+<div class="tracking-page">
+  <app-tracking-header [lastSearchLabel]="lastSearch()?.value ?? null" />
+
+  <app-tracking-search
+    [type]="searchType()"
+    [value]="searchValue()"
+    [loading]="loading()"
+    [recentSearches]="recentSearches()"
+    (typeChange)="setType($event)"
+    (valueChange)="setValue($event)"
+    (search)="search()"
+    (clear)="clear()"
+    (recentSelected)="useRecent($event)"
+  />
+
+  @if (loading()) {
+    <section class="tracking-page__state" aria-live="polite">Buscando rastreo...</section>
+  } @else if (error(); as message) {
+    <section class="tracking-page__state" role="alert">{{ message }}</section>
+  } @else if (selected(); as item) {
+    <app-tracking-result-summary
+      [result]="item"
+      [canViewOrder]="canViewOrder()"
+      [canViewLogistics]="canViewLogistics()"
+      (copyOrder)="copy($event)"
+      (copyTracking)="copy($event)"
+      (openOffice)="openOffice($event)"
+      (openLogistics)="openLogistics($event)"
+    />
+    <app-tracking-info-cards [result]="item" />
+    <app-tracking-timeline [events]="item.timeline" />
+  } @else if (hasMultipleResults()) {
+    <app-tracking-multiple-results [results]="results()" (selectResult)="selectResult($event)" />
+  } @else {
+    <section class="tracking-page__state">
+      Ingresa un criterio de búsqueda para consultar el estado de un envío.
+    </section>
+  }
+</div>

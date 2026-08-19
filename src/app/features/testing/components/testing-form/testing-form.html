@@ -1,0 +1,32 @@
+<form class="testing-form" [formGroup]="form" (ngSubmit)="onSubmit()" aria-label="Formulario de testeo">
+  @if (validationErrors().length > 0) {
+    <div class="testing-form__error" role="alert">
+      @for (error of validationErrors(); track error) {
+        <p>{{ error }}</p>
+      }
+    </div>
+  }
+
+  <label>Codigo<input formControlName="code" maxlength="40" /></label>
+  <label>Nombre<input formControlName="name" maxlength="100" /></label>
+  <label>Tipo<select formControlName="type">@for (option of typeOptions; track option.value) { <option [value]="option.value">{{ option.label }}</option> }</select></label>
+  <label>Estado<select formControlName="status">@for (option of statusOptions; track option.value) { <option [value]="option.value">{{ option.label }}</option> }</select></label>
+  <label class="testing-form__wide">Descripcion<textarea formControlName="description" rows="3"></textarea></label>
+  <label class="testing-form__wide">Objetivo<textarea formControlName="objective" rows="3"></textarea></label>
+  <label class="testing-form__wide">Hipotesis<textarea formControlName="hypothesis" rows="3"></textarea></label>
+  <label>Asociacion<select formControlName="associationType">@for (option of associationOptions; track option.value) { <option [value]="option.value">{{ option.label }}</option> }</select></label>
+  <label>ID entidad<input formControlName="associationEntityId" /></label>
+  <label>Nombre entidad<input formControlName="associationLabel" /></label>
+  <label>Responsable<input formControlName="owner" /></label>
+  <label>Inicio<input type="date" formControlName="startDate" /></label>
+  <label>Fin<input type="date" formControlName="endDate" /></label>
+  <label class="testing-form__wide">Resumen resultado<textarea formControlName="resultSummary" rows="3"></textarea></label>
+  <label>Ganador<input formControlName="winner" /></label>
+
+  <div class="testing-form__actions">
+    <button type="button" (click)="cancel.emit()">Cancelar</button>
+    <button type="submit" class="testing-form__primary" [disabled]="saving()">
+      {{ saving() ? 'Guardando' : 'Guardar' }}
+    </button>
+  </div>
+</form>

@@ -1,0 +1,45 @@
+@if (result(); as validation) {
+  <section class="validation-summary" aria-labelledby="validation-title">
+    <header>
+      <h3 id="validation-title">Resumen de validación</h3>
+      <p>Calidad estimada {{ validation.qualityScore }} %</p>
+    </header>
+    <div>
+      <article>
+        <strong>{{ validation.totalRows }}</strong
+        ><span>Filas</span>
+      </article>
+      <article>
+        <strong>{{ validation.validRows }}</strong
+        ><span>Válidas</span>
+      </article>
+      <article>
+        <strong>{{ validation.warningRows }}</strong
+        ><span>Con advertencias</span>
+      </article>
+      <article>
+        <strong>{{ validation.errorRows }}</strong
+        ><span>Con errores</span>
+      </article>
+      <article>
+        <strong>{{ validation.duplicateRows }}</strong
+        ><span>Duplicados</span>
+      </article>
+      <article>
+        <strong>{{ validation.fixableIssues }}</strong
+        ><span>Corregibles</span>
+      </article>
+    </div>
+    <footer>
+      <button type="button" (click)="applyFixes.emit()">Aplicar correcciones seguras</button>
+      <button type="button" (click)="exportErrors.emit()">Descargar errores</button>
+      <button
+        type="button"
+        [disabled]="validation.errorRows > validation.excludedRows"
+        (click)="continue.emit()"
+      >
+        Continuar
+      </button>
+    </footer>
+  </section>
+}

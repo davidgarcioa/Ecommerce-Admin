@@ -1,0 +1,53 @@
+<section class="comparison" aria-labelledby="comparison-title" appAnimateOnView>
+  <header class="comparison__header">
+    <div>
+      <span>Periodo anterior</span>
+      <h3 id="comparison-title">Comparación de rendimiento</h3>
+    </div>
+
+    <div class="comparison__pulse" aria-label="Balance de comparación">
+      <strong>{{ positiveCount() }}</strong>
+      <span>favorables</span>
+      <i aria-hidden="true"></i>
+      <strong>{{ negativeCount() }}</strong>
+      <span>por revisar</span>
+    </div>
+  </header>
+
+  <div class="comparison__grid">
+    @for (item of comparison(); track item.id) {
+      <article [class]="'comparison__item comparison__item--' + item.tone">
+        <div class="comparison__item-header">
+          <span class="comparison__icon material-symbols-rounded" aria-hidden="true">
+            {{ getDirectionIcon(item) }}
+          </span>
+          <div>
+            <h4>{{ item.label }}</h4>
+            <small>{{ getToneLabel(item) }}</small>
+          </div>
+          <strong>{{ formatPercent(item.percentageDifference) }}</strong>
+        </div>
+
+        <div class="comparison__values">
+          <div>
+            <span>Actual</span>
+            <strong>{{ item.formattedCurrentValue }}</strong>
+          </div>
+          <div>
+            <span>Anterior</span>
+            <strong>{{ item.formattedPreviousValue }}</strong>
+          </div>
+        </div>
+
+        <div class="comparison__bars" [attr.aria-label]="item.label">
+          <span class="comparison__bar comparison__bar--current">
+            <span [style.width.%]="getCurrentWidth(item)"></span>
+          </span>
+          <span class="comparison__bar comparison__bar--previous">
+            <span [style.width.%]="getPreviousWidth(item)"></span>
+          </span>
+        </div>
+      </article>
+    }
+  </div>
+</section>

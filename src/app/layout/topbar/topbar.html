@@ -1,0 +1,70 @@
+<header class="topbar">
+  <div class="topbar__heading">
+    <button
+      class="icon-button topbar__menu"
+      type="button"
+      (click)="onToggleSidebar()"
+      aria-label="Alternar menu"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">menu</span>
+    </button>
+
+    <div class="topbar__title-group">
+      <h1>{{ title() }}</h1>
+      @if (breadcrumbs().length > 0) {
+        <nav class="topbar__breadcrumb" aria-label="Breadcrumb">
+          @for (breadcrumb of breadcrumbs(); track breadcrumb.route; let last = $last) {
+            @if (last) {
+              <span>{{ breadcrumb.label }}</span>
+            } @else {
+              <a [routerLink]="breadcrumb.route">{{ breadcrumb.label }}</a>
+              <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+            }
+          }
+        </nav>
+      }
+    </div>
+  </div>
+
+  <div class="topbar__actions">
+    @if (!isHomeRoute()) {
+      <div class="topbar__search-wrap">
+        <label class="topbar__search">
+          <span class="material-symbols-rounded" aria-hidden="true">search</span>
+          <input
+            type="search"
+            placeholder="Buscar"
+            aria-label="Buscar modulo"
+            [value]="searchQuery()"
+            (focus)="openSearch()"
+            (blur)="closeSearch()"
+            (input)="onSearchInput($event)"
+            (keydown.enter)="navigateToFirstResult()"
+            (keydown.escape)="clearSearch()"
+          />
+        </label>
+
+        @if (searchOpen()) {
+          <div class="topbar__search-panel" role="listbox" aria-label="Resultados de busqueda">
+            @for (result of searchResults(); track result.id) {
+              <button type="button" role="option" (mousedown)="navigateToResult(result)">
+                <span class="material-symbols-rounded" aria-hidden="true">{{ result.icon }}</span>
+                <span>{{ result.label }}</span>
+              </button>
+            } @empty {
+              <p>No hay resultados disponibles.</p>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <button class="icon-button" type="button" aria-label="Notificaciones">
+      <span class="material-symbols-rounded" aria-hidden="true">notifications</span>
+    </button>
+
+    <button class="topbar__profile" type="button" aria-label="Cerrar sesión" (click)="logout()">
+      <span class="material-symbols-rounded topbar__logout-icon" aria-hidden="true">logout</span>
+    </button>
+  </div>
+</header>

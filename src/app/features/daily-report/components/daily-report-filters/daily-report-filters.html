@@ -1,0 +1,65 @@
+<section class="report-filters" aria-label="Filtros del informe diario">
+  <label>
+    Fecha
+    <input type="date" [value]="current().date" (input)="onDateChange($event)" />
+  </label>
+  <label>
+    Periodo
+    <select [value]="current().period" (change)="onPeriodChange($event)">
+      <option value="today">Hoy</option>
+      <option value="yesterday">Ayer</option>
+      <option value="last-7-days">Últimos 7 días</option>
+      <option value="last-30-days">Últimos 30 días</option>
+      <option value="custom">Rango personalizado</option>
+    </select>
+  </label>
+  <label>
+    Conjunto
+    <select [value]="current().productGroupId" (change)="onProductGroupChange($event)">
+      @for (group of productGroups; track group.id) {
+        <option [value]="group.id">{{ group.name }}</option>
+      }
+    </select>
+  </label>
+  <label>
+    Estado
+    <select [value]="current().orderStatus" (change)="onStatusChange($event)">
+      <option value="Todos">Todos</option>
+      @for (status of statuses; track status) {
+        <option [value]="status">{{ status }}</option>
+      }
+    </select>
+  </label>
+  <label>
+    Transportadora
+    <select [value]="current().carrier" (change)="onCarrierChange($event)">
+      <option value="Todas">Todas</option>
+      @for (carrier of carriers; track carrier) {
+        <option [value]="carrier">{{ carrier }}</option>
+      }
+    </select>
+  </label>
+  <label>
+    Ciudad
+    <select [value]="current().city" (change)="onCityChange($event)">
+      <option value="Todas">Todas</option>
+      @for (city of cities; track city) {
+        <option [value]="city">{{ city }}</option>
+      }
+    </select>
+  </label>
+  <div class="report-filters__actions">
+    <button
+      type="button"
+      class="report-filters__button report-filters__button--primary"
+      (click)="onApply()"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">check</span>
+      Aplicar
+    </button>
+    <button type="button" class="report-filters__button" (click)="onClear()">
+      <span class="material-symbols-rounded" aria-hidden="true">restart_alt</span>
+      Limpiar
+    </button>
+  </div>
+</section>

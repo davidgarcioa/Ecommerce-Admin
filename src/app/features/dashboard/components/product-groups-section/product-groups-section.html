@@ -1,0 +1,74 @@
+<section class="product-groups" aria-labelledby="product-groups-title">
+  <div class="product-groups__header">
+    <div>
+      <h3 id="product-groups-title">Conjuntos de Productos</h3>
+      <p>Consulta y filtra la operación por cada conjunto comercial.</p>
+    </div>
+    <div class="product-groups__actions">
+      <button type="button" (click)="onToggleCreateForm()">Crear conjunto</button>
+      <a routerLink="/conjuntos">Ver todos</a>
+    </div>
+  </div>
+
+  @if (createFormVisible()) {
+    <form class="product-groups__form" (submit)="$event.preventDefault(); onSaveProductGroup()">
+      <label>
+        Nombre
+        <input type="text" [value]="name()" maxlength="60" (input)="onNameChange($event)" />
+        @if (nameError(); as error) {
+          <span>{{ error }}</span>
+        } @else {
+          <span aria-hidden="true"></span>
+        }
+      </label>
+      <label>
+        Descripción
+        <input type="text" [value]="description()" (input)="onDescriptionChange($event)" />
+        <span aria-hidden="true"></span>
+      </label>
+      <label>
+        Estado
+        <select [value]="status()" (change)="onStatusChange($event)">
+          <option value="Activo">Activo</option>
+          <option value="Pausado">Pausado</option>
+          <option value="Revision">Revisión</option>
+        </select>
+        <span aria-hidden="true"></span>
+      </label>
+      <label>
+        Productos iniciales
+        <input
+          type="number"
+          min="0"
+          [value]="productCount()"
+          (input)="onProductCountChange($event)"
+        />
+        @if (productCountError(); as error) {
+          <span>{{ error }}</span>
+        } @else {
+          <span aria-hidden="true"></span>
+        }
+      </label>
+      <button type="submit" [disabled]="!formValid()">Guardar</button>
+    </form>
+  }
+
+  @if (pendingDeleteProductGroupId()) {
+    <div class="product-groups__confirmation" role="alert">
+      <span>¿Eliminar este conjunto?</span>
+      <button type="button" (click)="onConfirmDeleteProductGroup()">Confirmar</button>
+      <button type="button" (click)="onCancelDeleteProductGroup()">Cancelar</button>
+    </div>
+  }
+
+  <div class="product-groups__grid">
+    @for (productGroup of productGroups(); track productGroup.id) {
+      <app-product-group-card
+        [productGroup]="productGroup"
+        [active]="productGroup.id === activeProductGroupId()"
+        (selectProductGroup)="onSelectProductGroup($event)"
+        (productGroupAction)="onProductGroupAction($event)"
+      />
+    }
+  </div>
+</section>

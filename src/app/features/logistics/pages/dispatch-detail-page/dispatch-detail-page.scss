@@ -1,0 +1,94 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.dispatch-detail-page {
+  display: grid;
+  gap: $space-5;
+  min-width: 0;
+
+  header,
+  &__actions,
+  &__form {
+    display: flex;
+    gap: $space-4;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  h1,
+  p {
+    margin: 0;
+  }
+
+  h1 {
+    color: var(--color-text-primary);
+    font-size: $font-size-2xl;
+  }
+
+  p,
+  span,
+  label {
+    color: var(--color-text-secondary);
+  }
+
+  button,
+  input,
+  textarea,
+  &__state {
+    border: 1px solid var(--color-border);
+    border-radius: $radius-lg;
+    padding: $space-3 $space-4;
+    background: var(--color-card);
+    color: var(--color-text-primary);
+    font: inherit;
+  }
+
+  &__back {
+    justify-self: start;
+  }
+
+  &__form {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border: 1px solid var(--color-border);
+    border-radius: $radius-lg;
+    padding: $space-4;
+    background: var(--color-card);
+    min-width: 0;
+  }
+
+  label {
+    display: grid;
+    gap: $space-2;
+    min-width: 0;
+  }
+
+  input,
+  textarea {
+    width: 100%;
+    min-width: 0;
+    background: var(--color-card-elevated);
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  &__wide {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 840px) {
+  .dispatch-detail-page {
+    header,
+    &__actions,
+    &__form {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    &__wide {
+      grid-column: auto;
+    }
+  }
+}

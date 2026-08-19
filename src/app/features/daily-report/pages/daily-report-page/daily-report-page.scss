@@ -1,0 +1,15 @@
+@use '../../../../styles/abstracts/variables' as *;
+@use '../../../../styles/abstracts/mixins' as *;
+
+.daily-report-page {
+  @include fade-in;
+
+  display: grid;
+  gap: $space-8;
+  min-width: 0;
+
+  &__comparison-anchor {
+    min-width: 0;
+    scroll-margin-top: calc($topbar-height + $space-6);
+  }
+}

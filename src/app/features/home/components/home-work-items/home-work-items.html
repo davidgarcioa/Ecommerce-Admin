@@ -1,0 +1,22 @@
+<section class="work-items" [attr.aria-label]="title()">
+  <div class="work-items__heading">
+    <h2>{{ title() }}</h2>
+  </div>
+
+  @if (items().length > 0) {
+    <ul>
+      @for (item of items(); track item.id) {
+        <li [class]="'work-items__item work-items__item--' + item.level">
+          <a [routerLink]="item.route" [attr.aria-label]="formatNumber(item.count) + ' ' + item.title">
+            <span class="material-symbols-rounded" aria-hidden="true">priority_high</span>
+            <strong>{{ formatNumber(item.count) }}</strong>
+            <span>{{ item.title }}</span>
+            <small>{{ item.module }}</small>
+          </a>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="work-items__empty">{{ emptyText() }}</p>
+  }
+</section>

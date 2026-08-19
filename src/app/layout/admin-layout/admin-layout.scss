@@ -1,0 +1,53 @@
+@use '../../styles/abstracts/variables' as *;
+
+.admin-layout {
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  display: grid;
+  grid-template-columns: $sidebar-width minmax(0, 1fr);
+  min-height: 100dvh;
+  transition: grid-template-columns $transition-base;
+
+  &--collapsed {
+    grid-template-columns: $sidebar-collapsed-width minmax(0, 1fr);
+  }
+
+  &__workspace {
+    background: var(--color-bg);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__footer {
+    align-items: center;
+    background: var(--color-bg);
+    border-top: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    display: flex;
+    font-size: $font-size-xs;
+    justify-content: space-between;
+    min-height: 4rem;
+    padding: 0 $space-8;
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-layout,
+  .admin-layout--collapsed {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-layout__footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: $space-1;
+    justify-content: center;
+    padding: $space-4;
+  }
+}

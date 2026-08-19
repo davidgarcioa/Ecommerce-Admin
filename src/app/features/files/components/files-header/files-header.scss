@@ -1,0 +1,125 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.files-header {
+  align-items: flex-start;
+  display: flex;
+  gap: $space-6;
+  justify-content: space-between;
+  min-width: 0;
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  h2 {
+    font-size: 1.75rem;
+  }
+
+  p,
+  span {
+    color: var(--color-text-secondary);
+    display: block;
+    font-size: $font-size-sm;
+    margin-top: $space-2;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+    justify-content: flex-end;
+  }
+
+  button {
+    align-items: center;
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    display: inline-grid;
+    font: inherit;
+    grid-auto-flow: column;
+    gap: 0.625rem;
+    justify-content: center;
+    justify-items: center;
+    min-height: 2.625rem;
+    padding: 0 $space-4;
+    place-items: center;
+    transition:
+      background-color $transition-base,
+      border-color $transition-base,
+      color $transition-base,
+      transform $transition-base;
+
+    &:hover {
+      background: var(--color-card-elevated);
+      border-color: rgb(59 130 246 / 48%);
+      transform: translateY(-1px);
+    }
+
+    &:focus-visible {
+      border-color: rgb(59 130 246 / 70%);
+      outline: 2px solid rgb(59 130 246 / 22%);
+      outline-offset: 2px;
+    }
+
+    .files-header__upload-icon {
+      border: 1.5px solid var(--color-text-secondary);
+      border-radius: 0 0 0.18rem 0.18rem;
+      border-top: 0;
+      display: inline-block;
+      height: 0.42rem;
+      position: relative;
+      transform: translateY(0.06rem);
+      transition: border-color $transition-base;
+      width: 0.72rem;
+    }
+
+    .files-header__upload-icon::before {
+      background: var(--color-text-secondary);
+      content: '';
+      height: 0.62rem;
+      left: 50%;
+      position: absolute;
+      top: -0.5rem;
+      transform: translateX(-50%);
+      transition: background-color $transition-base;
+      width: 1.5px;
+    }
+
+    .files-header__upload-icon::after {
+      border-left: 1.5px solid var(--color-text-secondary);
+      border-top: 1.5px solid var(--color-text-secondary);
+      content: '';
+      height: 0.32rem;
+      left: 50%;
+      position: absolute;
+      top: -0.52rem;
+      transform: translateX(-50%) rotate(45deg);
+      transition: border-color $transition-base;
+      width: 0.32rem;
+    }
+
+    &:hover .files-header__upload-icon,
+    &:hover .files-header__upload-icon::after {
+      border-color: rgb(59 130 246);
+    }
+
+    &:hover .files-header__upload-icon::before {
+      background: rgb(59 130 246);
+    }
+  }
+}
+
+@media (max-width: 760px) {
+  .files-header {
+    flex-direction: column;
+
+    &__actions,
+    button {
+      width: 100%;
+    }
+  }
+}

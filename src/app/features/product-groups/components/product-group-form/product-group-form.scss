@@ -1,0 +1,101 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.product-group-form {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: $radius-lg;
+  display: grid;
+  gap: $space-6;
+  padding: $space-6;
+
+  &__grid {
+    display: grid;
+    gap: $space-4;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  &__wide {
+    grid-column: 1 / -1;
+  }
+
+  &__check {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    gap: $space-3;
+  }
+
+  &__error {
+    border: 1px solid rgb(139 87 87 / 55%);
+    border-radius: $radius-md;
+    color: rgb(178 139 139);
+    margin: 0;
+    padding: $space-3 $space-4;
+  }
+
+  label {
+    color: var(--color-text-secondary);
+    display: grid;
+    font-size: $font-size-sm;
+    gap: $space-2;
+  }
+
+  input,
+  select,
+  textarea {
+    background: var(--color-card-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    min-height: 2.75rem;
+    min-width: 0;
+    padding: 0 $space-4;
+  }
+
+  textarea {
+    padding: $space-3 $space-4;
+    resize: vertical;
+  }
+
+  small {
+    color: rgb(178 139 139);
+  }
+
+  footer {
+    display: flex;
+    gap: $space-3;
+    justify-content: flex-end;
+  }
+}
+
+.button {
+  background: var(--color-card-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: $radius-md;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  min-height: 2.75rem;
+  padding: 0 $space-5;
+
+  &:disabled {
+    color: var(--color-text-disabled);
+    cursor: not-allowed;
+  }
+
+  &--primary {
+    background: var(--color-primary);
+    color: var(--color-bg);
+  }
+}
+
+@media (max-width: 720px) {
+  .product-group-form {
+    &__grid {
+      grid-template-columns: 1fr;
+    }
+
+    footer {
+      display: grid;
+    }
+  }
+}

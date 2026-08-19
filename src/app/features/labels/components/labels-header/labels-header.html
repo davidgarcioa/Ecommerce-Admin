@@ -1,0 +1,23 @@
+<header class="labels-header">
+  <div>
+    <p class="labels-header__eyebrow">Clasificacion operativa</p>
+    <h2>Etiquetas</h2>
+    <span>Ultima actualizacion {{ formatLastUpdated(lastUpdated()) }} · Contrato actual: Tags CRUD</span>
+  </div>
+
+  <div class="labels-header__actions" aria-label="Acciones de etiquetas">
+    <button type="button" (click)="refresh.emit()" [disabled]="loading()">
+      <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
+      Actualizar
+    </button>
+    <button
+      type="button"
+      class="labels-header__primary"
+      (click)="create.emit()"
+      [disabled]="!canCreate()"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">add</span>
+      Nueva etiqueta
+    </button>
+  </div>
+</header>

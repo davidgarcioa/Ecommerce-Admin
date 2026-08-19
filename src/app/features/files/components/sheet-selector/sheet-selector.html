@@ -1,0 +1,19 @@
+<section class="sheet-selector" aria-labelledby="sheet-selector-title">
+  <h3 id="sheet-selector-title">Selecciona una hoja</h3>
+  <div>
+    @for (sheet of sheets(); track sheet.name) {
+      <button
+        type="button"
+        [class.sheet-selector__item--active]="selectedSheet()?.name === sheet.name"
+        [disabled]="sheet.empty"
+        (click)="selectSheet.emit(sheet.name)"
+      >
+        <strong>{{ sheet.name }}</strong>
+        <span>{{ sheet.rowCount }} filas · {{ sheet.columnCount }} columnas</span>
+        @if (sheet.empty) {
+          <small>Hoja vacía</small>
+        }
+      </button>
+    }
+  </div>
+</section>

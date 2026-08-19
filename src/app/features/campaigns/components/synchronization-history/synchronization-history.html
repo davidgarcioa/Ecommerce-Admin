@@ -1,0 +1,27 @@
+<section class="sync-history" aria-labelledby="sync-history-title">
+  <header>
+    <h3 id="sync-history-title">Historial de sincronizaciones</h3>
+    <p>Preparado para futuras integraciones con Meta Marketing API.</p>
+  </header>
+
+  @if (records().length === 0) {
+    <div class="sync-history__empty">Sin sincronizaciones registradas.</div>
+  } @else {
+    <div class="sync-history__list" aria-live="polite">
+      @for (record of records(); track record.id) {
+        <article>
+          <span class="sync-history__dot" aria-hidden="true"></span>
+          <div>
+            <strong>{{ record.status }} · {{ record.type }}</strong>
+            <p>{{ formatDate(record.synchronizedAt) }} · {{ record.durationMs }} ms</p>
+            <small>
+              {{ record.campaignsProcessed }} campañas · {{ record.adSetsProcessed }} conjuntos ·
+              {{ record.adsProcessed }} anuncios · {{ record.errorsFound }} errores
+            </small>
+            <p>{{ record.message }}</p>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

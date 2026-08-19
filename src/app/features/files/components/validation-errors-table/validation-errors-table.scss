@@ -1,0 +1,16 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.errors-table {
+  display: grid;
+  gap: $space-4;
+  min-width: 0;
+
+  h3,
+  p {
+    margin: 0;
+  }
+
+  p {
+    color: var(--color-text-secondary);
+  }
+}

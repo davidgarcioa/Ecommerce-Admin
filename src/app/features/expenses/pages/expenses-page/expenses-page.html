@@ -1,0 +1,64 @@
+<div class="expenses-page">
+  <app-expenses-header
+    [loading]="loading()"
+    [lastUpdated]="lastUpdated()"
+    (create)="create()"
+    (refresh)="refresh()"
+  />
+
+  <app-expenses-summary
+    [totalAmount]="totalAmount()"
+    [paidAmount]="paidAmount()"
+    [pendingAmount]="pendingAmount()"
+    [expenseCount]="totalExpenses()"
+    [averageExpense]="averageExpense()"
+    [topCategory]="topCategoryLabel()"
+    [withoutReceipt]="withoutReceiptCount()"
+    [loading]="loading()"
+  />
+
+  <app-expenses-filters
+    [search]="search()"
+    [filters]="filters()"
+    [sort]="sort()"
+    (searchChange)="applySearch($event)"
+    (filtersChange)="applyFilters($event)"
+    (sortChange)="setSort($event)"
+    (clear)="clearFilters()"
+  />
+
+  @if (error(); as message) {
+    <section class="expenses-page__error" role="alert">
+      <span class="material-symbols-rounded" aria-hidden="true">error</span>
+      <div>
+        <strong>No fue posible cargar gastos</strong>
+        <p>{{ message }}</p>
+      </div>
+      <button type="button" (click)="refresh()">Intentar nuevamente</button>
+    </section>
+  }
+
+  <app-data-table
+    [data]="expenses()"
+    [columns]="columns()"
+    [loading]="loading()"
+    [error]="null"
+    rowIdKey="id"
+    [selectable]="true"
+    [multiSelect]="true"
+    [sortable]="true"
+    [pageable]="true"
+    [pageSize]="20"
+    [stickyHeader]="true"
+    [compact]="true"
+    emptyTitle="Sin gastos"
+    emptyDescription="Registra un gasto para controlar los egresos operativos."
+    [exportEnabled]="true"
+    [columnSelectorEnabled]="true"
+    [rowActions]="rowActions()"
+    [preferencesKey]="preferencesKey"
+    (rowClick)="openExpense($event)"
+    (actionClick)="onAction($event)"
+    (retry)="refresh()"
+  />
+</div>

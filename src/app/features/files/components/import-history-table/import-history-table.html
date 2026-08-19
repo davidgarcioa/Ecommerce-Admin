@@ -1,0 +1,19 @@
+<section class="history-table" aria-labelledby="history-title">
+  <header>
+    <h3 id="history-title">Historial de importaciones</h3>
+    <p>Resumenes de importaciones registradas para auditoria.</p>
+  </header>
+  <app-data-table
+    [data]="records()"
+    [columns]="columns"
+    rowIdKey="id"
+    [rowActions]="actions"
+    [compact]="true"
+    [columnSelectorEnabled]="true"
+    emptyTitle="Sin historial"
+    emptyDescription="Todavía no hay importaciones registradas."
+    (rowClick)="rowClick.emit($event)"
+    (actionClick)="actionClick.emit($event)"
+  />
+</section>
+

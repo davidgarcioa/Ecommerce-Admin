@@ -1,0 +1,23 @@
+<header class="testing-header">
+  <div>
+    <p class="testing-header__eyebrow">Validacion de negocio</p>
+    <h2>Testeos</h2>
+    <span>Ultima actualizacion {{ formatLastUpdated(lastUpdated()) }} · Contrato actual: Testing CRUD</span>
+  </div>
+
+  <div class="testing-header__actions" aria-label="Acciones de testeos">
+    <button type="button" (click)="refresh.emit()" [disabled]="loading()">
+      <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
+      Actualizar
+    </button>
+    <button
+      type="button"
+      class="testing-header__primary"
+      (click)="create.emit()"
+      [disabled]="!canCreate()"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">add</span>
+      Nuevo testeo
+    </button>
+  </div>
+</header>

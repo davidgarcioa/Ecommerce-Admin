@@ -1,0 +1,85 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.campaign-form {
+  background: rgb(0 0 0 / 62%);
+  color-scheme: dark;
+  inset: 0;
+  position: fixed;
+  z-index: 45;
+
+  &__panel {
+    background: var(--color-bg-secondary);
+    border-left: 1px solid var(--color-border);
+    display: grid;
+    gap: $space-4;
+    height: 100%;
+    margin-left: auto;
+    max-width: 38rem;
+    overflow-y: auto;
+    padding: $space-6;
+    width: min(38rem, 100%);
+  }
+
+  header,
+  footer {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  label {
+    color: var(--color-text-secondary);
+    display: grid;
+    font-size: $font-size-sm;
+    gap: $space-2;
+  }
+
+  input,
+  select,
+  button {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    font: inherit;
+    min-height: 2.625rem;
+    padding: 0 $space-3;
+  }
+
+  select {
+    appearance: none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, rgb(226 232 240 / 88%) 50%),
+      linear-gradient(135deg, rgb(226 232 240 / 88%) 50%, transparent 50%);
+    background-position:
+      calc(100% - 1.15rem) 50%,
+      calc(100% - 0.78rem) 50%;
+    background-repeat: no-repeat;
+    background-size:
+      0.38rem 0.38rem,
+      0.38rem 0.38rem;
+    padding-right: 2.55rem;
+
+    &:hover,
+    &:focus {
+      background-image:
+        linear-gradient(45deg, transparent 50%, rgb(59 130 246) 50%),
+        linear-gradient(135deg, rgb(59 130 246) 50%, transparent 50%);
+      border-color: rgb(59 130 246 / 42%);
+    }
+  }
+
+  option {
+    background: #0b0b0b;
+    color: var(--color-text-primary);
+  }
+
+  button {
+    cursor: pointer;
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  }
+}

@@ -1,0 +1,44 @@
+<section class="import-confirmation" aria-labelledby="confirmation-title">
+  <header class="import-confirmation__header">
+    <span class="import-confirmation__eyebrow">Confirmación final</span>
+    <h3 id="confirmation-title">Confirmar importación</h3>
+    <p>
+      Las filas válidas quedarán listas para guardarse en la base de datos.
+    </p>
+  </header>
+
+  <dl class="import-confirmation__summary">
+    <div class="import-confirmation__summary-item import-confirmation__summary-item--wide">
+      <dt>Archivo</dt>
+      <dd>{{ file()?.name ?? 'Sin archivo' }}</dd>
+    </div>
+    <div class="import-confirmation__summary-item">
+      <dt>Hoja</dt>
+      <dd>{{ sheet()?.name ?? 'Sin hoja' }}</dd>
+    </div>
+    <div class="import-confirmation__summary-item">
+      <dt>Destino</dt>
+      <dd>{{ type()?.name ?? 'Sin tipo seleccionado' }}</dd>
+    </div>
+    <div class="import-confirmation__summary-item">
+      <dt>Filas válidas</dt>
+      <dd>{{ validation()?.validRows ?? 0 }}</dd>
+    </div>
+    <div class="import-confirmation__summary-item">
+      <dt>Filas excluidas</dt>
+      <dd>{{ validation()?.excludedRows ?? 0 }}</dd>
+    </div>
+  </dl>
+
+  <label class="import-confirmation__check">
+    <input type="checkbox" [checked]="accepted()" (change)="acceptedChange.emit(!accepted())" />
+    <span>He revisado la información y confirmo que deseo procesar las filas válidas.</span>
+  </label>
+
+  <footer class="import-confirmation__actions">
+    <button type="button" (click)="back.emit()">Volver</button>
+    <button type="button" [disabled]="!accepted()" (click)="confirm.emit()">
+      Confirmar importación
+    </button>
+  </footer>
+</section>

@@ -1,0 +1,16 @@
+<section class="expense-form-page">
+  <header>
+    <p>Gastos</p>
+    <h2>{{ mode === 'create' ? 'Nuevo gasto' : 'Editar gasto' }}</h2>
+  </header>
+
+  <app-expense-form
+    [expense]="expense()"
+    [saving]="saving()"
+    [error]="error()"
+    [mode]="mode"
+    (cancel)="cancel()"
+    (create)="create($event)"
+    (update)="update($event)"
+  />
+</section>

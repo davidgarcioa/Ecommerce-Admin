@@ -1,0 +1,62 @@
+<section class="meta-preview" aria-label="Lectura de prueba de Meta Ads">
+  <div class="meta-preview__stats">
+    <article>
+      <span>Campañas</span>
+      <strong>{{ preview().summary.campaigns }}</strong>
+    </article>
+    <article>
+      <span>Conjuntos</span>
+      <strong>{{ preview().summary.adSets }}</strong>
+    </article>
+    <article>
+      <span>Anuncios</span>
+      <strong>{{ preview().summary.ads }}</strong>
+    </article>
+    <article>
+      <span>Inversión</span>
+      <strong>{{ formatCurrency(preview().summary.spend) }}</strong>
+    </article>
+    <article>
+      <span>Impresiones</span>
+      <strong>{{ formatCompactNumber(preview().summary.impressions) }}</strong>
+    </article>
+    <article>
+      <span>Clics</span>
+      <strong>{{ formatCompactNumber(preview().summary.clicks) }}</strong>
+    </article>
+  </div>
+
+  <div class="meta-preview__content">
+    <article class="meta-preview__panel">
+      <h3>Campañas detectadas</h3>
+      @if (preview().campaigns.length) {
+        <div class="meta-preview__list">
+          @for (campaign of preview().campaigns; track campaign.id) {
+            <div class="meta-preview__row">
+              <span>{{ campaign.name }}</span>
+              <small>{{ campaign.effectiveStatus ?? campaign.status ?? 'Sin estado' }}</small>
+            </div>
+          }
+        </div>
+      } @else {
+        <p>No llegaron campañas en esta lectura.</p>
+      }
+    </article>
+
+    <article class="meta-preview__panel">
+      <h3>Insights por campaña</h3>
+      @if (preview().insights.length) {
+        <div class="meta-preview__list">
+          @for (insight of preview().insights; track $index) {
+            <div class="meta-preview__row meta-preview__row--metric">
+              <span>{{ insight.campaignName ?? 'Campaña sin nombre' }}</span>
+              <strong>{{ formatCurrency(insight.spend) }}</strong>
+            </div>
+          }
+        </div>
+      } @else {
+        <p>Meta no devolvió métricas para los últimos 7 días.</p>
+      }
+    </article>
+  </div>
+</section>

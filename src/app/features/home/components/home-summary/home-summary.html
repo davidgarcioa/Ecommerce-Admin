@@ -1,0 +1,29 @@
+<section class="home-summary" aria-labelledby="home-summary-title">
+  <div class="home-summary__heading">
+    <h2 id="home-summary-title">Resumen operativo</h2>
+    <p>Indicadores ligeros de módulos con datos disponibles.</p>
+  </div>
+
+  @if (loading()) {
+    <div class="home-summary__grid" aria-hidden="true">
+      @for (item of [1, 2, 3, 4]; track item) {
+        <span class="home-summary__skeleton"></span>
+      }
+    </div>
+  } @else if (items().length > 0) {
+    <div class="home-summary__grid">
+      @for (item of items(); track item.id) {
+        <a class="home-summary__card" [routerLink]="item.route">
+          <span class="material-symbols-rounded" aria-hidden="true">{{ item.icon }}</span>
+          <div>
+            <small>{{ item.label }}</small>
+            <strong>{{ item.value }}</strong>
+            <p>{{ item.description }}</p>
+          </div>
+        </a>
+      }
+    </div>
+  } @else {
+    <p class="home-summary__empty">No hay resúmenes operativos disponibles para tus permisos.</p>
+  }
+</section>

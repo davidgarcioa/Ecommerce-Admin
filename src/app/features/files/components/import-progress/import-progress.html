@@ -1,0 +1,10 @@
+@if (progress().active) {
+  <section class="import-progress" aria-live="polite">
+    <strong>{{ progress().stage }}</strong>
+    <div><span [style.width.%]="progress().progress"></span></div>
+    <p>{{ progress().processedRows }} filas procesadas · {{ progress().elapsedMs }} ms</p>
+    @if (progress().cancellable) {
+      <button type="button" (click)="cancel.emit()">Cancelar</button>
+    }
+  </section>
+}

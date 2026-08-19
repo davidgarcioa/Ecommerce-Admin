@@ -1,0 +1,38 @@
+<article
+  class="metric-card"
+  [class.metric-card--compact]="compact()"
+  [class.metric-card--interactive]="interactive()"
+  [class.metric-card--positive]="metric().status === 'positive'"
+  [class.metric-card--warning]="metric().status === 'warning'"
+  [class.metric-card--critical]="metric().status === 'critical'"
+  [class.metric-card--unavailable]="isUnavailable()"
+  [attr.title]="metric().tooltip"
+>
+  @if (loading()) {
+    <app-metric-card-skeleton />
+  } @else {
+    <div class="metric-card__header">
+      <span class="material-symbols-rounded metric-card__icon" aria-hidden="true">{{
+        metric().icon
+      }}</span>
+      <span class="metric-card__status-dot" aria-hidden="true"></span>
+      @if (showTrend()) {
+        <span class="metric-card__trend" [class]="'metric-card__trend--' + metric().trendDirection">
+          {{ metric().trendValue }} %
+        </span>
+      }
+    </div>
+
+    <div class="metric-card__body">
+      <p class="metric-card__title">{{ metric().title }}</p>
+      <strong class="metric-card__value">{{ metric().formattedValue }}</strong>
+      <p class="metric-card__subtitle">{{ metric().subtitle }}</p>
+    </div>
+
+    @if (isUnavailable()) {
+      <p class="metric-card__state">Indicador no disponible.</p>
+    } @else if (metric().footer; as footerText) {
+      <p class="metric-card__footer">{{ footerText }}</p>
+    }
+  }
+</article>

@@ -1,0 +1,35 @@
+@use '../../../../styles/abstracts/variables' as *;
+@use '../../../../styles/abstracts/mixins' as *;
+
+.dashboard-state {
+  @include surface-panel;
+
+  display: grid;
+  gap: $space-3;
+  justify-items: start;
+
+  h3,
+  p {
+    margin: 0;
+  }
+
+  span,
+  h3 {
+    color: var(--color-text-primary);
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    font-size: $font-size-sm;
+  }
+
+  button {
+    background: var(--color-primary);
+    border: 0;
+    border-radius: $radius-md;
+    color: var(--color-bg);
+    cursor: pointer;
+    min-height: 2.5rem;
+    padding: 0 $space-4;
+  }
+}

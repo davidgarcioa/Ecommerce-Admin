@@ -1,0 +1,254 @@
+﻿<main class="auth-page" aria-labelledby="auth-title">
+  <section class="auth-page__brand" [class.auth-page__brand--register]="mode() === 'register'">
+    <p class="auth-page__eyebrow">Ecommerce Control Center</p>
+
+    <div
+      class="auth-page__copy"
+      [class.auth-page__copy--register]="mode() === 'register'"
+      [class.auth-page__copy--switching]="switchingMode()"
+    >
+      <h1 id="auth-title">
+        @if (mode() === 'login') {
+          Bienvenido de nuevo
+        } @else {
+          Crea tu cuenta
+        }
+      </h1>
+      <p>
+        {{
+          mode() === 'login'
+            ? 'Ingresa a tu cuenta para gestionar tus operaciones de ecommerce desde un solo lugar.'
+            : 'Completa tus datos para comenzar a utilizar Ecommerce Control Center.'
+        }}
+      </p>
+      <span class="auth-page__note">Acceso seguro para usuarios autorizados.</span>
+    </div>
+  </section>
+
+  <section class="auth-card" aria-label="Acceso a la cuenta">
+    <div class="auth-card__switch" role="tablist" aria-label="Modo de acceso">
+      <button
+        id="login-tab"
+        type="button"
+        role="tab"
+        aria-controls="login-panel"
+        [attr.aria-selected]="mode() === 'login'"
+        [class.auth-card__tab--active]="mode() === 'login'"
+        (click)="setMode('login')"
+      >
+        Iniciar sesión
+      </button>
+      <button
+        id="register-tab"
+        type="button"
+        role="tab"
+        aria-controls="register-panel"
+        [attr.aria-selected]="mode() === 'register'"
+        [class.auth-card__tab--active]="mode() === 'register'"
+        (click)="setMode('register')"
+      >
+        Crear cuenta
+      </button>
+    </div>
+
+    <div class="auth-card__messages" aria-live="polite">
+      @if (error(); as errorMessage) {
+        <div class="auth-card__message auth-card__message--error" role="alert">
+          <span class="material-symbols-rounded" aria-hidden="true">error</span>
+          <span>{{ errorMessage }}</span>
+        </div>
+      }
+
+      @if (success(); as successMessage) {
+        <div class="auth-card__message auth-card__message--success" role="status">
+          <span class="material-symbols-rounded" aria-hidden="true">check_circle</span>
+          <span>{{ successMessage }}</span>
+        </div>
+      }
+    </div>
+
+    <div class="auth-card__content" [class.auth-card__content--switching]="switchingMode()">
+      <form
+        id="login-panel"
+        class="auth-card__form auth-card__panel"
+        role="tabpanel"
+        aria-labelledby="login-tab"
+        [hidden]="mode() !== 'login'"
+        [attr.aria-hidden]="mode() !== 'login'"
+        (submit)="onLoginSubmit($event)"
+        novalidate
+      >
+        <label class="auth-field" for="login-email">
+          <span>Correo electrónico</span>
+          <input
+            id="login-email"
+            type="email"
+            [value]="loginForm.controls.email.value"
+            (input)="updateLoginControl('email', $event)"
+            (blur)="markLoginControlTouched('email')"
+            autocomplete="email"
+            placeholder="nombre@empresa.com"
+            aria-describedby="login-email-error"
+          />
+        </label>
+        <p id="login-email-error" class="auth-field__error">
+          {{ controlError('login', 'email') }}
+        </p>
+
+        <label class="auth-field" for="login-password">
+          <span>Contraseña</span>
+          <span class="auth-field__password">
+            <input
+              id="login-password"
+              [type]="loginPasswordVisible() ? 'text' : 'password'"
+              [value]="loginForm.controls.password.value"
+              (input)="updateLoginControl('password', $event)"
+              (blur)="markLoginControlTouched('password')"
+              autocomplete="current-password"
+              placeholder="Escribe tu contraseña"
+              aria-describedby="login-password-error"
+            />
+            <button
+              type="button"
+              class="auth-field__toggle"
+              [attr.aria-label]="loginPasswordVisible() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              [title]="loginPasswordVisible() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              (click)="$event.stopPropagation(); toggleLoginPassword()"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">
+                {{ loginPasswordVisible() ? 'visibility_off' : 'visibility' }}
+              </span>
+            </button>
+          </span>
+        </label>
+        <p id="login-password-error" class="auth-field__error">
+          {{ controlError('login', 'password') }}
+        </p>
+
+        <button class="auth-card__submit" type="submit" [disabled]="loading()">
+          @if (loading()) {
+            <span class="auth-card__spinner" aria-hidden="true"></span>
+          }
+          <span>{{ loading() ? 'Ingresando...' : 'Iniciar sesión' }}</span>
+        </button>
+      </form>
+
+      <form
+        id="register-panel"
+        class="auth-card__form auth-card__panel"
+        role="tabpanel"
+        aria-labelledby="register-tab"
+        [hidden]="mode() !== 'register'"
+        [attr.aria-hidden]="mode() !== 'register'"
+        (submit)="onRegisterSubmit($event)"
+        novalidate
+      >
+        <div class="auth-card__grid">
+          <div>
+            <label class="auth-field" for="register-first-name">
+              <span>Nombre</span>
+              <input
+                id="register-first-name"
+                type="text"
+                [value]="registerForm.controls.firstName.value"
+                (input)="updateRegisterControl('firstName', $event)"
+                (blur)="markRegisterControlTouched('firstName')"
+                autocomplete="given-name"
+                placeholder="Tu nombre"
+                aria-describedby="register-first-name-error"
+              />
+            </label>
+            <p id="register-first-name-error" class="auth-field__error">
+              {{ controlError('register', 'firstName') }}
+            </p>
+          </div>
+
+          <div>
+            <label class="auth-field" for="register-last-name">
+              <span>Apellido</span>
+              <input
+                id="register-last-name"
+                type="text"
+                [value]="registerForm.controls.lastName.value"
+                (input)="updateRegisterControl('lastName', $event)"
+                (blur)="markRegisterControlTouched('lastName')"
+                autocomplete="family-name"
+                placeholder="Tu apellido"
+                aria-describedby="register-last-name-error"
+              />
+            </label>
+            <p id="register-last-name-error" class="auth-field__error">
+              {{ controlError('register', 'lastName') }}
+            </p>
+          </div>
+        </div>
+
+        <label class="auth-field" for="register-email">
+          <span>Correo electrónico</span>
+          <input
+            id="register-email"
+            type="email"
+            [value]="registerForm.controls.email.value"
+            (input)="updateRegisterControl('email', $event)"
+            (blur)="markRegisterControlTouched('email')"
+            autocomplete="email"
+            placeholder="nombre@empresa.com"
+            aria-describedby="register-email-error"
+          />
+        </label>
+        <p id="register-email-error" class="auth-field__error">
+          {{ controlError('register', 'email') }}
+        </p>
+
+        <label class="auth-field" for="register-password">
+          <span>Contraseña</span>
+          <span class="auth-field__password">
+            <input
+              id="register-password"
+              [type]="registerPasswordVisible() ? 'text' : 'password'"
+              [value]="registerForm.controls.password.value"
+              (input)="updateRegisterControl('password', $event)"
+              autocomplete="new-password"
+              placeholder="Escribe tu contraseña"
+              aria-describedby="register-password-error register-password-rules"
+              (focus)="setRegisterPasswordFocus(true)"
+              (blur)="setRegisterPasswordFocus(false); markRegisterControlTouched('password')"
+            />
+            <button
+              type="button"
+              class="auth-field__toggle"
+              [attr.aria-label]="registerPasswordVisible() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              [title]="registerPasswordVisible() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              (click)="$event.stopPropagation(); toggleRegisterPassword()"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">
+                {{ registerPasswordVisible() ? 'visibility_off' : 'visibility' }}
+              </span>
+            </button>
+          </span>
+        </label>
+        <p id="register-password-error" class="auth-field__error">
+          {{ controlError('register', 'password') }}
+        </p>
+
+        @if (showRegisterPasswordHint()) {
+          <p id="register-password-rules" class="auth-card__hint">
+            Mínimo 6 caracteres.
+          </p>
+        }
+
+        <button class="auth-card__submit" type="submit" [disabled]="loading()">
+          @if (loading()) {
+            <span class="auth-card__spinner" aria-hidden="true"></span>
+          }
+          <span>{{ loading() ? 'Creando cuenta...' : 'Crear cuenta' }}</span>
+        </button>
+
+        <button class="auth-card__link" type="button" (click)="setMode('login')">
+          ¿Ya tienes una cuenta? Inicia sesión
+        </button>
+      </form>
+    </div>
+  </section>
+</main>
+

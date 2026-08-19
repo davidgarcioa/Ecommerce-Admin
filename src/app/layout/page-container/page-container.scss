@@ -1,0 +1,14 @@
+@use '../../styles/abstracts/variables' as *;
+
+.page-container {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+  padding: $space-8;
+}
+
+@media (max-width: 900px) {
+  .page-container {
+    padding: $space-5;
+  }
+}

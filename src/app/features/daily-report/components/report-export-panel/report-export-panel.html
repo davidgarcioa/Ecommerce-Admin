@@ -1,0 +1,47 @@
+<section class="export-panel" aria-label="Exportar informe">
+  <header>
+    <h3>Exportar informe</h3>
+    <button type="button" (click)="close.emit()">Cerrar</button>
+  </header>
+  <label>
+    Formato
+    <select [value]="format()" (change)="onFormatChange($event)">
+      <option value="csv">CSV</option>
+      <option value="json">JSON</option>
+    </select>
+  </label>
+  <label>
+    Contenido
+    <select [value]="content()" (change)="onContentChange($event)">
+      <option value="summary">Resumen</option>
+      <option value="product-groups">Rendimiento por conjunto</option>
+      <option value="orders">Órdenes</option>
+      <option value="all">Todo el informe</option>
+    </select>
+  </label>
+  <label
+    ><input
+      type="checkbox"
+      [checked]="filteredOnly()"
+      (change)="filteredOnly.set(!filteredOnly())"
+    />
+    Solo registros filtrados</label
+  >
+  <label
+    ><input
+      type="checkbox"
+      [checked]="includeHiddenColumns()"
+      (change)="includeHiddenColumns.set(!includeHiddenColumns())"
+    />
+    Incluir columnas ocultas</label
+  >
+  <label
+    ><input
+      type="checkbox"
+      [checked]="includeGeneratedAt()"
+      (change)="includeGeneratedAt.set(!includeGeneratedAt())"
+    />
+    Incluir fecha de generación</label
+  >
+  <button type="button" (click)="onExport()">Exportar</button>
+</section>

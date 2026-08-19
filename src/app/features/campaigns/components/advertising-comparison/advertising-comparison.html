@@ -1,0 +1,18 @@
+<section class="advertising-comparison" aria-labelledby="advertising-comparison-title">
+  <header>
+    <h3 id="advertising-comparison-title">Comparación con periodo anterior</h3>
+    <p>La interpretación considera si subir o bajar es favorable para cada métrica publicitaria.</p>
+  </header>
+
+  <div class="advertising-comparison__grid">
+    @for (item of comparison(); track item.id) {
+      <article [class]="'advertising-comparison__item advertising-comparison__item--' + item.tone">
+        <span class="advertising-comparison__dot" aria-hidden="true"></span>
+        <h4>{{ item.label }}</h4>
+        <strong>{{ item.formattedCurrentValue }}</strong>
+        <p>Anterior {{ item.formattedPreviousValue }}</p>
+        <small>{{ formatPercent(item.percentageDifference) }}</small>
+      </article>
+    }
+  </div>
+</section>

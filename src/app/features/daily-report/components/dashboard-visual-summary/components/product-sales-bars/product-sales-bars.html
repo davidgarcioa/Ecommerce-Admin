@@ -1,0 +1,76 @@
+<article class="product-sales-bars" appAnimateOnView>
+  <div class="product-sales-bars__copy">
+    <div class="product-sales-bars__title-row">
+      <strong>Ventas por conjunto</strong>
+      <button
+        class="product-sales-bars__edit"
+        type="button"
+        aria-label="Elegir conjuntos visibles"
+        [attr.aria-expanded]="selectorOpen()"
+        (click)="toggleSelector()"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+        <span>Editar</span>
+      </button>
+    </div>
+    <p>{{ productSalesTotal() }}</p>
+    @if (topProductShare(); as topGroup) {
+      <small>{{ topGroup.name }} lidera con {{ topGroup.percentageLabel }}</small>
+    }
+  </div>
+
+  <div class="product-sales-bars__list">
+    @for (group of productShares(); track group.id) {
+      <div class="product-sales-bars__row">
+        <div>
+          <span>{{ group.name }}</span>
+        </div>
+        <strong>{{ group.sales }}</strong>
+        <div
+          class="product-sales-bars__bar"
+          [attr.title]="group.percentageLabel"
+          [attr.aria-label]="group.percentageLabel"
+        >
+          <span [style.width.%]="group.percentage"></span>
+        </div>
+      </div>
+    }
+  </div>
+</article>
+
+@if (selectorOpen()) {
+  <div class="product-sales-bars__overlay" role="presentation" (click)="closeSelector()">
+    <div
+      class="product-sales-bars__panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="product-groups-selector-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header>
+        <div>
+          <strong id="product-groups-selector-title">Conjuntos visibles</strong>
+          <small>Elige hasta 5 conjuntos para esta vista.</small>
+        </div>
+        <button type="button" aria-label="Cerrar selector de conjuntos" (click)="closeSelector()">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      </header>
+
+      <div class="product-sales-bars__options">
+        @for (group of productGroupSelectorOptions(); track group.id) {
+          <label [class.product-sales-bars__option--disabled]="isProductGroupDisabled(group.id)">
+            <input
+              type="checkbox"
+              [checked]="isProductGroupSelected(group.id)"
+              [disabled]="isProductGroupDisabled(group.id)"
+              (change)="toggleProductGroup(group.id)"
+            />
+            <span>{{ group.name }}</span>
+            <strong>{{ group.sales }}</strong>
+          </label>
+        }
+      </div>
+    </div>
+  </div>
+}

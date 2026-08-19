@@ -1,0 +1,29 @@
+<section class="filter-bar" aria-label="Filtros del dashboard">
+  <div class="filter-bar__field">
+    <label for="dashboard-product-group">Conjunto</label>
+    <select
+      id="dashboard-product-group"
+      [value]="filters().productGroupId"
+      (change)="onProductGroupChange($event)"
+    >
+      @for (group of productGroups(); track group.id) {
+        <option [value]="group.id">{{ group.name }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="filter-bar__field">
+    <label for="dashboard-period">Periodo</label>
+    <select id="dashboard-period" [value]="filters().period" (change)="onPeriodChange($event)">
+      @for (period of periodOptions; track period.value) {
+        <option [value]="period.value">{{ period.label }}</option>
+      }
+    </select>
+  </div>
+
+  <button class="filter-bar__button" type="button" (click)="onClearFilters()">
+    Limpiar filtros
+  </button>
+
+  <p class="filter-bar__message" aria-live="polite">{{ filterMessage() }}</p>
+</section>

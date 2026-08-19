@@ -1,0 +1,74 @@
+<form class="file-form" [formGroup]="form" (ngSubmit)="submit()">
+  <header>
+    <div>
+      <h1>Editar archivo</h1>
+      <p>Actualiza solo la metadata; el archivo físico permanece privado.</p>
+    </div>
+    <div class="file-form__actions">
+      <button type="button" (click)="cancel()">Cancelar</button>
+      <button class="file-form__primary" type="submit" [disabled]="saving() || loading()">
+        Guardar
+      </button>
+    </div>
+  </header>
+
+  @if (error(); as message) {
+    <p class="file-form__error" role="alert">{{ message }}</p>
+  }
+
+  <section class="file-form__panel">
+    <label>
+      Nombre visible
+      <input type="text" formControlName="displayName" />
+    </label>
+
+    <label>
+      Categoría
+      <select formControlName="category">
+        <option value="document">Documento</option>
+        <option value="image">Imagen</option>
+        <option value="receipt">Recibo</option>
+        <option value="evidence">Evidencia</option>
+        <option value="spreadsheet">Hoja de cálculo</option>
+        <option value="other">Otro</option>
+      </select>
+    </label>
+
+    <label>
+      Visibilidad
+      <select formControlName="visibility">
+        <option value="internal">Interno</option>
+        <option value="restricted">Restringido</option>
+      </select>
+    </label>
+
+    <label>
+      Relacionar con
+      <select formControlName="relatedEntityType">
+        <option value="general">General</option>
+        <option value="campaign">Campaña</option>
+        <option value="tag">Etiqueta</option>
+        <option value="testing">Testeo</option>
+        <option value="product-group">Conjunto</option>
+        <option value="expense">Gasto</option>
+        <option value="order">Pedido</option>
+        <option value="tracking">Rastreo</option>
+      </select>
+    </label>
+
+    <label>
+      Id relacionado
+      <input type="text" formControlName="relatedEntityId" />
+    </label>
+
+    <label>
+      Etiquetas
+      <input type="text" formControlName="tags" />
+    </label>
+
+    <label class="file-form__wide">
+      Descripción
+      <textarea rows="4" formControlName="description"></textarea>
+    </label>
+  </section>
+</form>

@@ -1,0 +1,18 @@
+<section
+  class="metrics-section"
+  [class.metrics-section--compact]="compact()"
+  [attr.aria-labelledby]="title()"
+>
+  <header class="metrics-section__header">
+    <h3 [id]="title()">{{ title() }}</h3>
+    @if (description(); as descriptionText) {
+      <p>{{ descriptionText }}</p>
+    }
+  </header>
+
+  <div class="metrics-grid">
+    @for (metric of metrics(); track metric.id) {
+      <app-metric-card [metric]="metric" [loading]="loading()" [compact]="compact()" />
+    }
+  </div>
+</section>

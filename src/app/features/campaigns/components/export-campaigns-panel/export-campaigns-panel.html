@@ -1,0 +1,78 @@
+<div
+  class="campaign-export"
+  role="presentation"
+  tabindex="-1"
+  (click)="close.emit()"
+  (keydown)="onKeydown($event)"
+>
+  <aside
+    class="campaign-export__panel"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="campaign-export-title"
+    (click)="$event.stopPropagation()"
+  >
+    <header>
+      <h3 id="campaign-export-title">Exportar campañas</h3>
+      <button type="button" aria-label="Cerrar exportación" (click)="close.emit()">Cerrar</button>
+    </header>
+
+    <label>
+      Formato
+      <select [value]="format()" (change)="onFormatChange($event)">
+        <option value="csv">CSV</option>
+        <option value="json">JSON</option>
+      </select>
+    </label>
+
+    <label>
+      Contenido
+      <select [value]="content()" (change)="onContentChange($event)">
+        <option value="campaigns">Campañas</option>
+        <option value="adsets">Conjuntos de anuncios</option>
+        <option value="ads">Anuncios</option>
+        <option value="products">Rendimiento por producto</option>
+        <option value="summary">Resumen general</option>
+        <option value="all">Todo</option>
+      </select>
+    </label>
+
+    <label
+      ><input
+        type="checkbox"
+        [checked]="filteredOnly()"
+        (change)="filteredOnly.set(!filteredOnly())"
+      />
+      Solo datos filtrados</label
+    >
+    <label
+      ><input
+        type="checkbox"
+        [checked]="includeHiddenColumns()"
+        (change)="includeHiddenColumns.set(!includeHiddenColumns())"
+      />
+      Incluir columnas ocultas</label
+    >
+    <label
+      ><input
+        type="checkbox"
+        [checked]="includeCalculatedMetrics()"
+        (change)="includeCalculatedMetrics.set(!includeCalculatedMetrics())"
+      />
+      Incluir métricas calculadas</label
+    >
+    <label
+      ><input
+        type="checkbox"
+        [checked]="includeGeneratedAt()"
+        (change)="includeGeneratedAt.set(!includeGeneratedAt())"
+      />
+      Incluir fecha de generación</label
+    >
+
+    <footer>
+      <button type="button" (click)="close.emit()">Cancelar</button>
+      <button type="button" (click)="onExport()">Exportar</button>
+    </footer>
+  </aside>
+</div>

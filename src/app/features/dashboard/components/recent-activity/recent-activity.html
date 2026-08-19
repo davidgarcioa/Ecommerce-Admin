@@ -1,0 +1,17 @@
+<section class="recent-activity" aria-labelledby="recent-activity-title">
+  <div>
+    <h3 id="recent-activity-title">Actividad reciente</h3>
+  </div>
+
+  <ul class="recent-activity__list">
+    @for (item of items(); track item.message) {
+      <li>
+        <span class="material-symbols-rounded" aria-hidden="true">{{ item.icon }}</span>
+        <div>
+          <p>{{ item.message }}</p>
+          <time>{{ item.timestamp }}</time>
+        </div>
+      </li>
+    }
+  </ul>
+</section>

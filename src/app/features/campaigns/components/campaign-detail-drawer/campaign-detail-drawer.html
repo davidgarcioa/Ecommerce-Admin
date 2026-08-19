@@ -1,0 +1,105 @@
+<div
+  class="campaign-drawer"
+  role="presentation"
+  (click)="close.emit()"
+  (keydown)="onKeydown($event)"
+  tabindex="-1"
+>
+  <aside
+    class="campaign-drawer__panel"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="campaign-detail-title"
+    (click)="$event.stopPropagation()"
+  >
+    <header>
+      <div>
+        <span>Detalle de campaña</span>
+        <h3 id="campaign-detail-title">{{ campaign().name }}</h3>
+        <p>{{ campaign().status }} · {{ campaign().objective }} · {{ campaign().platform }}</p>
+      </div>
+      <button type="button" aria-label="Cerrar detalle de campaña" (click)="close.emit()">
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      </button>
+    </header>
+
+    <section>
+      <h4>Información general</h4>
+      <dl>
+        <div>
+          <dt>Cuenta</dt>
+          <dd>{{ campaign().adAccountName }}</dd>
+        </div>
+        <div>
+          <dt>Conjunto</dt>
+          <dd>{{ campaign().productGroupName }}</dd>
+        </div>
+        <div>
+          <dt>Presupuesto</dt>
+          <dd>{{ campaign().budgetType }}</dd>
+        </div>
+        <div>
+          <dt>Inicio</dt>
+          <dd>{{ formatDate(campaign().startDate) }}</dd>
+        </div>
+        <div>
+          <dt>Actualizada</dt>
+          <dd>{{ formatDate(campaign().updatedAt) }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section>
+      <h4>Rendimiento</h4>
+      <dl>
+        <div>
+          <dt>Inversión</dt>
+          <dd>{{ formatValue(campaign().amountSpent, 'currency') }}</dd>
+        </div>
+        <div>
+          <dt>Ventas</dt>
+          <dd>{{ formatValue(campaign().attributedRevenue, 'currency') }}</dd>
+        </div>
+        <div>
+          <dt>ROAS</dt>
+          <dd>{{ formatValue(campaign().roas, 'multiplier') }}</dd>
+        </div>
+        <div>
+          <dt>CPA</dt>
+          <dd>{{ formatValue(campaign().cpa, 'currency') }}</dd>
+        </div>
+        <div>
+          <dt>CTR</dt>
+          <dd>{{ formatValue(campaign().ctr, 'percentage') }}</dd>
+        </div>
+        <div>
+          <dt>CPC</dt>
+          <dd>{{ formatValue(campaign().cpc, 'currency') }}</dd>
+        </div>
+        <div>
+          <dt>CPM</dt>
+          <dd>{{ formatValue(campaign().cpm, 'currency') }}</dd>
+        </div>
+        <div>
+          <dt>Frecuencia</dt>
+          <dd>{{ formatValue(campaign().frequency, 'number') }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section>
+      <h4>Alertas e historial reciente</h4>
+      <p>{{ campaign().hasWarnings ? campaign().warningMessage : 'Sin alertas activas.' }}</p>
+      <p>Última sincronización {{ formatDate(campaign().lastSynchronizedAt) }}</p>
+    </section>
+
+    <footer>
+      <button type="button" (click)="edit.emit(campaign())">Editar</button>
+      <button type="button" (click)="toggleStatus.emit(campaign())">
+        {{ campaign().status === 'Activa' ? 'Pausar' : 'Activar' }}
+      </button>
+      <button type="button" (click)="duplicate.emit(campaign())">Duplicar</button>
+      <button type="button" (click)="archive.emit(campaign().id)">Archivar</button>
+    </footer>
+  </aside>
+</div>

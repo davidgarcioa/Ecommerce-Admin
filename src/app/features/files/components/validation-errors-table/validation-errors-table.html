@@ -1,0 +1,17 @@
+<section class="errors-table" aria-labelledby="errors-title">
+  <header>
+    <h3 id="errors-title">Errores y advertencias</h3>
+    <p>Revisa problemas detectados antes de confirmar la importación.</p>
+  </header>
+  <app-data-table
+    [data]="issues()"
+    [columns]="columns"
+    rowIdKey="id"
+    [rowActions]="actions"
+    [compact]="true"
+    [exportEnabled]="true"
+    emptyTitle="Sin errores"
+    emptyDescription="No hay problemas detectados."
+    (actionClick)="actionClick.emit($event)"
+  />
+</section>

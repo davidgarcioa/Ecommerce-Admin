@@ -1,0 +1,18 @@
+<section class="tracking-multiple-results">
+  <h2>La búsqueda devolvió varios pedidos</h2>
+  <div>
+    @for (result of results(); track result.id) {
+      <article>
+        <div>
+          <strong>{{ result.order.orderNumber }}</strong>
+          <span>{{ result.customer.name }} · {{ result.customer.city }}</span>
+          <small
+            >{{ result.shipment.trackingNumber || 'Sin guía' }} ·
+            {{ deliveryStatusLabel(result.shipment.deliveryStatus) }}</small
+          >
+        </div>
+        <button type="button" (click)="selectResult.emit(result)">Ver rastreo</button>
+      </article>
+    }
+  </div>
+</section>

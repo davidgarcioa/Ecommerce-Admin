@@ -1,0 +1,43 @@
+﻿<section class="column-mapping" aria-labelledby="mapping-title">
+  <header>
+    <div>
+      <span>Revisión automática</span>
+      <h3 id="mapping-title">Columnas detectadas</h3>
+      <p>Solo ajusta una columna si el sistema no reconoció el archivo correctamente.</p>
+    </div>
+    <button type="button" (click)="validate.emit()">Validar datos</button>
+  </header>
+
+  <div class="column-mapping__grid">
+    @for (definition of definitions(); track definition.key) {
+      <article [class.column-mapping__item--mapped]="getMapping(definition.key)?.sourceColumnName">
+        <div class="column-mapping__meta">
+          <span class="material-symbols-rounded" aria-hidden="true">
+            {{ getMapping(definition.key)?.sourceColumnName ? 'check_circle' : 'help' }}
+          </span>
+          <div>
+            <strong>{{ definition.label }}</strong>
+            <small>{{ definition.required ? 'Obligatoria' : 'Opcional' }}</small>
+          </div>
+        </div>
+
+        <select
+          [attr.aria-label]="'Columna para ' + definition.label"
+          [value]="getMapping(definition.key)?.sourceColumnName ?? ''"
+          (change)="onSelect(definition, $event)"
+        >
+          <option value="">Sin detectar</option>
+          @for (header of getSelectableHeaders(definition); track header) {
+            <option
+              [value]="header"
+              [selected]="header === getMapping(definition.key)?.sourceColumnName"
+            >
+              {{ header }}
+            </option>
+          }
+        </select>
+      </article>
+    }
+  </div>
+</section>
+

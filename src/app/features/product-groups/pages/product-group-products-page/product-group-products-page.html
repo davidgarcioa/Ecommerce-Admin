@@ -1,0 +1,48 @@
+<div class="product-group-products-page">
+  <button type="button" class="product-group-products-page__back" (click)="back()">
+    <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+    Volver
+  </button>
+
+  @if (error(); as message) {
+    <section class="product-group-products-page__state" role="alert">{{ message }}</section>
+  } @else if (loading() && !group()) {
+    <section class="product-group-products-page__state">Cargando productos del conjunto...</section>
+  } @else if (group(); as item) {
+    <header>
+      <div>
+        <p>{{ item.code }}</p>
+        <h1>Productos de {{ item.name }}</h1>
+        <span>Asocia, desasocia y ordena productos del conjunto.</span>
+      </div>
+      @if (canManageProducts()) {
+        <button type="button" (click)="openAssociate()">
+          <span class="material-symbols-rounded" aria-hidden="true">add_link</span>
+          Asociar productos
+        </button>
+      }
+    </header>
+
+    <app-product-group-metrics [group]="item" [profitability]="profitability()" />
+
+    <app-product-group-products-table
+      [products]="products()"
+      [loading]="loading()"
+      [canManage]="canManageProducts()"
+      (remove)="removeProduct($event)"
+      (moveUp)="moveUp($event)"
+      (moveDown)="moveDown($event)"
+    />
+
+    @if (dialogOpen()) {
+      <app-associate-products-dialog
+        [products]="availableProducts()"
+        [associatedProductIds]="item.productIds"
+        [loading]="loading()"
+        (search)="searchProducts($event)"
+        (associate)="associate($event)"
+        (close)="closeAssociate()"
+      />
+    }
+  }
+</div>

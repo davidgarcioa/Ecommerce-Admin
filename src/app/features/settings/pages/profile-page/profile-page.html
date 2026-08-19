@@ -1,0 +1,40 @@
+<section class="settings-page" aria-labelledby="profile-title">
+  <header class="settings-page__header">
+    <div>
+      <h2 id="profile-title" class="settings-page__title">Perfil</h2>
+      <p class="settings-page__description">Información de la sesión administrativa actual.</p>
+    </div>
+  </header>
+
+  <article class="settings-card">
+    @if (profile(); as currentProfile) {
+      <div class="settings-grid">
+        <div>
+          <p class="settings-muted">Correo</p>
+          <strong>{{ currentProfile.email }}</strong>
+        </div>
+        <div>
+          <p class="settings-muted">Roles</p>
+          <strong>{{ currentProfile.roles.length || 0 }}</strong>
+        </div>
+        <div>
+          <p class="settings-muted">Permisos efectivos</p>
+          <strong>{{ currentProfile.permissions.length }}</strong>
+        </div>
+      </div>
+
+      <div>
+        <p class="settings-muted">Permisos de la sesion</p>
+        <div class="settings-permissions" aria-label="Permisos actuales">
+          @for (permission of currentProfile.permissions; track permission) {
+            <span>{{ permission }}</span>
+          } @empty {
+            <span>Sin permisos en el token actual.</span>
+          }
+        </div>
+      </div>
+    } @else {
+      <p class="settings-muted">No hay informacion de perfil disponible. Inicia sesion nuevamente.</p>
+    }
+  </article>
+</section>

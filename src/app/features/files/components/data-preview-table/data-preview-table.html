@@ -1,0 +1,20 @@
+<section class="preview-table" aria-labelledby="preview-title">
+  <header>
+    <h3 id="preview-title">Previsualización</h3>
+    @if (headerDetection(); as header) {
+      <p>
+        Encabezado sugerido en fila {{ header.headerRowIndex }} · Confianza
+        {{ header.confidenceScore }} %
+      </p>
+    }
+  </header>
+  <app-data-table
+    [data]="rows()"
+    [columns]="columns"
+    rowIdKey="id"
+    [compact]="true"
+    [pageSize]="10"
+    emptyTitle="Sin vista previa"
+    emptyDescription="Selecciona una hoja con datos."
+  />
+</section>

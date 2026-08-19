@@ -1,0 +1,31 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.campaigns-error {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: $radius-md;
+  color: var(--color-text-secondary);
+  display: grid;
+  gap: $space-3;
+  padding: $space-6;
+
+  h3,
+  p {
+    margin: 0;
+  }
+
+  h3 {
+    color: var(--color-text-primary);
+  }
+
+  button {
+    background: var(--color-card-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    min-height: 2.5rem;
+    padding: 0 $space-3;
+    width: fit-content;
+  }
+}

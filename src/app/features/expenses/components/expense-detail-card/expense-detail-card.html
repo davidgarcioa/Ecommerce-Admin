@@ -1,0 +1,63 @@
+<article class="expense-detail-card">
+  <header>
+    <div>
+      <span>{{ item().statusLabel }}</span>
+      <h2>{{ item().concept }}</h2>
+      <p>{{ formatCurrency(item().amount) }}</p>
+    </div>
+    <div class="expense-detail-card__actions">
+      <button type="button" (click)="edit.emit(item().id)">Editar</button>
+      <button type="button" class="danger" (click)="delete.emit(item().id)">Eliminar</button>
+    </div>
+  </header>
+
+  <dl>
+    <div>
+      <dt>Categoría</dt>
+      <dd>{{ item().categoryLabel }}</dd>
+    </div>
+    <div>
+      <dt>Método</dt>
+      <dd>{{ item().paymentMethodLabel }}</dd>
+    </div>
+    <div>
+      <dt>Responsable</dt>
+      <dd>{{ item().responsible }}</dd>
+    </div>
+    <div>
+      <dt>Proveedor</dt>
+      <dd>{{ item().supplier }}</dd>
+    </div>
+    <div>
+      <dt>Fecha</dt>
+      <dd>{{ formatDate(item().expenseDate) }}</dd>
+    </div>
+    <div>
+      <dt>Vencimiento</dt>
+      <dd>{{ item().dueDate ? formatDate(item().dueDate) : 'Sin fecha' }}</dd>
+    </div>
+    <div>
+      <dt>Pago</dt>
+      <dd>{{ item().paymentDate ? formatDate(item().paymentDate) : 'Sin fecha' }}</dd>
+    </div>
+    <div>
+      <dt>Referencia</dt>
+      <dd>{{ item().reference || 'Sin referencia' }}</dd>
+    </div>
+    <div>
+      <dt>Comprobante</dt>
+      <dd>{{ item().hasReceipt ? 'Relacionado por URL' : 'Sin comprobante' }}</dd>
+    </div>
+    <div>
+      <dt>Actualización</dt>
+      <dd>{{ formatDate(item().updatedAt.slice(0, 10)) }}</dd>
+    </div>
+  </dl>
+
+  @if (item().description) {
+    <section>
+      <h3>Descripción</h3>
+      <p>{{ item().description }}</p>
+    </section>
+  }
+</article>

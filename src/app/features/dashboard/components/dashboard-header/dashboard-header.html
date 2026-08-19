@@ -1,0 +1,34 @@
+<section class="dashboard-header" aria-labelledby="dashboard-title">
+  <div class="dashboard-header__content">
+    <h2 id="dashboard-title">Dashboard</h2>
+    <p>Vista general del rendimiento comercial, operativo y publicitario.</p>
+  </div>
+
+  <div class="dashboard-header__actions">
+    <button
+      class="dashboard-header__button dashboard-header__button--primary"
+      type="button"
+      [disabled]="loading()"
+      (click)="onRefreshDashboard()"
+    >
+      <span
+        class="material-symbols-rounded"
+        [class.dashboard-header__refresh-icon--spinning]="loading()"
+        aria-hidden="true"
+      >
+        refresh
+      </span>
+      Actualizar
+    </button>
+
+    <button
+      class="dashboard-header__button"
+      type="button"
+      [attr.aria-expanded]="filterPanelVisible()"
+      (click)="onToggleFilters()"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">filter_list</span>
+      Filtrar
+    </button>
+  </div>
+</section>

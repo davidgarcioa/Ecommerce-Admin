@@ -1,0 +1,24 @@
+<section class="column-selector" aria-label="Selector de columnas">
+  <header class="column-selector__header">
+    <div>
+      <strong>Columnas visibles</strong>
+      <span>{{ visibleColumnsCount() }} de {{ totalColumnsCount() }} activas</span>
+    </div>
+  </header>
+
+  <div class="column-selector__grid">
+    @for (column of columns(); track column.key) {
+      <label class="column-selector__option" [class.column-selector__option--active]="isColumnVisible(column.key)">
+        <input
+          type="checkbox"
+          [checked]="isColumnVisible(column.key)"
+          (change)="onToggleColumn(column.key, $event)"
+        />
+        <span class="column-selector__check" aria-hidden="true">
+          <span class="material-symbols-rounded">check</span>
+        </span>
+        <span class="column-selector__label">{{ column.label }}</span>
+      </label>
+    }
+  </div>
+</section>

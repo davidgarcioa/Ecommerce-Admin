@@ -1,0 +1,38 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.logistics-subpage {
+  display: grid;
+  gap: $space-6;
+  min-width: 0;
+
+  header {
+    display: flex;
+    gap: $space-4;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  h1,
+  p {
+    margin: 0;
+  }
+
+  h1 {
+    color: var(--color-text-primary);
+    font-size: $font-size-2xl;
+  }
+
+  p,
+  span {
+    color: var(--color-text-secondary);
+  }
+
+  button,
+  &__state {
+    border: 1px solid var(--color-border);
+    border-radius: $radius-lg;
+    padding: $space-3 $space-4;
+    background: var(--color-card);
+    color: var(--color-text-primary);
+  }
+}

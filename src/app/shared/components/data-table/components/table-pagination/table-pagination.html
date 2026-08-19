@@ -1,0 +1,48 @@
+<nav class="table-pagination" aria-label="Paginación de tabla">
+  <p>Mostrando {{ startItem() }}–{{ endItem() }} de {{ totalItems() }} registros</p>
+
+  <div class="table-pagination__controls">
+    <button
+      type="button"
+      [disabled]="pageIndex() === 0"
+      aria-label="Primera página"
+      (click)="goToPage(0)"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">first_page</span>
+    </button>
+    <button
+      type="button"
+      [disabled]="pageIndex() === 0"
+      aria-label="Página anterior"
+      (click)="goToPage(pageIndex() - 1)"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+    </button>
+    <span>Página {{ pageIndex() + 1 }} de {{ totalPages() }}</span>
+    <button
+      type="button"
+      [disabled]="pageIndex() >= totalPages() - 1"
+      aria-label="Página siguiente"
+      (click)="goToPage(pageIndex() + 1)"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+    </button>
+    <button
+      type="button"
+      [disabled]="pageIndex() >= totalPages() - 1"
+      aria-label="Última página"
+      (click)="goToPage(totalPages() - 1)"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">last_page</span>
+    </button>
+    <select
+      aria-label="Registros por página"
+      [value]="pageSize()"
+      (change)="onPageSizeChange($event)"
+    >
+      @for (option of pageSizeOptions(); track option) {
+        <option [value]="option">{{ option }}</option>
+      }
+    </select>
+  </div>
+</nav>

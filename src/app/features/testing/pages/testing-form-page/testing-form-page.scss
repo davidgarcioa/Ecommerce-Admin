@@ -1,0 +1,23 @@
+@use '../../../../styles/abstracts/variables' as *;
+
+.testing-form-page {
+  display: grid;
+  gap: $space-5;
+  max-width: 58rem;
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  header p {
+    color: var(--color-text-secondary);
+    font-size: $font-size-sm;
+  }
+
+  &__error {
+    border: 1px solid var(--color-error);
+    border-radius: $radius-md;
+    padding: $space-3;
+  }
+}
