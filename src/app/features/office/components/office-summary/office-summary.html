@@ -1,26 +1,71 @@
-<section class="office-summary" aria-label="Resumen de Oficina">
-  <article>
-    <span>Total</span><strong>{{ formatNumber(total()) }}</strong>
+<section class="office-summary" aria-label="Resumen de pedidos">
+  <article class="office-summary__card office-summary__card--blue">
+    <span class="office-summary__icon material-symbols-rounded" aria-hidden="true"
+      >receipt_long</span
+    >
+    <span class="office-summary__dot" aria-hidden="true"></span>
+    <p>Total</p>
+    <strong>{{ formatNumber(total()) }}</strong>
+    <small>Pedidos visibles</small>
   </article>
-  <article>
-    <span>Nuevos</span><strong>{{ formatNumber(pending()) }}</strong>
+
+  <article class="office-summary__card office-summary__card--amber">
+    <span class="office-summary__icon material-symbols-rounded" aria-hidden="true"
+      >pending_actions</span
+    >
+    <span class="office-summary__dot" aria-hidden="true"></span>
+    <p>Por confirmar</p>
+    <strong>{{ formatNumber(pending()) }}</strong>
+    <small>Necesitan gestión</small>
   </article>
-  <article>
-    <span>Confirmados</span><strong>{{ formatNumber(confirmed()) }}</strong>
+
+  <article class="office-summary__card office-summary__card--green">
+    <span class="office-summary__icon material-symbols-rounded" aria-hidden="true">task_alt</span>
+    <span class="office-summary__dot" aria-hidden="true"></span>
+    <p>Confirmados</p>
+    <strong>{{ formatNumber(confirmed()) }}</strong>
+    <small>Listos para operar</small>
   </article>
-  <article>
-    <span>Pago pendiente</span><strong>{{ formatNumber(pendingPayment()) }}</strong>
+
+  <article class="office-summary__card office-summary__card--orange">
+    <span class="office-summary__icon material-symbols-rounded" aria-hidden="true">payments</span>
+    <span class="office-summary__dot" aria-hidden="true"></span>
+    <p>Pago pendiente</p>
+    <strong>{{ formatNumber(pendingPayment()) }}</strong>
+    <small>Por cobrar</small>
   </article>
-  <article>
-    <span>Novedades</span><strong>{{ formatNumber(novelties()) }}</strong>
+
+  <article class="office-summary__card office-summary__card--red">
+    <span class="office-summary__icon material-symbols-rounded" aria-hidden="true">warning</span>
+    <span class="office-summary__dot" aria-hidden="true"></span>
+    <p>Novedades</p>
+    <strong>{{ formatNumber(novelties()) }}</strong>
+    <small>Requieren revisión</small>
   </article>
-  <article>
-    <span>Cancelados</span><strong>{{ formatNumber(cancelled()) }}</strong>
+
+  <article class="office-summary__card office-summary__card--red">
+    <span class="office-summary__icon material-symbols-rounded" aria-hidden="true">cancel</span>
+    <span class="office-summary__dot" aria-hidden="true"></span>
+    <p>Cancelados</p>
+    <strong>{{ formatNumber(cancelled()) }}</strong>
+    <small>Fuera del flujo</small>
   </article>
-  <article>
-    <span>Hoy</span><strong>{{ formatNumber(today()) }}</strong>
+
+  <article class="office-summary__card office-summary__card--cyan">
+    <span class="office-summary__icon material-symbols-rounded" aria-hidden="true">today</span>
+    <span class="office-summary__dot" aria-hidden="true"></span>
+    <p>Hoy</p>
+    <strong>{{ formatNumber(today()) }}</strong>
+    <small>Ingresados hoy</small>
   </article>
-  <article>
-    <span>Valor pendiente</span><strong>{{ formatCurrency(pendingValue()) }}</strong>
+
+  <article class="office-summary__card office-summary__card--violet">
+    <span class="office-summary__icon material-symbols-rounded" aria-hidden="true">
+      account_balance_wallet
+    </span>
+    <span class="office-summary__dot" aria-hidden="true"></span>
+    <p>Valor pendiente</p>
+    <strong>{{ formatCompactCurrency(pendingValue()) }}</strong>
+    <small>Saldo por cobrar</small>
   </article>
 </section>

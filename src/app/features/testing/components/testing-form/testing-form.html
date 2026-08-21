@@ -1,31 +1,126 @@
-<form class="testing-form" [formGroup]="form" (ngSubmit)="onSubmit()" aria-label="Formulario de testeo">
+<form
+  class="testing-form"
+  [formGroup]="form"
+  (ngSubmit)="onSubmit()"
+  aria-label="Formulario de testeo"
+>
   @if (validationErrors().length > 0) {
     <div class="testing-form__error" role="alert">
-      @for (error of validationErrors(); track error) {
-        <p>{{ error }}</p>
-      }
+      <span class="material-symbols-rounded" aria-hidden="true">warning</span>
+      <div>
+        @for (error of validationErrors(); track error) {
+          <p>{{ error }}</p>
+        }
+      </div>
     </div>
   }
 
-  <label>Codigo<input formControlName="code" maxlength="40" /></label>
-  <label>Nombre<input formControlName="name" maxlength="100" /></label>
-  <label>Tipo<select formControlName="type">@for (option of typeOptions; track option.value) { <option [value]="option.value">{{ option.label }}</option> }</select></label>
-  <label>Estado<select formControlName="status">@for (option of statusOptions; track option.value) { <option [value]="option.value">{{ option.label }}</option> }</select></label>
-  <label class="testing-form__wide">Descripcion<textarea formControlName="description" rows="3"></textarea></label>
-  <label class="testing-form__wide">Objetivo<textarea formControlName="objective" rows="3"></textarea></label>
-  <label class="testing-form__wide">Hipotesis<textarea formControlName="hypothesis" rows="3"></textarea></label>
-  <label>Asociacion<select formControlName="associationType">@for (option of associationOptions; track option.value) { <option [value]="option.value">{{ option.label }}</option> }</select></label>
-  <label>ID entidad<input formControlName="associationEntityId" /></label>
-  <label>Nombre entidad<input formControlName="associationLabel" /></label>
-  <label>Responsable<input formControlName="owner" /></label>
-  <label>Inicio<input type="date" formControlName="startDate" /></label>
-  <label>Fin<input type="date" formControlName="endDate" /></label>
-  <label class="testing-form__wide">Resumen resultado<textarea formControlName="resultSummary" rows="3"></textarea></label>
-  <label>Ganador<input formControlName="winner" /></label>
+  <label>
+    <span>Codigo</span>
+    <input formControlName="code" maxlength="40" placeholder="TEST-008" />
+  </label>
+
+  <label>
+    <span>Nombre</span>
+    <input formControlName="name" maxlength="100" placeholder="Nombre del testeo" />
+  </label>
+
+  <label>
+    <span>Tipo</span>
+    <select formControlName="type">
+      @for (option of typeOptions; track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select>
+  </label>
+
+  <label>
+    <span>Estado</span>
+    <select formControlName="status">
+      @for (option of statusOptions; track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select>
+  </label>
+
+  <label class="testing-form__wide">
+    <span>Descripcion</span>
+    <textarea
+      formControlName="description"
+      rows="3"
+      placeholder="Contexto corto del testeo"
+    ></textarea>
+  </label>
+
+  <label class="testing-form__wide">
+    <span>Objetivo</span>
+    <textarea formControlName="objective" rows="3" placeholder="Que se quiere mejorar"></textarea>
+  </label>
+
+  <label class="testing-form__wide">
+    <span>Hipotesis</span>
+    <textarea
+      formControlName="hypothesis"
+      rows="3"
+      placeholder="Que creemos que va a pasar"
+    ></textarea>
+  </label>
+
+  <label>
+    <span>Asociacion</span>
+    <select formControlName="associationType">
+      @for (option of associationOptions; track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select>
+  </label>
+
+  <label>
+    <span>ID entidad</span>
+    <input formControlName="associationEntityId" placeholder="Opcional" />
+  </label>
+
+  <label>
+    <span>Nombre entidad</span>
+    <input formControlName="associationLabel" placeholder="Campana, producto o conjunto" />
+  </label>
+
+  <label>
+    <span>Responsable</span>
+    <input formControlName="owner" placeholder="Equipo o persona" />
+  </label>
+
+  <label>
+    <span>Inicio</span>
+    <input type="date" formControlName="startDate" />
+  </label>
+
+  <label>
+    <span>Fin</span>
+    <input type="date" formControlName="endDate" />
+  </label>
+
+  <label class="testing-form__wide">
+    <span>Resumen resultado</span>
+    <textarea
+      formControlName="resultSummary"
+      rows="3"
+      placeholder="Resultado o aprendizaje"
+    ></textarea>
+  </label>
+
+  <label>
+    <span>Ganador</span>
+    <input formControlName="winner" placeholder="Variante ganadora" />
+  </label>
 
   <div class="testing-form__actions">
-    <button type="button" (click)="cancel.emit()">Cancelar</button>
+    <button type="button" (click)="cancel.emit()">
+      <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      Cancelar
+    </button>
     <button type="submit" class="testing-form__primary" [disabled]="saving()">
+      <span class="material-symbols-rounded" aria-hidden="true">check</span>
       {{ saving() ? 'Guardando' : 'Guardar' }}
     </button>
   </div>

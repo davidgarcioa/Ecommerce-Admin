@@ -130,4 +130,3 @@ export class FilesPageComponent {
   readonly retryImport = (): void => this.fileImportService.retryImport();
   readonly downloadTemplate = (id: string): void => this.fileImportService.downloadTemplate(id);
 }
-

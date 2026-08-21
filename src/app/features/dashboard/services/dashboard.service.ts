@@ -37,7 +37,9 @@ export class DashboardService {
   private readonly filesApi = inject(FilesApiService);
   private readonly testingApi = inject(TestingApiService);
 
-  private readonly productGroupsState = signal<readonly ProductGroup[]>([createGeneralProductGroup()]);
+  private readonly productGroupsState = signal<readonly ProductGroup[]>([
+    createGeneralProductGroup(),
+  ]);
   private readonly ordersState = signal<readonly Order[]>([]);
   private readonly orderStatisticsState = signal<OrderStatistics | null>(null);
   private readonly productGroupStatisticsState = signal<ProductGroupStatistics | null>(null);
@@ -327,7 +329,15 @@ export class DashboardService {
         ),
       ],
       operationalMetrics: [
-        metric('in-transit', 'En transito', orderStats.inTransit, 'Pedidos en movimiento', 'route', 'number', ordersStatus),
+        metric(
+          'in-transit',
+          'En transito',
+          orderStats.inTransit,
+          'Pedidos en movimiento',
+          'route',
+          'number',
+          ordersStatus,
+        ),
         metric(
           'cancelled-rate',
           'Cancelaciones',
@@ -338,7 +348,15 @@ export class DashboardService {
           cancelledRate > 12 ? 'critical' : cancelledRate > 6 ? 'warning' : 'positive',
           `${orderStats.cancelled} canceladas`,
         ),
-        metric('pending-value', 'Valor pendiente', orderStats.pendingValue, 'Por recaudar', 'pending_actions', 'currency', ordersStatus),
+        metric(
+          'pending-value',
+          'Valor pendiente',
+          orderStats.pendingValue,
+          'Por recaudar',
+          'pending_actions',
+          'currency',
+          ordersStatus,
+        ),
         metric(
           'product-groups',
           'Conjuntos activos',
@@ -380,7 +398,15 @@ export class DashboardService {
           this.resolveStatus(testingStats),
           testingStats ? `${testingStats.completed} completados` : null,
         ),
-        metric('sold-value', 'Valor pagado', orderStats.soldValue, 'Ingresos confirmados', 'verified', 'currency', ordersStatus),
+        metric(
+          'sold-value',
+          'Valor pagado',
+          orderStats.soldValue,
+          'Ingresos confirmados',
+          'verified',
+          'currency',
+          ordersStatus,
+        ),
       ],
     };
   }
@@ -446,7 +472,10 @@ export class DashboardService {
     ];
   }
 
-  private createGroupMetrics(groupId: string, orders: readonly Order[]): readonly DashboardMetric[] {
+  private createGroupMetrics(
+    groupId: string,
+    orders: readonly Order[],
+  ): readonly DashboardMetric[] {
     const groupOrders =
       groupId === GENERAL_PRODUCT_GROUP_ID
         ? orders

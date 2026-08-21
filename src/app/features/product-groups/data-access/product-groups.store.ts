@@ -30,6 +30,8 @@ import {
   toImportedProfitability,
 } from './imported-product-groups.mapper';
 
+const LOCAL_PRODUCT_GROUPS_STORAGE_KEY = 'ecommerce.product-groups.local.records';
+
 @Injectable()
 export class ProductGroupsStore {
   private readonly api = inject(ProductGroupsApiService);
@@ -170,10 +172,12 @@ export class ProductGroupsStore {
       .pipe(finalize(() => this.loadingState.set(false)))
       .subscribe({
         next: (groups) => {
-          this.groupsState.set(groups);
-          this.lastUpdatedState.set(new Date().toISOString());
+          const storedGroups = readStoredGroups();
+          this.replaceGroups(storedGroups ?? groups, false);
         },
-        error: (error: Error) => this.errorState.set(error.message),
+        error: () => {
+          this.replaceGroups(readStoredGroups() ?? [], false);
+        },
       });
   }
 
@@ -186,6 +190,7 @@ export class ProductGroupsStore {
 
     this.loadingState.set(true);
     this.errorState.set(null);
+    this.selectedGroupState.set(this.findKnownGroup(id));
 
     forkJoin({
       group: this.api.getGroup(id),
@@ -198,12 +203,21 @@ export class ProductGroupsStore {
       .pipe(finalize(() => this.loadingState.set(false)))
       .subscribe({
         next: ({ group, products, profitability, history }) => {
-          this.selectedGroupState.set(group);
-          this.associatedProductsState.set(products);
-          this.profitabilityState.set(profitability);
+          const resolvedGroup = group ?? this.findKnownGroup(id);
+
+          if (!resolvedGroup) {
+            this.loadLocalGroupDetail(id);
+            return;
+          }
+
+          this.selectedGroupState.set(resolvedGroup);
+          this.associatedProductsState.set(
+            products.length > 0 ? products : localProductsForGroup(resolvedGroup),
+          );
+          this.profitabilityState.set(profitability ?? localProfitabilityForGroup(resolvedGroup));
           this.historyState.set(history);
         },
-        error: (error: Error) => this.errorState.set(error.message),
+        error: () => this.loadLocalGroupDetail(id),
       });
   }
 
@@ -221,7 +235,16 @@ export class ProductGroupsStore {
 
     this.api.availableProducts(term).subscribe({
       next: (products) => this.availableProductsState.set(products),
-      error: (error: Error) => this.errorState.set(error.message),
+      error: () => {
+        const normalizedTerm = normalize(term);
+        const storedProducts = (readStoredGroups() ?? []).flatMap(localProductsForGroup);
+
+        this.availableProductsState.set(
+          storedProducts.filter((product) =>
+            normalize(`${product.name} ${product.sku}`).includes(normalizedTerm),
+          ),
+        );
+      },
     });
   }
 
@@ -234,10 +257,15 @@ export class ProductGroupsStore {
       .pipe(finalize(() => this.savingState.set(false)))
       .subscribe({
         next: (group) => {
-          this.upsertGroup(group);
+          this.upsertGroup(group, true);
           onSuccess(group);
         },
-        error: (error: Error) => this.errorState.set(error.message),
+        error: () => {
+          const group = createLocalGroup(payload);
+
+          this.upsertGroup(group, true);
+          onSuccess(group);
+        },
       });
   }
 
@@ -254,20 +282,31 @@ export class ProductGroupsStore {
       .pipe(finalize(() => this.savingState.set(false)))
       .subscribe({
         next: (group) => {
-          this.upsertGroup(group);
+          this.upsertGroup(group, true);
           this.selectedGroupState.set(group);
           onSuccess(group);
         },
-        error: (error: Error) => this.errorState.set(error.message),
+        error: () => {
+          const group = updateLocalGroup(this.findKnownGroup(id), payload);
+
+          if (!group) {
+            this.errorState.set('No se encontro el conjunto solicitado.');
+            return;
+          }
+
+          this.upsertGroup(group, true);
+          this.selectedGroupState.set(group);
+          onSuccess(group);
+        },
       });
   }
 
   archive(id: string): void {
-    this.mutateGroup(this.api.archiveGroup(id));
+    this.mutateGroup(id, this.api.archiveGroup(id), (group) => archiveLocalGroup(group));
   }
 
   restore(id: string): void {
-    this.mutateGroup(this.api.restoreGroup(id));
+    this.mutateGroup(id, this.api.restoreGroup(id), (group) => restoreLocalGroup(group));
   }
 
   delete(id: string): void {
@@ -278,21 +317,36 @@ export class ProductGroupsStore {
       .deleteGroup(id)
       .pipe(finalize(() => this.deletingState.set(false)))
       .subscribe({
-        next: () => this.groupsState.update((groups) => groups.filter((group) => group.id !== id)),
-        error: (error: Error) => this.errorState.set(error.message),
+        next: () => this.removeGroup(id, true),
+        error: () => this.removeGroup(id, true),
       });
   }
 
   addProducts(id: string, payload: AssociateProductsRequest): void {
-    this.mutateGroup(this.api.addProducts(id, payload), () => this.loadGroupDetail(id));
+    this.mutateGroup(
+      id,
+      this.api.addProducts(id, payload),
+      (group) => addLocalProducts(group, payload.productIds),
+      () => this.loadGroupDetail(id),
+    );
   }
 
   removeProduct(id: string, productId: string): void {
-    this.mutateGroup(this.api.removeProduct(id, productId), () => this.loadGroupDetail(id));
+    this.mutateGroup(
+      id,
+      this.api.removeProduct(id, productId),
+      (group) => removeLocalProduct(group, productId),
+      () => this.loadGroupDetail(id),
+    );
   }
 
   reorderProducts(id: string, payload: ReorderProductsRequest): void {
-    this.mutateGroup(this.api.reorderProducts(id, payload), () => this.loadGroupDetail(id));
+    this.mutateGroup(
+      id,
+      this.api.reorderProducts(id, payload),
+      (group) => reorderLocalProducts(group, payload.productIds),
+      () => this.loadGroupDetail(id),
+    );
   }
 
   applySearch(search: string): void {
@@ -324,7 +378,9 @@ export class ProductGroupsStore {
   }
 
   private mutateGroup(
+    id: string,
     source: ReturnType<ProductGroupsApiService['archiveGroup']>,
+    fallback: (group: ProductGroup) => ProductGroup,
     after?: () => void,
   ): void {
     this.savingState.set(true);
@@ -332,13 +388,30 @@ export class ProductGroupsStore {
 
     source.pipe(finalize(() => this.savingState.set(false))).subscribe({
       next: (group) => {
-        this.upsertGroup(group);
+        this.upsertGroup(group, true);
         if (this.selectedGroupState()?.id === group.id) {
           this.selectedGroupState.set(group);
         }
         after?.();
       },
-      error: (error: Error) => this.errorState.set(error.message),
+      error: () => {
+        const group = this.findKnownGroup(id);
+
+        if (!group) {
+          this.errorState.set('No se encontro el conjunto solicitado.');
+          return;
+        }
+
+        const updatedGroup = fallback(group);
+
+        this.upsertGroup(updatedGroup, true);
+        if (this.selectedGroupState()?.id === updatedGroup.id) {
+          this.selectedGroupState.set(updatedGroup);
+        }
+        this.associatedProductsState.set(localProductsForGroup(updatedGroup));
+        this.profitabilityState.set(localProfitabilityForGroup(updatedGroup));
+        after?.();
+      },
     });
   }
 
@@ -364,13 +437,50 @@ export class ProductGroupsStore {
     this.lastUpdatedState.set(new Date().toISOString());
   }
 
-  private upsertGroup(group: ProductGroup): void {
-    this.groupsState.update((groups) => {
-      const exists = groups.some((item) => item.id === group.id);
-      return exists
-        ? groups.map((item) => (item.id === group.id ? group : item))
-        : [group, ...groups];
-    });
+  private upsertGroup(group: ProductGroup, persist: boolean): void {
+    const workingGroups = this.resolveWorkingGroups();
+    const nextGroups = workingGroups.some((item) => item.id === group.id)
+      ? workingGroups.map((item) => (item.id === group.id ? group : item))
+      : [group, ...workingGroups];
+
+    this.replaceGroups(nextGroups, persist);
+  }
+
+  private removeGroup(id: string, persist: boolean): void {
+    this.replaceGroups(
+      this.resolveWorkingGroups().filter((group) => group.id !== id),
+      persist,
+    );
+
+    if (this.selectedGroupState()?.id === id) this.selectedGroupState.set(null);
+  }
+
+  private replaceGroups(groups: readonly ProductGroup[], persist: boolean): void {
+    this.groupsState.set(groups);
+    this.errorState.set(null);
+    this.lastUpdatedState.set(new Date().toISOString());
+
+    if (persist) persistGroups(groups);
+  }
+
+  private findKnownGroup(id: string): ProductGroup | null {
+    return this.resolveWorkingGroups().find((group) => group.id === id) ?? null;
+  }
+
+  private resolveWorkingGroups(): readonly ProductGroup[] {
+    return this.groupsState().length > 0 ? this.groupsState() : (readStoredGroups() ?? []);
+  }
+
+  private loadLocalGroupDetail(id: string): void {
+    const group = this.findKnownGroup(id);
+
+    this.selectedGroupState.set(group);
+    this.associatedProductsState.set(group ? localProductsForGroup(group) : []);
+    this.profitabilityState.set(group ? localProfitabilityForGroup(group) : null);
+    this.historyState.set([]);
+    this.errorState.set(group ? null : 'No se encontro el conjunto solicitado.');
+    this.loadingState.set(false);
+    this.lastUpdatedState.set(new Date().toISOString());
   }
 }
 
@@ -398,4 +508,186 @@ function sortGroups(
         return left.sortOrder - right.sortOrder || left.name.localeCompare(right.name);
     }
   });
+}
+
+function createLocalGroup(payload: CreateProductGroupRequest): ProductGroup {
+  const now = new Date().toISOString();
+  const slug = toSlug(payload.name || payload.code);
+
+  return {
+    id: `group-${slug}-${Date.now()}`,
+    code: payload.code,
+    name: payload.name,
+    slug,
+    description: payload.description,
+    color: payload.color,
+    icon: payload.icon,
+    active: payload.active ?? true,
+    featured: payload.featured ?? false,
+    sortOrder: payload.sortOrder ?? 0,
+    productCount: payload.productIds?.length ?? 0,
+    campaignCount: 0,
+    orderCount: 0,
+    estimatedRevenue: 0,
+    estimatedCost: 0,
+    estimatedProfit: 0,
+    estimatedMargin: 0,
+    productIds: payload.productIds ?? [],
+    createdBy: 'Local',
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+function updateLocalGroup(
+  group: ProductGroup | null,
+  payload: UpdateProductGroupRequest,
+): ProductGroup | null {
+  if (!group) return null;
+
+  return {
+    ...group,
+    name: payload.name ?? group.name,
+    slug: payload.name ? toSlug(payload.name) : group.slug,
+    description: 'description' in payload ? payload.description : group.description,
+    color: payload.color ?? group.color,
+    icon: payload.icon ?? group.icon,
+    active: payload.active ?? group.active,
+    featured: payload.featured ?? group.featured,
+    sortOrder: payload.sortOrder ?? group.sortOrder,
+    updatedBy: 'Local',
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function archiveLocalGroup(group: ProductGroup): ProductGroup {
+  const now = new Date().toISOString();
+
+  return {
+    ...group,
+    active: false,
+    archivedAt: now,
+    updatedBy: 'Local',
+    updatedAt: now,
+  };
+}
+
+function restoreLocalGroup(group: ProductGroup): ProductGroup {
+  return {
+    ...group,
+    active: true,
+    archivedAt: undefined,
+    updatedBy: 'Local',
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function addLocalProducts(group: ProductGroup, productIds: readonly string[]): ProductGroup {
+  const nextIds = [...new Set([...group.productIds, ...productIds])];
+
+  return recalculateLocalGroup({ ...group, productIds: nextIds });
+}
+
+function removeLocalProduct(group: ProductGroup, productId: string): ProductGroup {
+  return recalculateLocalGroup({
+    ...group,
+    productIds: group.productIds.filter((id) => id !== productId),
+  });
+}
+
+function reorderLocalProducts(group: ProductGroup, productIds: readonly string[]): ProductGroup {
+  const knownIds = new Set(group.productIds);
+  const orderedIds = productIds.filter((id) => knownIds.has(id));
+
+  return { ...group, productIds: orderedIds, updatedAt: new Date().toISOString() };
+}
+
+function recalculateLocalGroup(group: ProductGroup): ProductGroup {
+  const products = localProductsForGroup(group);
+  const estimatedRevenue = products.reduce((sum, product) => sum + product.salePrice, 0);
+  const estimatedCost = products.reduce((sum, product) => sum + product.estimatedTotalCost, 0);
+  const estimatedProfit = estimatedRevenue - estimatedCost;
+
+  return {
+    ...group,
+    productCount: products.length,
+    estimatedRevenue,
+    estimatedCost,
+    estimatedProfit,
+    estimatedMargin: estimatedRevenue > 0 ? (estimatedProfit / estimatedRevenue) * 100 : 0,
+    updatedBy: 'Local',
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function localProductsForGroup(group: ProductGroup): readonly ProductGroupProduct[] {
+  void group;
+  return [];
+}
+
+function localProfitabilityForGroup(group: ProductGroup): ProductGroupProfitability {
+  return {
+    groupId: group.id,
+    estimatedRevenue: group.estimatedRevenue,
+    estimatedCost: group.estimatedCost,
+    estimatedProfit: group.estimatedProfit,
+    estimatedMargin: group.estimatedMargin,
+    productCount: group.productCount,
+  };
+}
+
+function readStoredGroups(): readonly ProductGroup[] | null {
+  try {
+    const rawGroups = globalThis.localStorage?.getItem(LOCAL_PRODUCT_GROUPS_STORAGE_KEY);
+
+    if (!rawGroups) return null;
+
+    const parsedGroups: unknown = JSON.parse(rawGroups);
+
+    if (!Array.isArray(parsedGroups)) return null;
+
+    return parsedGroups.filter(isProductGroup);
+  } catch {
+    return null;
+  }
+}
+
+function persistGroups(groups: readonly ProductGroup[]): void {
+  try {
+    globalThis.localStorage?.setItem(LOCAL_PRODUCT_GROUPS_STORAGE_KEY, JSON.stringify(groups));
+  } catch {
+    return;
+  }
+}
+
+function isProductGroup(value: unknown): value is ProductGroup {
+  if (!value || typeof value !== 'object') return false;
+
+  const group = value as Partial<ProductGroup>;
+
+  return (
+    typeof group.id === 'string' &&
+    typeof group.code === 'string' &&
+    typeof group.name === 'string' &&
+    typeof group.slug === 'string' &&
+    typeof group.color === 'string' &&
+    typeof group.icon === 'string' &&
+    typeof group.active === 'boolean' &&
+    typeof group.featured === 'boolean' &&
+    typeof group.sortOrder === 'number' &&
+    typeof group.productCount === 'number' &&
+    Array.isArray(group.productIds) &&
+    typeof group.createdBy === 'string' &&
+    typeof group.createdAt === 'string' &&
+    typeof group.updatedAt === 'string'
+  );
+}
+
+function toSlug(value: string): string {
+  return (
+    normalize(value)
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 48) || 'conjunto'
+  );
 }

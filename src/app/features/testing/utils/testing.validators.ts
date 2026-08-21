@@ -17,8 +17,10 @@ export function validateTestingForm(
 
   if (code.length < 2) errors.push('El codigo debe tener minimo 2 caracteres.');
   if (name.length < 2) errors.push('El nombre debe tener minimo 2 caracteres.');
-  if (normalizeTestingText(value.objective).length < 8) errors.push('El objetivo debe ser mas especifico.');
-  if (normalizeTestingText(value.hypothesis).length < 8) errors.push('La hipotesis debe ser mas especifica.');
+  if (normalizeTestingText(value.objective).length < 8)
+    errors.push('El objetivo debe ser mas especifico.');
+  if (normalizeTestingText(value.hypothesis).length < 8)
+    errors.push('La hipotesis debe ser mas especifica.');
   if (!value.startDate) errors.push('La fecha inicial es obligatoria.');
   if (value.endDate && value.startDate && value.endDate < value.startDate) {
     errors.push('La fecha final no puede ser anterior a la fecha inicial.');

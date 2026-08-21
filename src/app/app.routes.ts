@@ -76,10 +76,8 @@ export const routes: Routes = [
       },
       {
         path: 'integraciones',
-        canMatch: [permissionGuard],
-        data: { permissions: ['settings.manage', 'files.import'] },
-        loadChildren: () =>
-          import('./features/integrations/integrations.routes').then((m) => m.routes),
+        pathMatch: 'full',
+        redirectTo: 'archivos/importar',
       },
       {
         path: 'oficina',

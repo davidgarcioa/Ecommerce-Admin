@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, computed, effect, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  computed,
+  effect,
+  input,
+  signal,
+} from '@angular/core';
 
 import { AnimateOnViewDirective } from '../../../../../../shared/directives/animate-on-view.directive';
 import { VisualMetric } from '../../dashboard-visual-summary.models';

@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
 
@@ -75,19 +82,22 @@ export class IntegrationsPageComponent {
     return [
       {
         id: 'api',
-        title: 'API',
-        subtitle: health?.api.message ?? 'Pendiente de revisión',
+        title: 'Sistema',
+        subtitle:
+          healthStatusToIntegration(health?.api) === 'connected'
+            ? 'Servicio principal activo'
+            : 'Requiere revisión',
         status: healthStatusToIntegration(health?.api),
         icon: 'lan',
-        detail: 'Backend NestJS',
+        detail: 'Panel administrativo',
       },
       {
         id: 'firebase',
-        title: 'Firebase',
+        title: 'Base de datos',
         subtitle: buildFirebaseSubtitle(health),
         status: buildFirebaseStatus(health),
         icon: 'database',
-        detail: 'Firestore y Storage',
+        detail: 'Datos y archivos',
       },
       {
         id: 'dropi',
@@ -95,7 +105,7 @@ export class IntegrationsPageComponent {
         subtitle: buildDropiSubtitle(dropi, dropiAuth, dropiAuthError),
         status: buildDropiStatus(dropi, dropiAuth, dropiAuthError),
         icon: 'sync_alt',
-        detail: 'Órdenes externas',
+        detail: 'Pedidos y guías',
       },
       {
         id: 'meta',
@@ -103,7 +113,7 @@ export class IntegrationsPageComponent {
         subtitle: buildMetaSubtitle(meta, metaConnection, metaConnectionError),
         status: buildMetaStatus(meta, metaConnection, metaConnectionError),
         icon: 'ads_click',
-        detail: 'Campañas',
+        detail: 'Publicidad',
       },
     ];
   });
@@ -112,10 +122,10 @@ export class IntegrationsPageComponent {
     const health = this.health();
 
     return [
-      toCheck('API', health?.api),
-      toCheck('Variables de entorno', health?.environment),
-      toCheck('Firestore', health?.firestore),
-      toCheck('Firebase Storage', health?.storage),
+      toClientCheck('Sistema', health?.api, 'Operando correctamente'),
+      toClientCheck('Configuración', health?.environment, 'Lista para operar'),
+      toClientCheck('Base de datos', health?.firestore, 'Disponible'),
+      toClientCheck('Archivos', health?.storage, 'Disponible'),
     ];
   });
 
@@ -131,43 +141,31 @@ export class IntegrationsPageComponent {
 
     return [
       {
-        label: 'URL base',
-        value: dropi?.baseUrlConfigured ? 'Configurada' : 'Pendiente',
-        status: dropi?.baseUrlConfigured ? 'connected' : 'warning',
+        label: 'Conexión',
+        value: dropi?.configured ? 'Lista para sincronizar' : 'Pendiente de configuración',
+        status: dropi?.configured ? 'connected' : 'warning',
       },
       {
-        label: 'Autenticación',
-        value: formatAuthMode(dropi?.authMode ?? 'missing'),
-        status: dropi?.authMode === 'missing' ? 'warning' : 'connected',
-      },
-      {
-        label: 'Header',
-        value: dropi?.authHeader ?? 'Pendiente',
-        status: dropi?.authHeader === 'X-Authorization' ? 'connected' : 'warning',
-      },
-      {
-        label: 'Ruta de órdenes',
-        value: dropi?.ordersPath ?? 'Pendiente',
-        status: dropi?.ordersPath ? 'connected' : 'warning',
-      },
-      {
-        label: 'Usuario Dropi',
+        label: 'Cuenta Dropi',
         value: dropi?.userIdConfigured ? 'Configurado' : 'Pendiente',
         status: dropi?.userIdConfigured ? 'connected' : 'warning',
       },
       {
-        label: 'Prueba de token',
-        value: this.dropiAuthError() ?? (this.dropiAuth() ? 'Autorizado' : 'Sin probar'),
+        label: 'Prueba de acceso',
+        value: this.dropiAuthError()
+          ? 'No se pudo conectar'
+          : this.dropiAuth()
+            ? 'Conexión aprobada'
+            : 'Sin probar',
         status: authStatus,
       },
       {
-        label: 'Registros por consulta',
-        value: dropi ? `${dropi.pageSize}` : 'Pendiente',
-        status: dropi ? 'connected' : 'pending',
-      },
-      {
-        label: 'Consulta con fechas',
-        value: syncError ?? (syncSummary ? formatDropiSyncSummary(syncSummary) : 'Sin probar'),
+        label: 'Sincronización',
+        value: syncError
+          ? 'No se pudo sincronizar'
+          : syncSummary
+            ? formatDropiSyncSummary(syncSummary)
+            : 'Sin probar',
         status: syncError ? 'error' : syncSummary ? 'connected' : 'pending',
       },
     ];
@@ -180,19 +178,13 @@ export class IntegrationsPageComponent {
 
     return [
       {
-        label: 'Graph API',
-        value: meta?.graphApiVersion ?? 'Pendiente',
-        status: meta ? 'connected' : 'pending',
-      },
-      {
-        label: 'App',
-        value: meta?.appIdConfigured ? 'Configurada' : 'Pendiente',
-        status: meta?.appIdConfigured ? 'connected' : 'warning',
-      },
-      {
-        label: 'Token',
-        value: meta?.accessTokenConfigured ? 'Configurado' : 'Pendiente',
-        status: meta?.accessTokenConfigured ? 'connected' : 'warning',
+        label: 'Conexión Meta',
+        value: meta?.configured ? 'Lista para probar' : 'Pendiente de credenciales',
+        status: meta?.configured
+          ? 'connected'
+          : meta?.configurationStatus === 'partial'
+            ? 'warning'
+            : 'pending',
       },
       {
         label: 'Cuenta publicitaria',
@@ -200,13 +192,15 @@ export class IntegrationsPageComponent {
         status: connection ? 'connected' : meta?.adAccountConfigured ? 'pending' : 'warning',
       },
       {
-        label: 'Business Manager',
-        value: meta?.businessConfigured ? 'Configurado' : 'Opcional pendiente',
-        status: meta?.businessConfigured ? 'connected' : 'warning',
+        label: 'Lectura de campañas',
+        value: this.metaPreview()
+          ? `${this.metaPreview()?.summary.campaigns ?? 0} campañas leídas`
+          : 'Sin lectura',
+        status: this.metaPreview() ? 'connected' : 'pending',
       },
       {
         label: 'Prueba de conexión',
-        value: error ?? connection?.message ?? 'Sin probar',
+        value: error ? 'No se pudo conectar' : connection ? 'Conexión aprobada' : 'Sin probar',
         status: error ? 'error' : connection ? 'connected' : 'pending',
       },
     ];
@@ -235,7 +229,9 @@ export class IntegrationsPageComponent {
           this.loading.set(false);
         },
         error: (error: Error) => {
-          this.errorMessage.set(error.message);
+          this.errorMessage.set(
+            toClientFacingError(error.message, 'No fue posible revisar las conexiones.'),
+          );
           this.loading.set(false);
         },
       });
@@ -255,7 +251,9 @@ export class IntegrationsPageComponent {
           this.testingDropi.set(false);
         },
         error: (error: Error) => {
-          this.dropiAuthError.set(error.message);
+          this.dropiAuthError.set(
+            toClientFacingError(error.message, 'No fue posible conectar con Dropi.'),
+          );
           this.testingDropi.set(false);
         },
       });
@@ -277,7 +275,9 @@ export class IntegrationsPageComponent {
           this.refresh();
         },
         error: (error: Error) => {
-          this.dropiSyncError.set(error.message);
+          this.dropiSyncError.set(
+            toClientFacingError(error.message, 'No fue posible sincronizar Dropi.'),
+          );
           this.syncingDropi.set(false);
         },
       });
@@ -297,7 +297,12 @@ export class IntegrationsPageComponent {
           this.testingMeta.set(false);
         },
         error: (error: Error) => {
-          this.metaConnectionError.set(error.message);
+          this.metaConnectionError.set(
+            toClientFacingError(
+              error.message,
+              'Meta Ads necesita credenciales de la cuenta antes de conectar.',
+            ),
+          );
           this.testingMeta.set(false);
         },
       });
@@ -317,7 +322,9 @@ export class IntegrationsPageComponent {
           this.loadingMetaPreview.set(false);
         },
         error: (error: Error) => {
-          this.metaPreviewError.set(error.message);
+          this.metaPreviewError.set(
+            toClientFacingError(error.message, 'No fue posible leer las campañas de Meta Ads.'),
+          );
           this.loadingMetaPreview.set(false);
         },
       });
@@ -349,7 +356,6 @@ export class IntegrationsPageComponent {
       minute: '2-digit',
     }).format(date);
   }
-
 }
 
 function healthStatusToIntegration(item: HealthCheckItem | undefined): IntegrationStatus {
@@ -362,7 +368,8 @@ function healthStatusToIntegration(item: HealthCheckItem | undefined): Integrati
 function buildFirebaseStatus(health: HealthCheckResponse | null): IntegrationStatus {
   if (!health) return 'pending';
   if (health.firestore.status === 'error' || health.storage.status === 'error') return 'error';
-  if (health.firestore.status === 'warning' || health.storage.status === 'warning') return 'warning';
+  if (health.firestore.status === 'warning' || health.storage.status === 'warning')
+    return 'warning';
   return 'connected';
 }
 
@@ -371,9 +378,9 @@ function buildFirebaseSubtitle(health: HealthCheckResponse | null): string {
   const firestoreReady = health.firestore.status === 'ok';
   const storageReady = health.storage.status === 'ok';
 
-  if (firestoreReady && storageReady) return 'Firestore y Storage activos';
-  if (firestoreReady) return 'Storage requiere revisión';
-  if (storageReady) return 'Firestore requiere revisión';
+  if (firestoreReady && storageReady) return 'Datos y archivos activos';
+  if (firestoreReady) return 'Archivos requieren revisión';
+  if (storageReady) return 'Base de datos requiere revisión';
   return 'Requiere configuración';
 }
 
@@ -394,11 +401,11 @@ function buildDropiSubtitle(
   token: DropiAuthToken | null,
   authError: string | null,
 ): string {
-  if (authError) return authError;
-  if (token) return 'Token validado correctamente';
+  if (authError) return 'No se pudo conectar';
+  if (token) return 'Conexión aprobada';
   if (!status) return 'Pendiente de revisión';
-  if (!status.configured) return 'Faltan credenciales o URL';
-  return `Configurado por ${formatAuthMode(status.authMode).toLowerCase()}`;
+  if (!status.configured) return 'Pendiente de credenciales';
+  return 'Lista para sincronizar';
 }
 
 function buildMetaStatus(
@@ -419,31 +426,33 @@ function buildMetaSubtitle(
   connection: MetaConnectionCheck | null,
   connectionError: string | null,
 ): string {
-  if (connectionError) return connectionError;
-  if (connection) return connection.accountName ?? connection.message;
+  if (connectionError) return 'Pendiente de credenciales';
+  if (connection) return connection.accountName ?? 'Conexión aprobada';
   if (!status) return 'Pendiente de revisión';
   if (status.configured) return 'Lista para probar conexión';
   if (status.configurationStatus === 'partial') return 'Configuración incompleta';
   return 'Pendiente de credenciales';
 }
 
-function toCheck(label: string, item: HealthCheckItem | undefined): IntegrationCheck {
+function toClientCheck(
+  label: string,
+  item: HealthCheckItem | undefined,
+  connectedValue: string,
+): IntegrationCheck {
+  const status = healthStatusToIntegration(item);
+
   return {
     label,
-    value: item?.message ?? 'Pendiente de revisión',
-    status: healthStatusToIntegration(item),
+    value:
+      status === 'connected'
+        ? connectedValue
+        : status === 'pending'
+          ? 'Pendiente de revisión'
+          : status === 'warning'
+            ? 'Requiere revisión'
+            : 'No disponible',
+    status,
   };
-}
-
-function formatAuthMode(mode: DropiIntegrationStatus['authMode']): string {
-  const labels: Readonly<Record<DropiIntegrationStatus['authMode'], string>> = {
-    auto: 'Automática',
-    'static-token': 'Token fijo',
-    'email-password': 'Correo y contraseña',
-    missing: 'No configurada',
-  };
-
-  return labels[mode];
 }
 
 function buildDropiSyncRequest(): SyncDropiOrdersRequest {
@@ -468,5 +477,14 @@ function formatDate(date: Date): string {
 }
 
 function formatDropiSyncSummary(summary: DropiSyncSummary): string {
-  return `${summary.received} recibidas · ${summary.imported} nuevas · ${summary.updated} actualizadas`;
+  return `${summary.received} órdenes revisadas`;
+}
+
+function toClientFacingError(message: string, fallback: string): string {
+  const technicalPattern =
+    /[A-Z0-9_]{6,}|token|secret|header|endpoint|graph api|firebase|firestore|storage/i;
+
+  if (technicalPattern.test(message)) return fallback;
+
+  return message || fallback;
 }

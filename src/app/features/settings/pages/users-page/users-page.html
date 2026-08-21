@@ -2,7 +2,9 @@
   <header class="settings-page__header">
     <div>
       <h2 id="users-title" class="settings-page__title">Usuarios</h2>
-      <p class="settings-page__description">Administra cuentas internas y sus permisos efectivos.</p>
+      <p class="settings-page__description">
+        Administra cuentas internas y sus permisos efectivos.
+      </p>
     </div>
     <div class="settings-page__actions">
       <button type="button" class="settings-button settings-button--primary" (click)="create()">
@@ -13,10 +15,18 @@
   </header>
 
   <div class="settings-summary" aria-label="Resumen de usuarios">
-    <div class="settings-summary-card"><span>Total</span><strong>{{ totalUsers() }}</strong></div>
-    <div class="settings-summary-card"><span>Activos</span><strong>{{ activeUsers() }}</strong></div>
-    <div class="settings-summary-card"><span>Pendientes</span><strong>{{ pendingUsers() }}</strong></div>
-    <div class="settings-summary-card"><span>Inactivos</span><strong>{{ inactiveUsers() }}</strong></div>
+    <div class="settings-summary-card" style="--settings-accent: 59 130 246">
+      <span>Total</span><strong>{{ totalUsers() }}</strong>
+    </div>
+    <div class="settings-summary-card" style="--settings-accent: 16 185 129">
+      <span>Activos</span><strong>{{ activeUsers() }}</strong>
+    </div>
+    <div class="settings-summary-card" style="--settings-accent: 245 158 11">
+      <span>Pendientes</span><strong>{{ pendingUsers() }}</strong>
+    </div>
+    <div class="settings-summary-card" style="--settings-accent: 239 68 68">
+      <span>Inactivos</span><strong>{{ inactiveUsers() }}</strong>
+    </div>
   </div>
 
   <app-data-table

@@ -2,7 +2,10 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { Router } from '@angular/router';
 
 import { DataTableComponent } from '../../../../shared/components/data-table/data-table.component';
-import { TableAction, TableActionClick } from '../../../../shared/components/data-table/models/table-action.model';
+import {
+  TableAction,
+  TableActionClick,
+} from '../../../../shared/components/data-table/models/table-action.model';
 import { TableColumn } from '../../../../shared/components/data-table/models/table-column.model';
 import { UserListItem } from '../../data-access/settings.models';
 import { SettingsStore } from '../../data-access/settings.store';
@@ -27,14 +30,86 @@ export class UsersPageComponent {
   readonly pendingUsers = this.store.pendingUsers;
 
   readonly columns = computed<readonly TableColumn<UserListItem>[]>(() => [
-    { key: 'name', label: 'Usuario', type: 'text', sortable: true, searchable: true, visible: true, minWidth: '12rem', align: 'left' },
-    { key: 'email', label: 'Correo', type: 'text', sortable: true, searchable: true, visible: true, minWidth: '14rem', align: 'left' },
-    { key: 'username', label: 'Alias', type: 'text', sortable: true, searchable: true, visible: true, minWidth: '8rem', align: 'left' },
-    { key: 'roleId', label: 'Rol', type: 'text', sortable: true, searchable: true, visible: true, minWidth: '10rem', align: 'left' },
-    { key: 'statusLabel', label: 'Estado', type: 'status', sortable: true, searchable: true, visible: true, minWidth: '8rem', align: 'left' },
-    { key: 'verificationLabel', label: 'Verificación', type: 'text', sortable: true, searchable: true, visible: true, minWidth: '10rem', align: 'left' },
-    { key: 'permissionsCount', label: 'Permisos', type: 'number', sortable: true, searchable: false, visible: true, minWidth: '7rem', align: 'right' },
-    { key: 'lastLogin', label: 'Último acceso', type: 'text', sortable: true, searchable: false, visible: true, minWidth: '10rem', align: 'left' },
+    {
+      key: 'name',
+      label: 'Usuario',
+      type: 'text',
+      sortable: true,
+      searchable: true,
+      visible: true,
+      minWidth: '12rem',
+      align: 'left',
+    },
+    {
+      key: 'email',
+      label: 'Correo',
+      type: 'text',
+      sortable: true,
+      searchable: true,
+      visible: true,
+      minWidth: '14rem',
+      align: 'left',
+    },
+    {
+      key: 'username',
+      label: 'Alias',
+      type: 'text',
+      sortable: true,
+      searchable: true,
+      visible: true,
+      minWidth: '8rem',
+      align: 'left',
+    },
+    {
+      key: 'roleId',
+      label: 'Rol',
+      type: 'text',
+      sortable: true,
+      searchable: true,
+      visible: true,
+      minWidth: '10rem',
+      align: 'left',
+    },
+    {
+      key: 'statusLabel',
+      label: 'Estado',
+      type: 'status',
+      sortable: true,
+      searchable: true,
+      visible: true,
+      minWidth: '8rem',
+      align: 'left',
+    },
+    {
+      key: 'verificationLabel',
+      label: 'Verificación',
+      type: 'text',
+      sortable: true,
+      searchable: true,
+      visible: true,
+      minWidth: '10rem',
+      align: 'left',
+    },
+    {
+      key: 'permissionsCount',
+      label: 'Permisos',
+      type: 'number',
+      sortable: true,
+      searchable: false,
+      visible: true,
+      minWidth: '7rem',
+      align: 'right',
+    },
+    {
+      key: 'lastLogin',
+      label: 'Último acceso',
+      type: 'text',
+      sortable: true,
+      searchable: false,
+      visible: true,
+      minWidth: '10rem',
+      align: 'left',
+    },
   ]);
 
   readonly rowActions = computed<readonly TableAction<UserListItem>[]>(() => [
@@ -62,8 +137,12 @@ export class UsersPageComponent {
   }
 
   onAction(event: TableActionClick<UserListItem>): void {
-    if (event.action.id === 'approve') void this.router.navigate(['/configuracion/usuarios', event.row.id, 'editar']);
+    if (event.action.id === 'approve') {
+      void this.router.navigate(['/configuracion/usuarios', event.row.id, 'editar']);
+    }
     if (event.action.id === 'view') this.openUser(event.row);
-    if (event.action.id === 'edit') void this.router.navigate(['/configuracion/usuarios', event.row.id, 'editar']);
+    if (event.action.id === 'edit') {
+      void this.router.navigate(['/configuracion/usuarios', event.row.id, 'editar']);
+    }
   }
 }

@@ -41,11 +41,14 @@ export class DailyOrdersSectionComponent {
   readonly urgentOrders = computed(() => this.orders().filter((order) => order.urgent).length);
   readonly movingOrders = computed(
     () =>
-      this.orders().filter((order) => order.status === 'En tránsito' || order.status === 'Despachada')
-        .length,
+      this.orders().filter(
+        (order) => order.status === 'En tránsito' || order.status === 'Despachada',
+      ).length,
   );
   readonly incidentOrders = computed(
-    () => this.orders().filter((order) => order.status === 'Devuelta' || order.status === 'Cancelada').length,
+    () =>
+      this.orders().filter((order) => order.status === 'Devuelta' || order.status === 'Cancelada')
+        .length,
   );
   readonly revenueOrders = computed(() => this.orders().filter((order) => order.orderValue > 0));
   readonly totalRevenue = computed(() =>
@@ -242,4 +245,3 @@ function col(
     minWidth,
   };
 }
-

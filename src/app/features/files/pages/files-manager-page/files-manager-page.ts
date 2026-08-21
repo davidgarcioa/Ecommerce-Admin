@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { Router } from '@angular/router';
 
 import { DataTableComponent } from '../../../../shared/components/data-table/data-table.component';
@@ -37,6 +44,16 @@ export class FilesManagerPageComponent implements OnInit {
   readonly totalSize = this.store.totalSize;
   readonly lastUpdated = this.store.lastUpdated;
   readonly preferencesKey = FILES_TABLE_PREFERENCES_KEY;
+  readonly filtersOpen = signal(false);
+  readonly activeFilterCount = computed(() => {
+    const filters = this.filters();
+    return [
+      filters.status !== 'all',
+      filters.category !== 'all',
+      filters.visibility !== 'all',
+      this.search().trim().length > 0,
+    ].filter(Boolean).length;
+  });
 
   readonly columns = computed<readonly TableColumn<ManagedFileListItem>[]>(() => [
     {
@@ -148,6 +165,10 @@ export class FilesManagerPageComponent implements OnInit {
 
   exportMetadata(): void {
     this.store.exportMetadata();
+  }
+
+  toggleFilters(): void {
+    this.filtersOpen.update((open) => !open);
   }
 
   applySearch(search: string): void {

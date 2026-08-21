@@ -17,7 +17,18 @@ const dateFormatter = new Intl.DateTimeFormat('es-CO', {
 });
 
 export function formatExpenseCurrency(value: number): string {
+  if (Math.abs(value) >= 1_000_000) {
+    return `${value < 0 ? '-' : ''}$${formatMillions(Math.abs(value))}`;
+  }
+
   return currencyFormatter.format(value);
+}
+
+function formatMillions(value: number): string {
+  const millions = Math.round((value / 1_000_000) * 10) / 10;
+  const formatted = Number.isInteger(millions) ? millions.toFixed(0) : millions.toFixed(1);
+
+  return `${formatted}M`;
 }
 
 export function formatExpenseDate(value: string): string {

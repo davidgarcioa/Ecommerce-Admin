@@ -1,10 +1,10 @@
-<article class="label-detail">
+<article class="label-detail" [style.--label-color]="color(tag().color)">
   <header>
-    <span class="label-detail__swatch" [style.background]="color(tag().color)" aria-hidden="true"></span>
+    <span class="label-detail__swatch" aria-hidden="true"></span>
     <div>
       <p>{{ tag().code }}</p>
       <h2>{{ tag().name }}</h2>
-      <span>{{ statusLabel(tag().status) }} · {{ tag().usageCount }} usos registrados</span>
+      <span>{{ statusLabel(tag().status) }} - {{ tag().usageCount }} usos registrados</span>
     </div>
   </header>
 
@@ -34,13 +34,28 @@
   </dl>
 
   <div class="label-detail__actions">
-    <button type="button" (click)="edit.emit()" [disabled]="!canUpdate()">Editar</button>
+    <button type="button" (click)="edit.emit()" [disabled]="!canUpdate()">
+      <span class="material-symbols-rounded" aria-hidden="true">edit</span>
+      Editar
+    </button>
     @if (tag().status === 'archived') {
-      <button type="button" (click)="restore.emit()" [disabled]="!canArchive()">Restaurar</button>
+      <button type="button" (click)="restore.emit()" [disabled]="!canArchive()">
+        <span class="material-symbols-rounded" aria-hidden="true">unarchive</span>
+        Restaurar
+      </button>
     } @else {
-      <button type="button" (click)="archive.emit()" [disabled]="!canArchive()">Archivar</button>
+      <button type="button" (click)="archive.emit()" [disabled]="!canArchive()">
+        <span class="material-symbols-rounded" aria-hidden="true">archive</span>
+        Archivar
+      </button>
     }
-    <button type="button" class="label-detail__danger" (click)="deleteTag.emit()" [disabled]="!canDelete()">
+    <button
+      type="button"
+      class="label-detail__danger"
+      (click)="deleteTag.emit()"
+      [disabled]="!canDelete()"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">delete</span>
       Eliminar
     </button>
   </div>

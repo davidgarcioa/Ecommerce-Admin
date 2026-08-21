@@ -18,7 +18,6 @@ describe('FilesPageComponent', () => {
 
     expect(compiled.textContent).toContain('Archivos');
     expect(compiled.textContent).toContain('Importación inteligente');
-    expect(compiled.textContent).toContain('Suelta aquí el archivo de Dropi');
+    expect(compiled.textContent).toContain('Suelta aquí tu archivo');
   });
 });
-

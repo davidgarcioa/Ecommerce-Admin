@@ -5,9 +5,21 @@
   </button>
 
   @if (loading() || searching()) {
-    <section class="tracking-detail-page__state" aria-live="polite">Cargando rastreo...</section>
+    <section class="tracking-detail-page__state" aria-live="polite">
+      <span class="material-symbols-rounded" aria-hidden="true">sync</span>
+      <div>
+        <strong>Cargando rastreo</strong>
+        <p>Consultando la información del envío.</p>
+      </div>
+    </section>
   } @else if (error(); as message) {
-    <section class="tracking-detail-page__state" role="alert">{{ message }}</section>
+    <section class="tracking-detail-page__state tracking-detail-page__state--error" role="alert">
+      <span class="material-symbols-rounded" aria-hidden="true">info</span>
+      <div>
+        <strong>Sin coincidencias</strong>
+        <p>{{ message }}</p>
+      </div>
+    </section>
   } @else if (selected(); as item) {
     <app-tracking-result-summary
       [result]="item"
@@ -21,8 +33,12 @@
     <app-tracking-info-cards [result]="item" />
     <app-tracking-timeline [events]="item.timeline" />
   } @else {
-    <section class="tracking-detail-page__state">
-      No encontramos resultados con los datos ingresados.
+    <section class="tracking-detail-page__state tracking-detail-page__state--error">
+      <span class="material-symbols-rounded" aria-hidden="true">info</span>
+      <div>
+        <strong>Sin coincidencias</strong>
+        <p>No encontramos resultados con los datos ingresados.</p>
+      </div>
     </section>
   }
 </div>

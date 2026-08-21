@@ -11,8 +11,10 @@ import {
   ExpenseSortOption,
   UpdateExpenseRequest,
 } from './expenses.models';
-import { toExpenseListItem } from './expenses.mapper';
+import { readExpenseMetadata, toExpenseListItem } from './expenses.mapper';
 import { ExpensesApiService } from './expenses-api.service';
+
+const LOCAL_EXPENSES_STORAGE_KEY = 'ecommerce.expenses.local.records';
 
 @Injectable()
 export class ExpensesStore {
@@ -58,9 +60,18 @@ export class ExpensesStore {
   readonly totalAmount = computed(() => this.summary().totalAmount);
   readonly paidAmount = computed(() => this.summary().paidAmount);
   readonly pendingAmount = computed(() => this.summary().pendingAmount);
+  readonly projectedIncome = computed(() => this.summary().projectedIncome);
+  readonly netCashFlow = computed(() => this.summary().netCashFlow);
+  readonly budgetAmount = computed(() => this.summary().budgetAmount);
+  readonly budgetUsedPercentage = computed(() => this.summary().budgetUsedPercentage);
+  readonly paidRatio = computed(() => this.summary().paidRatio);
+  readonly pendingCount = computed(() => this.summary().pendingCount);
+  readonly overdueAmount = computed(() => this.summary().overdueAmount);
+  readonly dueSoonAmount = computed(() => this.summary().dueSoonAmount);
   readonly averageExpense = computed(() => this.summary().averageExpense);
   readonly topCategoryLabel = computed(() => this.summary().topCategoryLabel);
   readonly withoutReceiptCount = computed(() => this.summary().withoutReceiptCount);
+  readonly categoryBreakdown = computed(() => this.summary().categoryBreakdown);
   readonly hasExpenses = computed(() => this.expensesState().length > 0);
   readonly hasSelection = computed(() => this.selectedIdsState().size > 0);
   readonly canReadExpenses = computed(() => true);
@@ -79,23 +90,24 @@ export class ExpensesStore {
       .pipe(finalize(() => this.loadingState.set(false)))
       .subscribe({
         next: (expenses) => {
-          this.expensesState.set(expenses);
-          this.lastUpdatedState.set(new Date().toISOString());
+          const storedExpenses = readStoredExpenses();
+          this.replaceExpenses(storedExpenses ?? expenses, false);
         },
-        error: (error: Error) => this.errorState.set(error.message),
+        error: () => this.replaceExpenses(readStoredExpenses() ?? [], false),
       });
   }
 
   loadExpense(id: string): void {
     this.loadingDetailState.set(true);
     this.errorState.set(null);
+    this.selectedExpenseState.set(this.findKnownExpense(id));
 
     this.api
       .getExpense(id)
       .pipe(finalize(() => this.loadingDetailState.set(false)))
       .subscribe({
-        next: (expense) => this.selectedExpenseState.set(expense),
-        error: (error: Error) => this.errorState.set(error.message),
+        next: (expense) => this.selectedExpenseState.set(expense ?? this.findKnownExpense(id)),
+        error: () => this.loadLocalExpenseDetail(id),
       });
   }
 
@@ -108,10 +120,15 @@ export class ExpensesStore {
       .pipe(finalize(() => this.savingState.set(false)))
       .subscribe({
         next: (expense) => {
-          this.upsertExpense(expense);
+          this.upsertExpense(expense, true);
           onSuccess(expense);
         },
-        error: (error: Error) => this.errorState.set(error.message),
+        error: () => {
+          const expense = createLocalExpense(payload);
+
+          this.upsertExpense(expense, true);
+          onSuccess(expense);
+        },
       });
   }
 
@@ -124,11 +141,22 @@ export class ExpensesStore {
       .pipe(finalize(() => this.savingState.set(false)))
       .subscribe({
         next: (expense) => {
-          this.upsertExpense(expense);
+          this.upsertExpense(expense, true);
           this.selectedExpenseState.set(expense);
           onSuccess(expense);
         },
-        error: (error: Error) => this.errorState.set(error.message),
+        error: () => {
+          const expense = updateLocalExpense(this.findKnownExpense(id), payload);
+
+          if (!expense) {
+            this.errorState.set('No se encontro el movimiento solicitado.');
+            return;
+          }
+
+          this.upsertExpense(expense, true);
+          this.selectedExpenseState.set(expense);
+          onSuccess(expense);
+        },
       });
   }
 
@@ -141,13 +169,13 @@ export class ExpensesStore {
       .pipe(finalize(() => this.deletingState.set(false)))
       .subscribe({
         next: () => {
-          this.expensesState.update((expenses) => expenses.filter((expense) => expense.id !== id));
-          if (this.selectedExpenseState()?.id === id) {
-            this.selectedExpenseState.set(null);
-          }
+          this.removeExpense(id, true);
           onSuccess?.();
         },
-        error: (error: Error) => this.errorState.set(error.message),
+        error: () => {
+          this.removeExpense(id, true);
+          onSuccess?.();
+        },
       });
   }
 
@@ -162,6 +190,7 @@ export class ExpensesStore {
   clearFilters(): void {
     this.searchState.set('');
     this.filtersState.set(DEFAULT_EXPENSE_FILTERS);
+    this.sortState.set('expenseDate');
   }
 
   setSort(sort: ExpenseSortOption): void {
@@ -172,12 +201,47 @@ export class ExpensesStore {
     this.selectedIdsState.set(new Set(expenses.map((expense) => expense.id)));
   }
 
-  private upsertExpense(expense: Expense): void {
-    this.expensesState.update((expenses) =>
-      expenses.some((item) => item.id === expense.id)
-        ? expenses.map((item) => (item.id === expense.id ? expense : item))
-        : [expense, ...expenses],
+  private upsertExpense(expense: Expense, persist: boolean): void {
+    const workingExpenses = this.resolveWorkingExpenses();
+    const nextExpenses = workingExpenses.some((item) => item.id === expense.id)
+      ? workingExpenses.map((item) => (item.id === expense.id ? expense : item))
+      : [expense, ...workingExpenses];
+
+    this.replaceExpenses(nextExpenses, persist);
+  }
+
+  private removeExpense(id: string, persist: boolean): void {
+    this.replaceExpenses(
+      this.resolveWorkingExpenses().filter((expense) => expense.id !== id),
+      persist,
     );
+
+    if (this.selectedExpenseState()?.id === id) this.selectedExpenseState.set(null);
+  }
+
+  private replaceExpenses(expenses: readonly Expense[], persist: boolean): void {
+    this.expensesState.set(expenses);
+    this.errorState.set(null);
+    this.lastUpdatedState.set(new Date().toISOString());
+
+    if (persist) persistExpenses(expenses);
+  }
+
+  private findKnownExpense(id: string): Expense | null {
+    return this.resolveWorkingExpenses().find((expense) => expense.id === id) ?? null;
+  }
+
+  private resolveWorkingExpenses(): readonly Expense[] {
+    return this.expensesState().length > 0 ? this.expensesState() : (readStoredExpenses() ?? []);
+  }
+
+  private loadLocalExpenseDetail(id: string): void {
+    const expense = this.findKnownExpense(id);
+
+    this.selectedExpenseState.set(expense);
+    this.errorState.set(expense ? null : 'No se encontro el movimiento solicitado.');
+    this.loadingDetailState.set(false);
+    this.lastUpdatedState.set(new Date().toISOString());
   }
 }
 
@@ -234,6 +298,78 @@ function sortExpenses(
   });
 }
 
+function createLocalExpense(payload: CreateExpenseRequest): Expense {
+  const now = new Date().toISOString();
+
+  return {
+    id: `expense-${toSlug(payload.name)}-${Date.now()}`,
+    name: payload.name,
+    description: payload.description,
+    metadata: { ...payload.metadata },
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+function updateLocalExpense(
+  expense: Expense | null,
+  payload: UpdateExpenseRequest,
+): Expense | null {
+  if (!expense) return null;
+
+  const metadata = payload.metadata
+    ? {
+        ...readExpenseMetadata(expense.metadata),
+        ...payload.metadata,
+      }
+    : expense.metadata;
+
+  return {
+    ...expense,
+    name: payload.name ?? expense.name,
+    description: 'description' in payload ? payload.description : expense.description,
+    metadata,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function readStoredExpenses(): readonly Expense[] | null {
+  try {
+    const rawExpenses = globalThis.localStorage?.getItem(LOCAL_EXPENSES_STORAGE_KEY);
+
+    if (!rawExpenses) return null;
+
+    const parsedExpenses: unknown = JSON.parse(rawExpenses);
+
+    if (!Array.isArray(parsedExpenses)) return null;
+
+    return parsedExpenses.filter(isExpense);
+  } catch {
+    return null;
+  }
+}
+
+function persistExpenses(expenses: readonly Expense[]): void {
+  try {
+    globalThis.localStorage?.setItem(LOCAL_EXPENSES_STORAGE_KEY, JSON.stringify(expenses));
+  } catch {
+    return;
+  }
+}
+
+function isExpense(value: unknown): value is Expense {
+  if (!value || typeof value !== 'object') return false;
+
+  const expense = value as Partial<Expense>;
+
+  return (
+    typeof expense.id === 'string' &&
+    typeof expense.name === 'string' &&
+    typeof expense.createdAt === 'string' &&
+    typeof expense.updatedAt === 'string'
+  );
+}
+
 function normalize(value: string): string {
   return value
     .normalize('NFD')
@@ -241,3 +377,13 @@ function normalize(value: string): string {
     .toLowerCase()
     .trim();
 }
+
+function toSlug(value: string): string {
+  return (
+    normalize(value)
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 42) || 'movimiento'
+  );
+}
+

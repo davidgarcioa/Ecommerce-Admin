@@ -1,18 +1,46 @@
 <header class="labels-header">
-  <div>
+  <div class="labels-header__copy">
     <p class="labels-header__eyebrow">Clasificacion operativa</p>
     <h2>Etiquetas</h2>
-    <span>Ultima actualizacion {{ formatLastUpdated(lastUpdated()) }} · Contrato actual: Tags CRUD</span>
+    <p>Administra marcas internas para ordenar clientes, pedidos y novedades.</p>
+    <div class="labels-header__meta" aria-label="Estado de etiquetas">
+      <span>
+        <span class="material-symbols-rounded" aria-hidden="true">sell</span>
+        Sistema de etiquetas
+      </span>
+      <span>
+        <span class="material-symbols-rounded" aria-hidden="true">sync</span>
+        {{ formatLastUpdated(lastUpdated()) }}
+      </span>
+    </div>
   </div>
 
   <div class="labels-header__actions" aria-label="Acciones de etiquetas">
-    <button type="button" (click)="refresh.emit()" [disabled]="loading()">
+    <button
+      type="button"
+      class="labels-header__action"
+      (click)="refresh.emit()"
+      [disabled]="loading()"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
       Actualizar
     </button>
     <button
       type="button"
-      class="labels-header__primary"
+      class="labels-header__action"
+      [class.labels-header__action--active]="filtersVisible() || activeFiltersCount() > 0"
+      [attr.aria-expanded]="filtersVisible()"
+      (click)="toggleFilters.emit()"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+      Filtros
+      @if (activeFiltersCount() > 0) {
+        <span class="labels-header__count">{{ activeFiltersCount() }}</span>
+      }
+    </button>
+    <button
+      type="button"
+      class="labels-header__action labels-header__action--primary"
       (click)="create.emit()"
       [disabled]="!canCreate()"
     >

@@ -4,7 +4,7 @@
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: $radius-lg;
-  color-scheme: dark;
+  color-scheme: var(--color-scheme);
   display: grid;
   gap: $space-4;
   min-width: 0;

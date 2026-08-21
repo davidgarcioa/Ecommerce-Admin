@@ -3,9 +3,22 @@
     [loading]="loading()"
     [lastUpdated]="lastUpdated()"
     [canCreate]="canCreate()"
+    [filtersVisible]="filtersVisible()"
+    [activeFiltersCount]="activeFiltersCount()"
     (create)="create()"
     (refresh)="refresh()"
+    (toggleFilters)="toggleFilters()"
   />
+
+  @if (filtersVisible()) {
+    <div class="testing-page__filters">
+      <app-testing-filters
+        [filters]="filters()"
+        (applyFilters)="applyFilters($event)"
+        (clear)="clearFilters()"
+      />
+    </div>
+  }
 
   <app-testing-summary
     [total]="total()"
@@ -16,14 +29,13 @@
     [paused]="paused()"
   />
 
-  <app-testing-filters (applyFilters)="applyFilters($event)" (clear)="clearFilters()" />
-
   <app-data-table
     [data]="tests()"
     [columns]="columns()"
     [loading]="loading()"
     [error]="error()"
     rowIdKey="id"
+    [searchable]="false"
     [selectable]="true"
     [rowActions]="rowActions()"
     [exportEnabled]="true"

@@ -114,7 +114,7 @@ function toOrderParams(query: OrderQuery): HttpParams {
 
 function toReadableError(error: HttpErrorResponse): Error {
   if (error.status === 0) {
-    return new Error('No fue posible conectar con el backend.');
+    return new Error('No fue posible conectar con el servicio de pedidos.');
   }
 
   const response = error.error as Partial<ApiResponse<unknown>> | null;
@@ -128,7 +128,7 @@ function resolveStatusMessage(status: number): string {
     403: 'No tienes permisos para esta acción.',
     404: 'El pedido solicitado no existe.',
     409: 'La operación genera un conflicto con el estado actual.',
-    422: 'Los datos no cumplen las reglas del backend.',
+    422: 'Revisa los datos del pedido antes de continuar.',
     500: 'Ocurrió un error interno en el servidor.',
   };
 

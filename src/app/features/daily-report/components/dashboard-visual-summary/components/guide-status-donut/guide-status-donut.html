@@ -47,14 +47,20 @@
             <strong id="guide-status-title">Estados de guia</strong>
             <small>Elige hasta 5 estados y su color.</small>
           </div>
-          <button type="button" aria-label="Cerrar editor de estados" (click)="closeGuideStatusPanel()">
+          <button
+            type="button"
+            aria-label="Cerrar editor de estados"
+            (click)="closeGuideStatusPanel()"
+          >
             <span class="material-symbols-rounded" aria-hidden="true">close</span>
           </button>
         </header>
 
         <div class="guide-status-donut__list">
           @for (option of guideStatusOptions(); track option.id) {
-            <article [class.guide-status-donut__option--disabled]="isGuideStatusDisabled(option.id)">
+            <article
+              [class.guide-status-donut__option--disabled]="isGuideStatusDisabled(option.id)"
+            >
               <label>
                 <input
                   type="checkbox"
@@ -81,7 +87,9 @@
                     <button
                       type="button"
                       [style.background]="color"
-                      [class.guide-status-donut__swatch--active]="guideStatusColor(option.id) === color"
+                      [class.guide-status-donut__swatch--active]="
+                        guideStatusColor(option.id) === color
+                      "
                       [attr.aria-label]="'Usar color ' + color + ' en ' + option.label"
                       (click)="updateGuideStatusColor(option.id, color)"
                     ></button>

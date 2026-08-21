@@ -2,6 +2,7 @@
   <app-table-toolbar
     [searchable]="searchable()"
     [searchTerm]="searchTerm()"
+    [filterEnabled]="filters().length > 0"
     [filterPanelVisible]="filterPanelVisible()"
     [activeFilterCount]="activeFilterCount()"
     [exportEnabled]="exportEnabled()"
@@ -36,7 +37,9 @@
             <label class="data-table__filter-field">
               <span>{{ filter.label }}</span>
 
-              @if (filter.type === 'select' || filter.type === 'status' || filter.type === 'boolean') {
+              @if (
+                filter.type === 'select' || filter.type === 'status' || filter.type === 'boolean'
+              ) {
                 <div class="data-table__select">
                   <button
                     class="data-table__select-trigger"
@@ -53,7 +56,9 @@
                       <button
                         type="button"
                         role="option"
-                        [class.data-table__select-option--selected]="isFilterOptionSelected(filter, null)"
+                        [class.data-table__select-option--selected]="
+                          isFilterOptionSelected(filter, null)
+                        "
                         [attr.aria-selected]="isFilterOptionSelected(filter, null)"
                         (click)="onFilterOptionSelect(filter, null)"
                       >
@@ -64,7 +69,9 @@
                         <button
                           type="button"
                           role="option"
-                          [class.data-table__select-option--selected]="isFilterOptionSelected(filter, option.value)"
+                          [class.data-table__select-option--selected]="
+                            isFilterOptionSelected(filter, option.value)
+                          "
                           [attr.aria-selected]="isFilterOptionSelected(filter, option.value)"
                           (click)="onFilterOptionSelect(filter, option.value)"
                         >
@@ -185,7 +192,20 @@
               @for (column of visibleColumns(); track column.key) {
                 <td [class]="'data-table__cell--' + column.align + ' ' + (column.cellClass ?? '')">
                   @if (column.type === 'status') {
-                    <span [class]="'data-table__status data-table__status--' + getStatusTone(getCellValue(row, column))">
+                    <span
+                      [class]="
+                        'data-table__status data-table__status--' +
+                        getStatusTone(getCellValue(row, column))
+                      "
+                    >
+                      {{ getCellValue(row, column) }}
+                    </span>
+                  } @else if (column.type === 'color') {
+                    <span class="data-table__color-pill">
+                      <span
+                        [style.background]="getCellValue(row, column)"
+                        aria-hidden="true"
+                      ></span>
                       {{ getCellValue(row, column) }}
                     </span>
                   } @else {

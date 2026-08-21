@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { Router } from '@angular/router';
 
 import { DataTableComponent } from '../../../../shared/components/data-table/data-table.component';
@@ -17,7 +24,12 @@ import { formatTagDate } from '../../utils/tags.formatters';
 
 @Component({
   selector: 'app-labels-page',
-  imports: [LabelsHeaderComponent, LabelsSummaryComponent, LabelsFiltersComponent, DataTableComponent],
+  imports: [
+    LabelsHeaderComponent,
+    LabelsSummaryComponent,
+    LabelsFiltersComponent,
+    DataTableComponent,
+  ],
   providers: [TagsStore],
   templateUrl: './labels-page.html',
   styleUrl: './labels-page.scss',
@@ -40,6 +52,17 @@ export class LabelsPageComponent implements OnInit {
   readonly totalAssociations = this.store.totalAssociations;
   readonly canCreate = this.store.canCreate;
   readonly preferencesKey = TAGS_TABLE_PREFERENCES_KEY;
+  readonly filtersVisible = signal(false);
+  readonly activeFiltersCount = computed(() => {
+    const filters = this.filters();
+
+    return (
+      Number(filters.searchTerm.trim().length > 0) +
+      Number(filters.status !== 'all') +
+      Number(filters.usage !== 'all') +
+      Number(filters.color !== 'all')
+    );
+  });
 
   readonly columns = computed<readonly TableColumn<TagListItem>[]>(() => [
     {
@@ -60,6 +83,16 @@ export class LabelsPageComponent implements OnInit {
       searchable: true,
       visible: true,
       minWidth: '8rem',
+      align: 'left',
+    },
+    {
+      key: 'color',
+      label: 'Color',
+      type: 'color',
+      sortable: false,
+      searchable: true,
+      visible: true,
+      minWidth: '7rem',
       align: 'left',
     },
     {
@@ -154,6 +187,10 @@ export class LabelsPageComponent implements OnInit {
     this.store.loadTags();
   }
 
+  toggleFilters(): void {
+    this.filtersVisible.update((visible) => !visible);
+  }
+
   applySearch(search: string): void {
     this.store.applySearch(search);
   }
@@ -176,7 +213,8 @@ export class LabelsPageComponent implements OnInit {
 
   onAction(event: TableActionClick<TagListItem>): void {
     if (event.action.id === 'view') this.openTag(event.row);
-    if (event.action.id === 'edit') void this.router.navigate(['/etiquetas', event.row.id, 'editar']);
+    if (event.action.id === 'edit')
+      void this.router.navigate(['/etiquetas', event.row.id, 'editar']);
     if (event.action.id === 'archive') this.store.archive(event.row.id);
     if (event.action.id === 'restore') this.store.restore(event.row.id);
     if (event.action.id === 'delete') this.store.delete(event.row.id);

@@ -1,35 +1,79 @@
 @use '../../../../styles/abstracts/variables' as *;
 
 .testing-form {
-  background: var(--color-surface);
+  background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: $radius-lg;
+  color-scheme: var(--color-scheme);
   display: grid;
   gap: $space-4;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
   padding: $space-5;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+
+  &:hover {
+    background:
+      radial-gradient(circle at 8% 0%, rgb(59 130 246 / 8%), transparent 30%),
+      var(--color-card-elevated);
+    border-color: rgb(59 130 246 / 34%);
+    box-shadow: 0 0 1.25rem rgb(59 130 246 / 9%);
+    transform: translateY(-0.0625rem);
+  }
 
   label {
     color: var(--color-text-secondary);
     display: grid;
-    font-size: $font-size-sm;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-bold;
     gap: $space-2;
+    min-width: 0;
   }
 
   input,
   select,
-  textarea,
-  button {
-    background: var(--color-surface-elevated);
+  textarea {
+    background: rgb(0 0 0 / 28%);
     border: 1px solid var(--color-border);
     border-radius: $radius-md;
     color: var(--color-text-primary);
     font: inherit;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
     min-height: 2.75rem;
+    min-width: 0;
+    outline: 0;
     padding: 0 $space-3;
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      box-shadow 180ms ease;
+    width: 100%;
+
+    &:hover,
+    &:focus {
+      background: rgb(59 130 246 / 7%);
+      border-color: rgb(59 130 246 / 46%);
+      box-shadow: 0 0 0 1px rgb(59 130 246 / 10%);
+    }
+  }
+
+  select {
+    cursor: pointer;
+
+    option {
+      background: #080b10;
+      color: var(--color-text-primary);
+    }
   }
 
   textarea {
+    line-height: 1.45;
+    min-height: 5.75rem;
     padding: $space-3;
     resize: vertical;
   }
@@ -41,35 +85,91 @@
   }
 
   &__error {
-    border: 1px solid var(--color-error);
+    align-items: start;
+    background: rgb(239 68 68 / 8%);
+    border: 1px solid rgb(239 68 68 / 42%);
     border-radius: $radius-md;
+    color: var(--color-text-primary);
+    display: flex;
+    gap: $space-3;
     padding: $space-3;
 
+    .material-symbols-rounded {
+      color: rgb(239 68 68);
+      font-size: 1.2rem;
+      line-height: 1;
+      margin-top: 0.1rem;
+    }
+
     p {
+      font-size: $font-size-sm;
       margin: 0;
     }
   }
 
   &__actions {
     display: flex;
+    flex-wrap: wrap;
     gap: $space-2;
     justify-content: flex-end;
   }
 
   button {
+    align-items: center;
+    background: rgb(255 255 255 / 2.5%);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
     cursor: pointer;
-    font-weight: 700;
+    display: inline-flex;
+    font: inherit;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-bold;
+    gap: $space-2;
+    justify-content: center;
+    min-height: 2.5rem;
     min-width: 8rem;
+    padding: 0 $space-4;
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      transform 180ms ease;
+
+    .material-symbols-rounded {
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    &:hover:not(:disabled) {
+      background: rgb(59 130 246 / 8%);
+      border-color: rgb(59 130 246 / 42%);
+      transform: translateY(-0.0625rem);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
   }
 
   &__primary {
-    background: var(--color-primary) !important;
-    color: var(--color-bg) !important;
+    background: rgb(59 130 246 / 11%) !important;
+    border-color: rgb(59 130 246 / 50%) !important;
+
+    .material-symbols-rounded {
+      color: rgb(59 130 246);
+    }
   }
 }
 
 @media (max-width: 760px) {
   .testing-form {
     grid-template-columns: 1fr;
+    padding: $space-4;
+
+    &__actions,
+    button {
+      width: 100%;
+    }
   }
 }

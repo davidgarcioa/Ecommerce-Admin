@@ -1,8 +1,23 @@
 ﻿import { computed, inject, Injectable, signal } from '@angular/core';
 
+import {
+  AdvertisingPlatform,
+  Campaign,
+  CampaignObjective,
+  CampaignStatus,
+} from '../../campaigns/models/campaign.model';
+import { ImportedCampaignsStoreService } from '../../campaigns/services/imported-campaigns-store.service';
+import {
+  calculateCpa,
+  calculateCpc,
+  calculateCpm,
+  calculateCtr,
+  calculateFrequency,
+  calculateRoas,
+} from '../../campaigns/utils/campaigns.utils';
 import { Carrier, DailyOrder, OrderStatus } from '../../daily-report/models/daily-order.model';
 import { ImportedOrdersStoreService } from '../../daily-report/services/imported-orders-store.service';
-import { IMPORT_STEPS, IMPORT_TYPES, ORDER_COLUMN_DEFINITIONS } from '../constants/files.constants';
+import { getImportColumnDefinitions, IMPORT_STEPS, IMPORT_TYPES } from '../constants/files.constants';
 import { ColumnMapping } from '../models/column-mapping.model';
 import { ImportedFile } from '../models/imported-file.model';
 import { ImportHistoryRecord } from '../models/import-history-record.model';
@@ -43,6 +58,7 @@ export class FileImportService {
   private readonly historyService = inject(ImportHistoryService);
   private readonly templateGenerator = inject(TemplateGeneratorService);
   private readonly importedOrdersStore = inject(ImportedOrdersStoreService);
+  private readonly importedCampaignsStore = inject(ImportedCampaignsStoreService);
 
   private readonly activeTabState = signal<FilesTab>('new-import');
   private readonly currentStepState = signal<ImportStepId>('file');
@@ -109,7 +125,9 @@ export class FileImportService {
     }
 
     const requiredKeys = new Set(
-      ORDER_COLUMN_DEFINITIONS.filter((definition) => definition.required).map(
+      this.activeColumnDefinitions()
+        .filter((definition) => definition.required)
+        .map(
         (definition) => definition.key,
       ),
     );
@@ -131,7 +149,6 @@ export class FileImportService {
 
   startNewImport(): void {
     this.activeTabState.set('new-import');
-    this.importedOrdersStore.clearOrders();
     this.resetImport();
   }
 
@@ -145,7 +162,6 @@ export class FileImportService {
       file,
       this.selectedImportTypeState()?.maximumFileSize,
     );
-    this.importedOrdersStore.clearOrders();
     this.importedFileState.set(createImportedFile(file, validationMessage));
     this.errorState.set(validationMessage);
     if (!validationMessage) {
@@ -189,7 +205,7 @@ export class FileImportService {
     if (!sheet || sheet.empty) {
       return;
     }
-    const aliases = ORDER_COLUMN_DEFINITIONS.flatMap((column) => [
+    const aliases = this.activeColumnDefinitions().flatMap((column) => [
       column.label,
       ...column.acceptedAliases,
     ]);
@@ -228,7 +244,7 @@ export class FileImportService {
   generateColumnMappings(): void {
     const headers = this.headerDetectionState()?.detectedHeaders ?? [];
     this.columnMappingsState.set(
-      this.mappingService.generateMappings(ORDER_COLUMN_DEFINITIONS, headers),
+      this.mappingService.generateMappings(this.activeColumnDefinitions(), headers),
     );
     this.currentStepState.set('mapping');
   }
@@ -254,7 +270,7 @@ export class FileImportService {
       sheet.rows,
       header.headerRowIndex,
       header.detectedHeaders,
-      ORDER_COLUMN_DEFINITIONS,
+      this.activeColumnDefinitions(),
       this.columnMappingsState(),
     );
     this.validationResultState.set(result);
@@ -316,7 +332,10 @@ export class FileImportService {
     };
     this.importResultState.set(result);
     if (type.id === 'orders') {
-      this.importedOrdersStore.replaceOrders(this.toDailyOrders(this.validRows()));
+      this.importedOrdersStore.upsertOrders(this.toDailyOrders(this.validRows()));
+    }
+    if (type.id === 'campaigns') {
+      this.importedCampaignsStore.upsertCampaigns(this.toCampaigns(this.validRows()));
     }
     this.historyService.addRecord({
       id: result.id,
@@ -333,7 +352,7 @@ export class FileImportService {
       warningCount: validation.warningRows,
       status: result.status === 'completed' ? 'Completada' : 'Parcial',
       durationMs: result.durationMs,
-      source: 'Firestore',
+      source: 'Archivo local',
       mappedColumns: this.columnMappingsState().filter((mapping) => mapping.sourceColumnName)
         .length,
     });
@@ -344,6 +363,65 @@ export class FileImportService {
     const importedAt = new Date().toISOString();
 
     return rows.map((row) => this.toDailyOrder(row, importedAt));
+  }
+
+  private toCampaigns(rows: readonly RowValidationResult[]): readonly Campaign[] {
+    const importedAt = new Date().toISOString();
+
+    return rows.map((row) => this.toCampaign(row, importedAt));
+  }
+
+  private toCampaign(row: RowValidationResult, importedAt: string): Campaign {
+    const normalizedRow = row.normalizedRow;
+    const campaignName = this.readText(normalizedRow, 'campaignName') || `Campaña fila ${row.rowIndex}`;
+    const externalId = this.readText(normalizedRow, 'campaignId');
+    const amountSpent = this.readNumber(normalizedRow, 'amountSpent');
+    const attributedRevenue = this.readNumber(normalizedRow, 'attributedRevenue');
+    const impressions = this.readNumber(normalizedRow, 'impressions');
+    const reach = this.readNumber(normalizedRow, 'reach');
+    const clicks = this.readNumber(normalizedRow, 'clicks');
+    const purchases = this.readNumber(normalizedRow, 'purchases');
+    const importedRoas = this.readNumber(normalizedRow, 'roas');
+    const importedCpa = this.readNumber(normalizedRow, 'cpa');
+    const startDate = this.readText(normalizedRow, 'startDate') || importedAt.slice(0, 10);
+    const endDate = this.readText(normalizedRow, 'endDate');
+    const accountName = this.readText(normalizedRow, 'accountName') || 'Cuenta Meta Ads';
+    const productGroupName =
+      this.readText(normalizedRow, 'productGroupName') || this.inferProductGroupName(campaignName);
+
+    return {
+      id: `meta-${normalizeColumnKey(externalId || campaignName) || row.rowIndex}`,
+      externalId: externalId || undefined,
+      name: campaignName,
+      objective: this.toCampaignObjective(this.readText(normalizedRow, 'objective')),
+      status: this.toCampaignStatus(this.readText(normalizedRow, 'status')),
+      adAccountId: normalizeColumnKey(accountName) || 'meta-ads',
+      adAccountName: accountName,
+      productGroupId: normalizeColumnKey(productGroupName) || 'sin-conjunto',
+      productGroupName,
+      platform: this.toAdvertisingPlatform(this.readText(normalizedRow, 'platform')),
+      budgetType: 'Diario',
+      dailyBudget: undefined,
+      lifetimeBudget: undefined,
+      amountSpent,
+      attributedRevenue,
+      impressions,
+      reach,
+      clicks,
+      purchases,
+      ctr: calculateCtr(clicks, impressions),
+      cpc: calculateCpc(amountSpent, clicks),
+      cpm: calculateCpm(amountSpent, impressions),
+      cpa: importedCpa || calculateCpa(amountSpent, purchases),
+      roas: importedRoas || calculateRoas(attributedRevenue, amountSpent),
+      frequency: calculateFrequency(impressions, reach),
+      startDate,
+      endDate: endDate || undefined,
+      createdAt: `${startDate}T00:00:00.000Z`,
+      updatedAt: importedAt,
+      lastSynchronizedAt: importedAt,
+      hasWarnings: false,
+    };
   }
 
   private toDailyOrder(row: RowValidationResult, importedAt: string): DailyOrder {
@@ -503,6 +581,54 @@ export class FileImportService {
     return match?.[1] ?? 'Pendiente';
   }
 
+  private toCampaignStatus(value: string): CampaignStatus {
+    const normalizedValue = normalizeText(value);
+
+    if (normalizedValue.includes('pause') || normalizedValue.includes('paus')) return 'Pausada';
+    if (normalizedValue.includes('archive') || normalizedValue.includes('archiv')) return 'Archivada';
+    if (normalizedValue.includes('error') || normalizedValue.includes('reject')) return 'Con errores';
+    if (normalizedValue.includes('finish') || normalizedValue.includes('final')) return 'Finalizada';
+
+    return 'Activa';
+  }
+
+  private toCampaignObjective(value: string): CampaignObjective {
+    const normalizedValue = normalizeText(value);
+
+    if (normalizedValue.includes('lead') || normalizedValue.includes('cliente')) {
+      return 'Clientes potenciales';
+    }
+    if (normalizedValue.includes('recon') || normalizedValue.includes('awareness')) {
+      return 'Reconocimiento';
+    }
+    if (normalizedValue.includes('traffic') || normalizedValue.includes('trafico')) {
+      return 'TrÃ¡fico' as CampaignObjective;
+    }
+    if (normalizedValue.includes('engagement') || normalizedValue.includes('interaccion')) {
+      return 'InteracciÃ³n' as CampaignObjective;
+    }
+
+    return 'Ventas';
+  }
+
+  private toAdvertisingPlatform(value: string): AdvertisingPlatform {
+    const normalizedValue = normalizeText(value);
+
+    if (normalizedValue.includes('instagram')) return 'Instagram';
+    if (normalizedValue.includes('audience')) return 'Audience Network';
+    if (normalizedValue.includes('messenger')) return 'Messenger';
+    if (normalizedValue.includes('facebook')) return 'Facebook';
+
+    return 'Varias plataformas';
+  }
+
+  private inferProductGroupName(campaignName: string): string {
+    const cleanName = this.toTitleCase(campaignName);
+    const [firstPart] = cleanName.split('|');
+
+    return firstPart.trim() || 'Sin conjunto';
+  }
+
   private toGuideStatus(value: string): string {
     const normalizedValue = normalizeText(value);
 
@@ -511,6 +637,12 @@ export class FileImportService {
     }
 
     const guideStatusByDropiValue: readonly [readonly string[], string][] = [
+      [['guia_generada', 'guia generada'], 'Guía generada'],
+      [['recogido por dropi'], 'Recogida'],
+      [['preparado para transportadora'], 'Preparado para transportadora'],
+      [['en procesamiento'], 'En procesamiento'],
+      [['en reparto'], 'En reparto'],
+      [['en bodega transportadora'], 'En bodega'],
       [['pendiente confirmacion'], 'Pendiente confirmación'],
       [['transito nacional', 'en ruta', 'intento de entrega'], 'En ruta'],
       [['en bodega origen', 'en bodega'], 'En bodega'],
@@ -723,9 +855,15 @@ export class FileImportService {
     });
   }
 
+  private activeColumnDefinitions() {
+    return getImportColumnDefinitions(this.selectedImportTypeState()?.id);
+  }
+
   private hasEnoughMappedRequiredColumns(): boolean {
     const requiredKeys = new Set(
-      ORDER_COLUMN_DEFINITIONS.filter((definition) => definition.required).map(
+      this.activeColumnDefinitions()
+        .filter((definition) => definition.required)
+        .map(
         (definition) => definition.key,
       ),
     );
@@ -779,7 +917,18 @@ export class FileImportService {
       case 'expenses':
         return includesHeader(['gasto', 'costo', 'categoria', 'soporte']);
       case 'campaigns':
-        return includesHeader(['campana', 'pauta', 'roas', 'cpa', 'meta']);
+        return includesHeader([
+          'campana',
+          'campaign',
+          'campaignname',
+          'amountspent',
+          'importegastado',
+          'impressions',
+          'purchases',
+          'roas',
+          'cpa',
+          'meta',
+        ]);
       case 'products':
         return includesHeader(['producto', 'sku', 'inventario']) - includesHeader(['pedido']);
       case 'product-groups':

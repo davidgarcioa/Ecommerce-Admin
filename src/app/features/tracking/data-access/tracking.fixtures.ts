@@ -1,3 +1,4 @@
+import { officeFallbackOrders } from '../../office/data-access/office.fixtures';
 import { Order, OrderHistoryItem } from '../../office/data-access/office.models';
 
 export const trackingOrderFixture: Order = {
@@ -45,3 +46,98 @@ export const trackingHistoryFixture: OrderHistoryItem = {
   createdAt: '2026-07-29T11:00:00.000Z',
   updatedAt: '2026-07-29T11:00:00.000Z',
 };
+
+export const trackingFallbackOrders: readonly Order[] = [
+  trackingOrderFixture,
+  ...officeFallbackOrders,
+];
+
+export const trackingHistoryFixtures: readonly OrderHistoryItem[] = [
+  trackingHistoryFixture,
+  {
+    id: 'tracking-history-office-demo-1-created',
+    orderId: 'office-demo-1',
+    action: 'created',
+    changedBy: 'oficina',
+    notes: 'Pedido recibido y validado.',
+    createdAt: '2026-08-21T08:15:00.000Z',
+    updatedAt: '2026-08-21T08:15:00.000Z',
+  },
+  {
+    id: 'tracking-history-office-demo-1-delivered',
+    orderId: 'office-demo-1',
+    action: 'delivery_status_changed',
+    changedBy: 'torre-logistica',
+    previousValue: { deliveryStatus: 'In Transit' },
+    nextValue: { deliveryStatus: 'Delivered' },
+    notes: 'Entrega confirmada por la transportadora.',
+    createdAt: '2026-08-21T11:10:00.000Z',
+    updatedAt: '2026-08-21T11:10:00.000Z',
+  },
+  {
+    id: 'tracking-history-office-demo-2-created',
+    orderId: 'office-demo-2',
+    action: 'created',
+    changedBy: 'oficina',
+    notes: 'Pedido confirmado para despacho.',
+    createdAt: '2026-08-21T09:30:00.000Z',
+    updatedAt: '2026-08-21T09:30:00.000Z',
+  },
+  {
+    id: 'tracking-history-office-demo-2-transit',
+    orderId: 'office-demo-2',
+    action: 'delivery_status_changed',
+    changedBy: 'torre-logistica',
+    previousValue: { deliveryStatus: 'Assigned' },
+    nextValue: { deliveryStatus: 'In Transit' },
+    notes: 'Guia en transito con Servientrega.',
+    createdAt: '2026-08-21T11:20:00.000Z',
+    updatedAt: '2026-08-21T11:20:00.000Z',
+  },
+  {
+    id: 'tracking-history-office-demo-3-created',
+    orderId: 'office-demo-3',
+    action: 'created',
+    changedBy: 'oficina',
+    notes: 'Pedido confirmado por servicio al cliente.',
+    createdAt: '2026-08-21T10:05:00.000Z',
+    updatedAt: '2026-08-21T10:05:00.000Z',
+  },
+  {
+    id: 'tracking-history-office-demo-3-assigned',
+    orderId: 'office-demo-3',
+    action: 'delivery_status_changed',
+    changedBy: 'torre-logistica',
+    previousValue: { deliveryStatus: 'Pending' },
+    nextValue: { deliveryStatus: 'Assigned' },
+    notes: 'Guia generada y lista para recogida.',
+    createdAt: '2026-08-21T11:22:00.000Z',
+    updatedAt: '2026-08-21T11:22:00.000Z',
+  },
+  {
+    id: 'tracking-history-office-demo-5-failed',
+    orderId: 'office-demo-5',
+    action: 'delivery_status_changed',
+    changedBy: 'transportadora',
+    previousValue: { deliveryStatus: 'In Transit' },
+    nextValue: { deliveryStatus: 'Failed' },
+    notes: 'Novedad reportada por direccion incompleta.',
+    createdAt: '2026-08-21T09:36:00.000Z',
+    updatedAt: '2026-08-21T09:36:00.000Z',
+  },
+  {
+    id: 'tracking-history-office-demo-6-returned',
+    orderId: 'office-demo-6',
+    action: 'delivery_status_changed',
+    changedBy: 'transportadora',
+    previousValue: { deliveryStatus: 'In Transit' },
+    nextValue: { deliveryStatus: 'Returned' },
+    notes: 'Pedido devuelto por cancelacion del cliente.',
+    createdAt: '2026-08-20T12:00:00.000Z',
+    updatedAt: '2026-08-20T12:00:00.000Z',
+  },
+];
+
+export function trackingFallbackHistoryFor(orderId: string): readonly OrderHistoryItem[] {
+  return trackingHistoryFixtures.filter((item) => item.orderId === orderId);
+}

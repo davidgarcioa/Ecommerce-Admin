@@ -15,7 +15,9 @@ export function trackingStatusDescription(
   if (deliveryStatus === 'In Transit') return 'El envío está en tránsito con la transportadora.';
   if (deliveryStatus === 'Failed') return 'Hay un intento fallido o novedad de entrega.';
   if (deliveryStatus === 'Returned') return 'El envío figura en devolución.';
-  if (orderStatus === 'Confirmed')
+  if (orderStatus === 'Confirmed') {
     return 'El pedido está confirmado y pendiente de avance logístico.';
+  }
+
   return `Pedido: ${orderStatusLabel(orderStatus)}. Entrega: ${deliveryStatusLabel(deliveryStatus)}.`;
 }

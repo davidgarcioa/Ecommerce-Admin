@@ -13,7 +13,9 @@
   padding: $space-5;
   position: relative;
   text-align: center;
-  transition: background-color 180ms ease, border-color 180ms ease;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease;
 
   &:hover {
     background: var(--color-card-elevated);

@@ -10,6 +10,22 @@ export function formatCurrency(value: number): string {
   return moneyFormatter.format(value);
 }
 
+export function formatCompactCurrency(value: number): string {
+  const absoluteValue = Math.abs(value);
+
+  if (absoluteValue >= 1_000_000) {
+    const compactValue = new Intl.NumberFormat('en-US', {
+      maximumFractionDigits: 1,
+    })
+      .format(value / 1_000_000)
+      .replace(/\.0$/, '');
+
+    return `$${compactValue}M`;
+  }
+
+  return formatCurrency(value);
+}
+
 export function formatNumber(value: number): string {
   return numberFormatter.format(value);
 }
@@ -27,5 +43,5 @@ export function maskPhone(value: string): string {
     return value;
   }
 
-  return `${value.slice(0, 4)}••••${value.slice(-2)}`;
+  return `${value.slice(0, 4)}****${value.slice(-2)}`;
 }

@@ -59,11 +59,24 @@
       </div>
     }
 
-    <button class="icon-button" type="button" aria-label="Notificaciones">
-      <span class="material-symbols-rounded" aria-hidden="true">notifications</span>
+    <button
+      class="icon-button topbar__theme"
+      type="button"
+      [attr.aria-label]="themeToggleLabel()"
+      [attr.title]="themeToggleLabel()"
+      (click)="toggleTheme()"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">{{ themeToggleIcon() }}</span>
     </button>
 
-    <button class="topbar__profile" type="button" aria-label="Cerrar sesión" (click)="logout()">
+    <button
+      class="topbar__profile"
+      type="button"
+      aria-label="Cerrar sesion"
+      title="Cerrar sesion"
+      [disabled]="loggingOut()"
+      (click)="logout()"
+    >
       <span class="material-symbols-rounded topbar__logout-icon" aria-hidden="true">logout</span>
     </button>
   </div>

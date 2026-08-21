@@ -1,6 +1,13 @@
 <section class="testing-form-page" aria-labelledby="testing-form-title">
-  <header><p>Testeos</p><h2 id="testing-form-title">{{ title }}</h2></header>
-  @if (error(); as message) { <p class="testing-form-page__error" role="alert">{{ message }}</p> }
+  <header class="testing-form-page__header">
+    <p>Testeos</p>
+    <h2 id="testing-form-title">{{ title }}</h2>
+  </header>
+
+  @if (error(); as message) {
+    <p class="testing-form-page__error" role="alert">{{ message }}</p>
+  }
+
   @if (!loading()) {
     <app-testing-form
       [test]="test()"

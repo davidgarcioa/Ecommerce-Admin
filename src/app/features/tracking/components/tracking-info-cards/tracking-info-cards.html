@@ -1,44 +1,105 @@
 <div class="tracking-info-cards">
-  <section>
-    <h2>Pedido</h2>
-    <p>
-      <strong>{{ result().order.orderNumber }}</strong>
-    </p>
-    <p>Fecha: {{ formatDate(result().order.createdAt) }}</p>
-    <p>Producto: {{ result().order.productName }}</p>
-    <p>Cantidad: {{ result().order.quantity }}</p>
-    <p>Total: {{ formatCurrency(result().order.total) }}</p>
-    <p>Estado: {{ orderStatusLabel(result().order.orderStatus) }}</p>
+  <section style="--tracking-card-accent: 59 130 246">
+    <div class="tracking-info-cards__heading">
+      <span class="material-symbols-rounded" aria-hidden="true">receipt_long</span>
+      <h2>Pedido</h2>
+    </div>
+    <strong>{{ result().order.orderNumber }}</strong>
+    <dl>
+      <div>
+        <dt>Fecha</dt>
+        <dd>{{ formatDate(result().order.createdAt) }}</dd>
+      </div>
+      <div>
+        <dt>Producto</dt>
+        <dd>{{ result().order.productName }}</dd>
+      </div>
+      <div>
+        <dt>Cantidad</dt>
+        <dd>{{ result().order.quantity }}</dd>
+      </div>
+      <div>
+        <dt>Total</dt>
+        <dd>{{ formatCurrency(result().order.total) }}</dd>
+      </div>
+      <div>
+        <dt>Estado</dt>
+        <dd>{{ orderStatusLabel(result().order.orderStatus) }}</dd>
+      </div>
+    </dl>
   </section>
 
-  <section>
-    <h2>Cliente</h2>
-    <p>
-      <strong>{{ result().customer.name }}</strong>
-    </p>
-    <p>Teléfono: {{ result().customer.phoneMasked }}</p>
-    @if (result().customer.emailMasked) {
-      <p>Correo: {{ result().customer.emailMasked }}</p>
-    }
-    <p>Ciudad: {{ result().customer.city }}</p>
-    <p>Dirección: {{ result().customer.addressMasked }}</p>
+  <section style="--tracking-card-accent: 34 197 94">
+    <div class="tracking-info-cards__heading">
+      <span class="material-symbols-rounded" aria-hidden="true">person</span>
+      <h2>Cliente</h2>
+    </div>
+    <strong>{{ result().customer.name }}</strong>
+    <dl>
+      <div>
+        <dt>Teléfono</dt>
+        <dd>{{ result().customer.phoneMasked }}</dd>
+      </div>
+      @if (result().customer.emailMasked) {
+        <div>
+          <dt>Correo</dt>
+          <dd>{{ result().customer.emailMasked }}</dd>
+        </div>
+      }
+      <div>
+        <dt>Ciudad</dt>
+        <dd>{{ result().customer.city }}</dd>
+      </div>
+      <div>
+        <dt>Dirección</dt>
+        <dd>{{ result().customer.addressMasked }}</dd>
+      </div>
+    </dl>
   </section>
 
-  <section>
-    <h2>Envío</h2>
-    <p>Transportadora: {{ result().shipment.carrier || 'Sin transportadora' }}</p>
-    <p>Guía: {{ result().shipment.trackingNumber || 'Sin guía' }}</p>
-    <p>Entrega: {{ deliveryStatusLabel(result().shipment.deliveryStatus) }}</p>
-    <p>Actualizado: {{ formatDate(result().shipment.updatedAt) }}</p>
+  <section style="--tracking-card-accent: 20 184 166">
+    <div class="tracking-info-cards__heading">
+      <span class="material-symbols-rounded" aria-hidden="true">local_shipping</span>
+      <h2>Envío</h2>
+    </div>
+    <strong>{{ deliveryStatusLabel(result().shipment.deliveryStatus) }}</strong>
+    <dl>
+      <div>
+        <dt>Transportadora</dt>
+        <dd>{{ result().shipment.carrier || 'Sin transportadora' }}</dd>
+      </div>
+      <div>
+        <dt>Guía</dt>
+        <dd>{{ result().shipment.trackingNumber || 'Sin guía' }}</dd>
+      </div>
+      <div>
+        <dt>Actualizado</dt>
+        <dd>{{ formatDate(result().shipment.updatedAt) }}</dd>
+      </div>
+    </dl>
   </section>
 
-  <section>
-    <h2>Pago y devolución</h2>
-    <p>Método: {{ result().order.paymentMethod }}</p>
-    <p>Pago: {{ paymentStatusLabel(result().order.paymentStatus) }}</p>
-    <p>Devolución: {{ result().returnSummary.hasReturn ? 'Relacionada' : 'Sin devolución' }}</p>
-    @if (result().returnSummary.description) {
-      <p>{{ result().returnSummary.description }}</p>
-    }
+  <section style="--tracking-card-accent: 245 158 11">
+    <div class="tracking-info-cards__heading">
+      <span class="material-symbols-rounded" aria-hidden="true">payments</span>
+      <h2>Pago</h2>
+    </div>
+    <strong>{{ paymentStatusLabel(result().order.paymentStatus) }}</strong>
+    <dl>
+      <div>
+        <dt>Método</dt>
+        <dd>{{ result().order.paymentMethod }}</dd>
+      </div>
+      <div>
+        <dt>Devolución</dt>
+        <dd>{{ result().returnSummary.hasReturn ? 'Relacionada' : 'Sin devolución' }}</dd>
+      </div>
+      @if (result().returnSummary.description) {
+        <div>
+          <dt>Detalle</dt>
+          <dd>{{ result().returnSummary.description }}</dd>
+        </div>
+      }
+    </dl>
   </section>
 </div>

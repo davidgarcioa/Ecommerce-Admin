@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
@@ -28,7 +36,7 @@ export class UserFormPageComponent {
   readonly mode = computed(() => (this.id() ? 'edit' : 'create'));
   readonly user = computed(() => {
     const id = this.id();
-    return id ? this.store.users().find((user) => user.id === id) ?? null : null;
+    return id ? (this.store.users().find((user) => user.id === id) ?? null) : null;
   });
   readonly pendingReview = computed(() => {
     const user = this.user();

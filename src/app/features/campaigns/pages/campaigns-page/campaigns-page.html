@@ -101,7 +101,10 @@
             />
           }
           @case ('products') {
-            <app-product-performance-table [products]="productPerformance()" [loading]="loading()" />
+            <app-product-performance-table
+              [products]="productPerformance()"
+              [loading]="loading()"
+            />
           }
           @case ('adSets') {
             <app-adset-performance-table [adSets]="adSets()" [loading]="loading()" />
@@ -136,5 +139,4 @@
       (save)="onSaveCampaign($event)"
     />
   }
-
 </div>

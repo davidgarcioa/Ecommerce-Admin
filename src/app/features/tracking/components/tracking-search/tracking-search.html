@@ -1,33 +1,93 @@
 <section class="tracking-search" aria-label="Buscar rastreo">
+  <div class="tracking-search__title">
+    <span class="material-symbols-rounded" aria-hidden="true">manage_search</span>
+    <div>
+      <strong>Buscar envío</strong>
+      <p>Pedido, guía o cliente</p>
+    </div>
+  </div>
+
   <div class="tracking-search__controls">
-    <label>
-      Tipo
-      <select #typeSelect [value]="type()" (change)="setType(typeSelect.value)">
-        @for (item of types; track item.id) {
-          <option [value]="item.id">{{ item.label }}</option>
+    <label class="tracking-search__field">
+      <span>Tipo</span>
+      <div
+        class="tracking-search__select"
+        [class.tracking-search__select--open]="typeMenuOpen()"
+        (focusout)="closeTypeMenuOnBlur($event)"
+      >
+        <button
+          type="button"
+          class="tracking-search__select-trigger"
+          [attr.aria-expanded]="typeMenuOpen()"
+          aria-haspopup="listbox"
+          (click)="toggleTypeMenu()"
+        >
+          <span>{{ currentType().label }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">keyboard_arrow_down</span>
+        </button>
+
+        @if (typeMenuOpen()) {
+          <div class="tracking-search__select-menu" role="listbox">
+            @for (item of types; track item.id) {
+              <button
+                type="button"
+                role="option"
+                [attr.aria-selected]="item.id === type()"
+                [class.tracking-search__select-option--selected]="item.id === type()"
+                (click)="setType(item.id)"
+              >
+                <span>{{ item.label }}</span>
+                @if (item.id === type()) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
         }
-      </select>
+      </div>
     </label>
 
-    <label class="tracking-search__query">
-      Búsqueda
-      <input
-        #queryInput
-        type="search"
-        [placeholder]="currentType().placeholder"
-        [value]="value()"
-        (input)="valueChange.emit(queryInput.value)"
-        (keydown.enter)="search.emit()"
-      />
+    <label class="tracking-search__field tracking-search__field--query">
+      <span>Búsqueda</span>
+      <div class="tracking-search__input">
+        <span class="material-symbols-rounded" aria-hidden="true">search</span>
+        <input
+          #queryInput
+          type="search"
+          [placeholder]="currentType().placeholder"
+          [value]="value()"
+          (input)="valueChange.emit(queryInput.value)"
+          (keydown.enter)="search.emit()"
+        />
+      </div>
       <small>{{ currentType().example }}</small>
     </label>
 
-    <button type="button" [disabled]="loading()" (click)="search.emit()">Buscar</button>
-    <button type="button" [disabled]="loading()" (click)="clear.emit()">Limpiar</button>
+    <div class="tracking-search__actions">
+      <button
+        type="button"
+        class="tracking-search__button tracking-search__button--primary"
+        [disabled]="loading()"
+        (click)="search.emit()"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">search</span>
+        Buscar
+      </button>
+      <button
+        type="button"
+        class="tracking-search__button"
+        [disabled]="loading()"
+        (click)="clear.emit()"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">restart_alt</span>
+        Limpiar
+      </button>
+    </div>
   </div>
 
   @if (recentSearches().length > 0) {
     <div class="tracking-search__recent" aria-label="Búsquedas recientes">
+      <span class="material-symbols-rounded" aria-hidden="true">history</span>
       @for (item of recentSearches(); track item.searchedAt) {
         <button type="button" (click)="recentSelected.emit(item)">
           {{ item.valueMasked }}

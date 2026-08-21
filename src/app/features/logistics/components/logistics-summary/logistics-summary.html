@@ -1,26 +1,75 @@
 <section class="logistics-summary" aria-label="Resumen logístico">
-  <article>
-    <span>Pendientes</span><strong>{{ formatNumber(pending()) }}</strong>
+  <article class="logistics-summary__card logistics-summary__card--amber">
+    <span class="logistics-summary__icon material-symbols-rounded" aria-hidden="true"
+      >pending_actions</span
+    >
+    <span class="logistics-summary__dot" aria-hidden="true"></span>
+    <p>Pendientes</p>
+    <strong>{{ formatNumber(pending()) }}</strong>
+    <small>Por despachar</small>
   </article>
-  <article>
-    <span>Preparados</span><strong>{{ formatNumber(ready()) }}</strong>
+
+  <article class="logistics-summary__card logistics-summary__card--blue">
+    <span class="logistics-summary__icon material-symbols-rounded" aria-hidden="true"
+      >inventory_2</span
+    >
+    <span class="logistics-summary__dot" aria-hidden="true"></span>
+    <p>Preparados</p>
+    <strong>{{ formatNumber(ready()) }}</strong>
+    <small>Listos para guía</small>
   </article>
-  <article>
-    <span>En tránsito</span><strong>{{ formatNumber(inTransit()) }}</strong>
+
+  <article class="logistics-summary__card logistics-summary__card--cyan">
+    <span class="logistics-summary__icon material-symbols-rounded" aria-hidden="true"
+      >local_shipping</span
+    >
+    <span class="logistics-summary__dot" aria-hidden="true"></span>
+    <p>En tránsito</p>
+    <strong>{{ formatNumber(inTransit()) }}</strong>
+    <small>En movimiento</small>
   </article>
-  <article>
-    <span>Entregados hoy</span><strong>{{ formatNumber(deliveredToday()) }}</strong>
+
+  <article class="logistics-summary__card logistics-summary__card--green">
+    <span class="logistics-summary__icon material-symbols-rounded" aria-hidden="true"
+      >task_alt</span
+    >
+    <span class="logistics-summary__dot" aria-hidden="true"></span>
+    <p>Entregados hoy</p>
+    <strong>{{ formatNumber(deliveredToday()) }}</strong>
+    <small>Cerrados hoy</small>
   </article>
-  <article>
-    <span>Intento fallido</span><strong>{{ formatNumber(failed()) }}</strong>
+
+  <article class="logistics-summary__card logistics-summary__card--red">
+    <span class="logistics-summary__icon material-symbols-rounded" aria-hidden="true">error</span>
+    <span class="logistics-summary__dot" aria-hidden="true"></span>
+    <p>Intento fallido</p>
+    <strong>{{ formatNumber(failed()) }}</strong>
+    <small>Revisar entrega</small>
   </article>
-  <article>
-    <span>Incidencias</span><strong>{{ formatNumber(incidents()) }}</strong>
+
+  <article class="logistics-summary__card logistics-summary__card--orange">
+    <span class="logistics-summary__icon material-symbols-rounded" aria-hidden="true">report</span>
+    <span class="logistics-summary__dot" aria-hidden="true"></span>
+    <p>Incidencias</p>
+    <strong>{{ formatNumber(incidents()) }}</strong>
+    <small>Con novedad</small>
   </article>
-  <article>
-    <span>En devolución</span><strong>{{ formatNumber(inReturn()) }}</strong>
+
+  <article class="logistics-summary__card logistics-summary__card--violet">
+    <span class="logistics-summary__icon material-symbols-rounded" aria-hidden="true"
+      >assignment_return</span
+    >
+    <span class="logistics-summary__dot" aria-hidden="true"></span>
+    <p>En devolución</p>
+    <strong>{{ formatNumber(inReturn()) }}</strong>
+    <small>Retornando</small>
   </article>
-  <article>
-    <span>Devueltos</span><strong>{{ formatNumber(returned()) }}</strong>
+
+  <article class="logistics-summary__card logistics-summary__card--red">
+    <span class="logistics-summary__icon material-symbols-rounded" aria-hidden="true">undo</span>
+    <span class="logistics-summary__dot" aria-hidden="true"></span>
+    <p>Devueltos</p>
+    <strong>{{ formatNumber(returned()) }}</strong>
+    <small>Cerrados como devolución</small>
   </article>
 </section>

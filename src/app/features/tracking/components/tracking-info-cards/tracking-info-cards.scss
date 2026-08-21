@@ -2,35 +2,115 @@
 
 .tracking-info-cards {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: $space-4;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   min-width: 0;
 
   section {
+    background:
+      linear-gradient(135deg, rgb(var(--tracking-card-accent) / 7%), transparent 34%),
+      var(--color-card);
     border: 1px solid var(--color-border);
+    border-left-color: rgb(var(--tracking-card-accent));
     border-radius: $radius-lg;
-    padding: $space-5;
-    background: var(--color-card);
+    display: grid;
+    gap: $space-4;
     min-width: 0;
+    padding: $space-5;
+    transition:
+      background 180ms ease,
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      transform 180ms ease;
+
+    &:hover {
+      background:
+        radial-gradient(circle at 92% 0%, rgb(var(--tracking-card-accent) / 12%), transparent 30%),
+        linear-gradient(135deg, rgb(var(--tracking-card-accent) / 7%), transparent 34%),
+        var(--color-card-elevated);
+      border-color: rgb(var(--tracking-card-accent) / 50%);
+      box-shadow: 0 0 1.15rem rgb(var(--tracking-card-accent) / 10%);
+      transform: translateY(-0.0625rem);
+    }
+  }
+
+  &__heading {
+    align-items: center;
+    display: flex;
+    gap: $space-3;
+    min-width: 0;
+
+    > .material-symbols-rounded {
+      align-items: center;
+      background: rgb(255 255 255 / 4%);
+      border: 1px solid var(--color-border);
+      border-radius: $radius-sm;
+      color: rgb(var(--tracking-card-accent));
+      display: inline-flex;
+      flex: 0 0 auto;
+      font-size: 1.05rem;
+      height: 2.35rem;
+      justify-content: center;
+      line-height: 1;
+      width: 2.35rem;
+    }
   }
 
   h2,
-  p {
+  dl,
+  dd {
     margin: 0;
   }
 
   h2 {
-    margin-bottom: $space-3;
     color: var(--color-text-primary);
-    font-size: $font-size-lg;
-  }
-
-  p {
-    color: var(--color-text-secondary);
+    font-size: $font-size-md;
+    line-height: 1.1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   strong {
     color: var(--color-text-primary);
+    display: block;
+    font-size: $font-size-lg;
+    line-height: 1.15;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  dl {
+    display: grid;
+    gap: $space-2;
+    min-width: 0;
+  }
+
+  dl > div {
+    display: grid;
+    gap: $space-1;
+    min-width: 0;
+  }
+
+  dt {
+    color: var(--color-text-disabled);
+    font-size: $font-size-xs;
+    font-weight: $font-weight-bold;
+  }
+
+  dd {
+    color: var(--color-text-secondary);
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 1320px) {
+  .tracking-info-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

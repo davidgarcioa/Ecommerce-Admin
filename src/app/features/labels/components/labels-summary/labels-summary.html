@@ -1,26 +1,51 @@
 <section class="labels-summary" aria-label="Resumen de etiquetas">
-  <article>
-    <span>Total</span>
+  <article class="labels-summary__card labels-summary__card--blue">
+    <span class="labels-summary__icon material-symbols-rounded" aria-hidden="true">sell</span>
+    <span class="labels-summary__dot" aria-hidden="true"></span>
+    <p>Total</p>
     <strong>{{ total() }}</strong>
+    <small>Etiquetas registradas</small>
   </article>
-  <article>
-    <span>Activas</span>
+
+  <article class="labels-summary__card labels-summary__card--green">
+    <span class="labels-summary__icon material-symbols-rounded" aria-hidden="true"
+      >check_circle</span
+    >
+    <span class="labels-summary__dot" aria-hidden="true"></span>
+    <p>Activas</p>
     <strong>{{ active() }}</strong>
+    <small>Disponibles para operar</small>
   </article>
-  <article>
-    <span>Archivadas</span>
+
+  <article class="labels-summary__card labels-summary__card--amber">
+    <span class="labels-summary__icon material-symbols-rounded" aria-hidden="true">archive</span>
+    <span class="labels-summary__dot" aria-hidden="true"></span>
+    <p>Archivadas</p>
     <strong>{{ archived() }}</strong>
+    <small>Fuera del flujo actual</small>
   </article>
-  <article>
-    <span>Con uso</span>
+
+  <article class="labels-summary__card labels-summary__card--cyan">
+    <span class="labels-summary__icon material-symbols-rounded" aria-hidden="true">link</span>
+    <span class="labels-summary__dot" aria-hidden="true"></span>
+    <p>Con uso</p>
     <strong>{{ used() }}</strong>
+    <small>Aplicadas en registros</small>
   </article>
-  <article>
-    <span>Sin uso</span>
+
+  <article class="labels-summary__card labels-summary__card--red">
+    <span class="labels-summary__icon material-symbols-rounded" aria-hidden="true">block</span>
+    <span class="labels-summary__dot" aria-hidden="true"></span>
+    <p>Sin uso</p>
     <strong>{{ unused() }}</strong>
+    <small>Pendientes por aplicar</small>
   </article>
-  <article>
-    <span>Usos registrados</span>
+
+  <article class="labels-summary__card labels-summary__card--violet">
+    <span class="labels-summary__icon material-symbols-rounded" aria-hidden="true">hub</span>
+    <span class="labels-summary__dot" aria-hidden="true"></span>
+    <p>Usos registrados</p>
     <strong>{{ associations() }}</strong>
+    <small>Asociaciones totales</small>
   </article>
 </section>

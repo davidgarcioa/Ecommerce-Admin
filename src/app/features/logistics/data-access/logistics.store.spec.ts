@@ -44,6 +44,9 @@ describe('LogisticsStore', () => {
   };
 
   beforeEach(() => {
+    localStorage.clear();
+    TestBed.resetTestingModule();
+
     api = {
       listOrders: vi.fn(() => of(response)),
       getStatistics: vi.fn(() => of(statistics)),

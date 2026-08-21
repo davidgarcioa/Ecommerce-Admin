@@ -106,7 +106,7 @@ export class ProductGroupProductsTableComponent {
     },
     {
       key: 'updatedAt',
-      label: 'Actualización',
+      label: 'Actualizacion',
       type: 'date',
       sortable: true,
       searchable: false,
@@ -127,7 +127,7 @@ export class ProductGroupProductsTableComponent {
             icon: 'link_off',
             variant: 'danger',
             confirmationRequired: true,
-            confirmationMessage: '¿Desasociar este producto?',
+            confirmationMessage: 'Desasociar este producto?',
           },
         ]
       : [],

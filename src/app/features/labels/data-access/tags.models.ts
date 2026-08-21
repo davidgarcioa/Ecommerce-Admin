@@ -44,8 +44,10 @@ export interface TagStatistics {
 }
 
 export interface TagFilters {
+  readonly searchTerm: string;
   readonly status: TagStatus | 'all';
   readonly usage: 'all' | 'used' | 'unused';
+  readonly color: string | 'all';
 }
 
 export interface TagFormValue {

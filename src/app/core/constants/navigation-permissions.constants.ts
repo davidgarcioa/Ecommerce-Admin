@@ -8,7 +8,6 @@ export const NAVIGATION_PERMISSIONS: Readonly<Record<string, readonly Permission
   conjuntos: ['product-groups.read'],
   gastos: ['reports.read'],
   archivos: ['files.import'],
-  integraciones: ['settings.manage', 'files.import'],
   oficina: ['orders.read'],
   'torre-logistica': ['orders.read'],
   rastreo: ['orders.read'],

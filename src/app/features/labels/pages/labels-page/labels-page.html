@@ -3,9 +3,22 @@
     [loading]="loading()"
     [lastUpdated]="lastUpdated()"
     [canCreate]="canCreate()"
+    [filtersVisible]="filtersVisible()"
+    [activeFiltersCount]="activeFiltersCount()"
     (create)="create()"
     (refresh)="refresh()"
+    (toggleFilters)="toggleFilters()"
   />
+
+  @if (filtersVisible()) {
+    <div class="labels-page__filters">
+      <app-labels-filters
+        [filters]="filters()"
+        (applyFilters)="applyFilters($event)"
+        (clear)="clearFilters()"
+      />
+    </div>
+  }
 
   <app-labels-summary
     [total]="totalTags()"
@@ -16,18 +29,13 @@
     [associations]="totalAssociations()"
   />
 
-  <app-labels-filters
-    [filters]="filters()"
-    (applyFilters)="applyFilters($event)"
-    (clear)="clearFilters()"
-  />
-
   <app-data-table
     [data]="tags()"
     [columns]="columns()"
     [loading]="loading()"
     [error]="error()"
     rowIdKey="id"
+    [searchable]="false"
     [selectable]="true"
     [rowActions]="rowActions()"
     [exportEnabled]="true"

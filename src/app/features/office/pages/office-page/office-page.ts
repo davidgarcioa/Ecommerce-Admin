@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { Router } from '@angular/router';
 
 import { TableActionClick } from '../../../../shared/components/data-table/models/table-action.model';
@@ -41,6 +48,23 @@ export class OfficePageComponent implements OnInit {
   readonly todayOrders = this.store.todayOrders;
   readonly statistics = this.store.statistics;
   readonly canUpdateOrders = this.store.canUpdateOrders;
+  readonly filtersOpen = signal(false);
+  readonly activeFilterCount = computed(() => {
+    const filters = this.filters();
+
+    return (
+      Number(this.search().trim().length > 0) +
+      Number(filters.orderStatus !== 'all') +
+      Number(filters.paymentStatus !== 'all') +
+      Number(filters.deliveryStatus !== 'all') +
+      Number(filters.urgent !== 'all') +
+      Number(filters.pendingConfirmation) +
+      Number(filters.city.trim().length > 0) +
+      Number(filters.carrier.trim().length > 0) +
+      Number(filters.dateFrom.length > 0) +
+      Number(filters.dateTo.length > 0)
+    );
+  });
 
   ngOnInit(): void {
     this.store.loadOrders();
@@ -54,12 +78,20 @@ export class OfficePageComponent implements OnInit {
     void this.router.navigate(['/oficina/pendientes']);
   }
 
+  toggleFilters(): void {
+    this.filtersOpen.update((open) => !open);
+  }
+
   applySearch(search: string): void {
     this.store.applySearch(search);
   }
 
   applyFilters(filters: OrderFilters): void {
     this.store.applyFilters(filters);
+  }
+
+  applyFilterState(event: { readonly search: string; readonly filters: OrderFilters }): void {
+    this.store.applySearchAndFilters(event.search, event.filters);
   }
 
   clearFilters(): void {

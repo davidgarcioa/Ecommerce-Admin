@@ -4,6 +4,7 @@ import { catchError, map, Observable, throwError } from 'rxjs';
 
 import { API_CONFIG } from '../../../core/config/api.config';
 import { ApiResponse } from '../../../core/models/api-response.model';
+import { OrderPagination } from '../../office/data-access/office.models';
 import {
   DeliveryDetail,
   LogisticsHistoryItem,
@@ -15,7 +16,6 @@ import {
   UpdateLogisticsDeliveryStatusRequest,
   UpdateShipmentRequest,
 } from './logistics.models';
-import { OrderPagination } from '../../office/data-access/office.models';
 
 export interface PaginatedLogisticsOrdersResponse {
   readonly data: readonly LogisticsOrder[];
@@ -122,7 +122,7 @@ function toLogisticsOrderParams(query: LogisticsQuery): HttpParams {
 }
 
 function toReadableError(error: HttpErrorResponse): Error {
-  if (error.status === 0) return new Error('No fue posible conectar con el backend.');
+  if (error.status === 0) return new Error('No fue posible conectar con el servicio de pedidos.');
 
   const response = error.error as Partial<ApiResponse<unknown>> | null;
   return new Error(response?.message || resolveStatusMessage(error.status));
@@ -130,14 +130,14 @@ function toReadableError(error: HttpErrorResponse): Error {
 
 function resolveStatusMessage(status: number): string {
   const messages: Record<number, string> = {
-    400: 'La solicitud logística no es válida.',
-    401: 'Tu sesión no está autenticada.',
-    403: 'No tienes permisos para esta acción logística.',
-    404: 'El registro logístico solicitado no existe.',
-    409: 'La operación genera conflicto con el estado actual.',
-    422: 'Los datos logísticos no cumplen las reglas del backend.',
-    500: 'Ocurrió un error interno en el servidor.',
+    400: 'La solicitud logistica no es valida.',
+    401: 'Tu sesion no esta autenticada.',
+    403: 'No tienes permisos para esta accion logistica.',
+    404: 'El registro logistico solicitado no existe.',
+    409: 'La operacion genera conflicto con el estado actual.',
+    422: 'Revisa los datos del envio antes de continuar.',
+    500: 'Ocurrio un error interno en el servidor.',
   };
 
-  return messages[status] ?? 'No fue posible completar la operación logística.';
+  return messages[status] ?? 'No fue posible completar la operacion logistica.';
 }

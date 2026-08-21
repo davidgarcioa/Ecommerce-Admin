@@ -1,17 +1,26 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  HostListener,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 
-import { TAG_STATUS_OPTIONS, TAG_USAGE_OPTIONS } from '../../utils/tags.constants';
 import { TagFilters } from '../../data-access/tags.models';
+import {
+  DEFAULT_TAG_FILTERS,
+  TAG_COLOR_OPTIONS,
+  TAG_STATUS_OPTIONS,
+  TAG_USAGE_OPTIONS,
+} from '../../utils/tags.constants';
 
-interface LabelsFiltersForm {
-  readonly status: FormControl<TagFilters['status']>;
-  readonly usage: FormControl<TagFilters['usage']>;
-}
+type LabelsFilterMenu = 'status' | 'usage' | 'color';
 
 @Component({
   selector: 'app-labels-filters',
-  imports: [ReactiveFormsModule],
   templateUrl: './labels-filters.html',
   styleUrl: './labels-filters.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,18 +32,92 @@ export class LabelsFiltersComponent {
 
   readonly statusOptions = TAG_STATUS_OPTIONS;
   readonly usageOptions = TAG_USAGE_OPTIONS;
+  readonly colorOptions = TAG_COLOR_OPTIONS;
+  readonly current = signal<TagFilters>(DEFAULT_TAG_FILTERS);
+  readonly openMenu = signal<LabelsFilterMenu | null>(null);
+  readonly activeFiltersCount = computed(
+    () =>
+      Number(this.current().searchTerm.trim().length > 0) +
+      Number(this.current().status !== DEFAULT_TAG_FILTERS.status) +
+      Number(this.current().usage !== DEFAULT_TAG_FILTERS.usage) +
+      Number(this.current().color !== DEFAULT_TAG_FILTERS.color),
+  );
 
-  readonly form = new FormGroup<LabelsFiltersForm>({
-    status: new FormControl('all', { nonNullable: true }),
-    usage: new FormControl('all', { nonNullable: true }),
-  });
-
-  protected onApply(): void {
-    this.applyFilters.emit(this.form.getRawValue());
+  constructor() {
+    effect(() => {
+      this.current.set({ ...this.filters() });
+    });
   }
 
-  protected onClear(): void {
-    this.form.setValue({ status: 'all', usage: 'all' });
+  @HostListener('document:click')
+  closeSelects(): void {
+    this.openMenu.set(null);
+  }
+
+  @HostListener('document:keydown.escape')
+  closeSelectsOnEscape(): void {
+    this.closeSelects();
+  }
+
+  toggleSelect(menu: LabelsFilterMenu): void {
+    this.openMenu.update((current) => (current === menu ? null : menu));
+  }
+
+  isSelectOpen(menu: LabelsFilterMenu): boolean {
+    return this.openMenu() === menu;
+  }
+
+  selectedStatusLabel(): string {
+    return (
+      this.statusOptions.find((option) => option.value === this.current().status)?.label ?? 'Todos'
+    );
+  }
+
+  selectedUsageLabel(): string {
+    return (
+      this.usageOptions.find((option) => option.value === this.current().usage)?.label ?? 'Todas'
+    );
+  }
+
+  selectedColorLabel(): string {
+    return (
+      this.colorOptions.find((option) => option.value === this.current().color)?.label ??
+      'Todos los colores'
+    );
+  }
+
+  selectedColorValue(): string | null {
+    return this.colorOptions.find((option) => option.value === this.current().color)?.color ?? null;
+  }
+
+  onSearchChange(event: Event): void {
+    this.current.update((filters) => ({
+      ...filters,
+      searchTerm: (event.target as HTMLInputElement).value,
+    }));
+  }
+
+  selectStatus(status: TagFilters['status']): void {
+    this.current.update((filters) => ({ ...filters, status }));
+    this.closeSelects();
+  }
+
+  selectUsage(usage: TagFilters['usage']): void {
+    this.current.update((filters) => ({ ...filters, usage }));
+    this.closeSelects();
+  }
+
+  selectColor(color: TagFilters['color']): void {
+    this.current.update((filters) => ({ ...filters, color }));
+    this.closeSelects();
+  }
+
+  onApply(): void {
+    this.applyFilters.emit(this.current());
+  }
+
+  onClear(): void {
+    this.current.set(DEFAULT_TAG_FILTERS);
     this.clear.emit();
   }
 }

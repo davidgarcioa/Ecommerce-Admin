@@ -53,6 +53,7 @@ export const TESTING_ASSOCIATION_OPTIONS: readonly {
 ] as const;
 
 export const DEFAULT_TESTING_FILTERS: TestingFilters = {
+  searchTerm: '',
   status: 'all',
   type: 'all',
   associationType: 'all',

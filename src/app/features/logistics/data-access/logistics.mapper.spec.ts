@@ -7,7 +7,7 @@ describe('logistics mapper', () => {
 
     expect(item.id).toBe('order-1');
     expect(item.carrierLabel).toBe('Coordinadora');
-    expect(item.trackingLabel).toBe('Sin guía');
+    expect(item.trackingLabel).toBe('Sin guia');
     expect(item.dispatchStateLabel).toBe('Transportadora asignada');
     expect(item.incidentLabel).toBe('Con novedad');
   });

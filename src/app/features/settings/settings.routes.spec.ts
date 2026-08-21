@@ -1,28 +1,16 @@
 import { routes } from './settings.routes';
 
 describe('settings routes', () => {
-  it('keeps users, roles and permissions inside settings', () => {
+  it('keeps only profile inside settings', () => {
     const childRoutes = routes[0]?.children?.map((route) => route.path);
 
-    expect(childRoutes).toEqual([
-      '',
-      'perfil',
-      'usuarios',
-      'usuarios/nuevo',
-      'usuarios/:id',
-      'usuarios/:id/editar',
-      'roles',
-      'roles/nuevo',
-      'roles/:id',
-      'roles/:id/editar',
-      'permisos',
-    ]);
+    expect(childRoutes).toEqual(['', 'perfil', '**']);
   });
 
-  it('protects administrative child routes with permissions', () => {
-    const childRoutes = routes[0]?.children?.filter((route) => route.path !== '');
+  it('protects profile with permissions', () => {
+    const profileRoute = routes[0]?.children?.find((route) => route.path === 'perfil');
 
-    expect(childRoutes?.every((route) => route.canMatch?.length === 1)).toBe(true);
-    expect(childRoutes?.every((route) => Array.isArray(route.data?.['permissions']))).toBe(true);
+    expect(profileRoute?.canMatch?.length).toBe(1);
+    expect(Array.isArray(profileRoute?.data?.['permissions'])).toBe(true);
   });
 });

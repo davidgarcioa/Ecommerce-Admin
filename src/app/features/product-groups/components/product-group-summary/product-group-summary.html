@@ -1,30 +1,71 @@
 <section class="product-group-summary" aria-label="Resumen de conjuntos">
-  <article>
-    <span>Total</span>
+  <article class="product-group-summary__card product-group-summary__card--blue">
+    <span class="product-group-summary__icon material-symbols-rounded" aria-hidden="true"
+      >inventory_2</span
+    >
+    <span class="product-group-summary__dot" aria-hidden="true"></span>
+    <p>Total</p>
     <strong>{{ formatNumber(total()) }}</strong>
+    <small>Conjuntos registrados</small>
   </article>
-  <article>
-    <span>Activos</span>
+
+  <article class="product-group-summary__card product-group-summary__card--green">
+    <span class="product-group-summary__icon material-symbols-rounded" aria-hidden="true"
+      >check_circle</span
+    >
+    <span class="product-group-summary__dot" aria-hidden="true"></span>
+    <p>Activos</p>
     <strong>{{ formatNumber(active()) }}</strong>
+    <small>Disponibles para operar</small>
   </article>
-  <article>
-    <span>Archivados</span>
+
+  <article class="product-group-summary__card product-group-summary__card--amber">
+    <span class="product-group-summary__icon material-symbols-rounded" aria-hidden="true"
+      >archive</span
+    >
+    <span class="product-group-summary__dot" aria-hidden="true"></span>
+    <p>Archivados</p>
     <strong>{{ formatNumber(archived()) }}</strong>
+    <small>Fuera del flujo actual</small>
   </article>
-  <article>
-    <span>Productos asociados</span>
+
+  <article class="product-group-summary__card product-group-summary__card--cyan">
+    <span class="product-group-summary__icon material-symbols-rounded" aria-hidden="true"
+      >category</span
+    >
+    <span class="product-group-summary__dot" aria-hidden="true"></span>
+    <p>Productos</p>
     <strong>{{ formatNumber(products()) }}</strong>
+    <small>Asociados a conjuntos</small>
   </article>
-  <article>
-    <span>Ingresos estimados</span>
+
+  <article class="product-group-summary__card product-group-summary__card--violet">
+    <span class="product-group-summary__icon material-symbols-rounded" aria-hidden="true"
+      >payments</span
+    >
+    <span class="product-group-summary__dot" aria-hidden="true"></span>
+    <p>Ingresos</p>
     <strong>{{ formatCurrency(revenue()) }}</strong>
+    <small>Estimacion acumulada</small>
   </article>
-  <article>
-    <span>Ganancia estimada</span>
+
+  <article class="product-group-summary__card product-group-summary__card--green">
+    <span class="product-group-summary__icon material-symbols-rounded" aria-hidden="true"
+      >account_balance_wallet</span
+    >
+    <span class="product-group-summary__dot" aria-hidden="true"></span>
+    <p>Ganancia</p>
     <strong>{{ formatCurrency(profit()) }}</strong>
+    <small>Despues de costos</small>
   </article>
-  <article>
-    <span>Margen promedio</span>
+
+  <article class="product-group-summary__card product-group-summary__card--red">
+    <span class="product-group-summary__icon material-symbols-rounded" aria-hidden="true"
+      >percent</span
+    >
+    <span class="product-group-summary__dot" aria-hidden="true"></span>
+    <p>Margen</p>
     <strong>{{ formatPercentage(margin()) }}</strong>
+    <small>Promedio estimado</small>
   </article>
 </section>

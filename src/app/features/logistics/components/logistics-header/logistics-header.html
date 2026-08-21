@@ -1,23 +1,57 @@
 <header class="logistics-header">
-  <div>
-    <p>Torre operativa</p>
+  <div class="logistics-header__content">
+    <p class="logistics-header__eyebrow">Torre operativa</p>
     <h1>Torre Logística</h1>
-    <span>Centraliza despachos, guías, entregas y devoluciones conectadas a pedidos reales.</span>
+    <span>Control de despachos, guías, entregas, incidencias y devoluciones.</span>
     @if (lastUpdated(); as date) {
       <small>Actualizado {{ date | date: 'dd/MM/yyyy HH:mm' }}</small>
     }
   </div>
 
   <div class="logistics-header__actions">
-    <button type="button" [disabled]="loading()" (click)="openPending.emit()">
+    <button
+      type="button"
+      class="logistics-header__button"
+      [disabled]="loading()"
+      (click)="openPending.emit()"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">pending_actions</span>
       Pendientes
     </button>
-    <button type="button" [disabled]="loading()" (click)="openIncidents.emit()">
+
+    <button
+      type="button"
+      class="logistics-header__button"
+      [disabled]="loading()"
+      (click)="openIncidents.emit()"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">report</span>
-      Incidencias {{ incidentCount() }}
+      Incidencias
+      @if (incidentCount() > 0) {
+        <strong>{{ incidentCount() }}</strong>
+      }
     </button>
-    <button type="button" [disabled]="loading()" (click)="refresh.emit()">
+
+    <button
+      type="button"
+      class="logistics-header__button"
+      [class.logistics-header__button--active]="filtersOpen()"
+      [attr.aria-pressed]="filtersOpen()"
+      (click)="toggleFilters.emit()"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+      Filtros
+      @if (activeFilterCount() > 0) {
+        <strong>{{ activeFilterCount() }}</strong>
+      }
+    </button>
+
+    <button
+      type="button"
+      class="logistics-header__button"
+      [disabled]="loading()"
+      (click)="refresh.emit()"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
       Actualizar
     </button>

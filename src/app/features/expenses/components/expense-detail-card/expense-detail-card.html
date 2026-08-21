@@ -2,12 +2,18 @@
   <header>
     <div>
       <span>{{ item().statusLabel }}</span>
-      <h2>{{ item().concept }}</h2>
+      <h1>{{ item().concept }}</h1>
       <p>{{ formatCurrency(item().amount) }}</p>
     </div>
     <div class="expense-detail-card__actions">
-      <button type="button" (click)="edit.emit(item().id)">Editar</button>
-      <button type="button" class="danger" (click)="delete.emit(item().id)">Eliminar</button>
+      <button type="button" (click)="edit.emit(item().id)">
+        <span class="material-symbols-rounded" aria-hidden="true">edit</span>
+        Editar
+      </button>
+      <button type="button" class="danger" (click)="delete.emit(item().id)">
+        <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+        Eliminar
+      </button>
     </div>
   </header>
 
@@ -45,8 +51,8 @@
       <dd>{{ item().reference || 'Sin referencia' }}</dd>
     </div>
     <div>
-      <dt>Comprobante</dt>
-      <dd>{{ item().hasReceipt ? 'Relacionado por URL' : 'Sin comprobante' }}</dd>
+      <dt>Soporte</dt>
+      <dd>{{ item().hasReceipt ? 'Relacionado por URL' : 'Sin soporte' }}</dd>
     </div>
     <div>
       <dt>Actualización</dt>
@@ -56,7 +62,7 @@
 
   @if (item().description) {
     <section>
-      <h3>Descripción</h3>
+      <h2>Descripción</h2>
       <p>{{ item().description }}</p>
     </section>
   }

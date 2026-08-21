@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { Router } from '@angular/router';
 
 import { DataTableComponent } from '../../../../shared/components/data-table/data-table.component';
@@ -46,11 +53,37 @@ export class ExpensesPageComponent implements OnInit {
   readonly totalAmount = this.store.totalAmount;
   readonly paidAmount = this.store.paidAmount;
   readonly pendingAmount = this.store.pendingAmount;
+  readonly projectedIncome = this.store.projectedIncome;
+  readonly netCashFlow = this.store.netCashFlow;
+  readonly budgetAmount = this.store.budgetAmount;
+  readonly budgetUsedPercentage = this.store.budgetUsedPercentage;
+  readonly paidRatio = this.store.paidRatio;
+  readonly pendingCount = this.store.pendingCount;
+  readonly overdueAmount = this.store.overdueAmount;
+  readonly dueSoonAmount = this.store.dueSoonAmount;
   readonly totalExpenses = this.store.totalExpenses;
   readonly averageExpense = this.store.averageExpense;
   readonly topCategoryLabel = this.store.topCategoryLabel;
   readonly withoutReceiptCount = this.store.withoutReceiptCount;
+  readonly categoryBreakdown = this.store.categoryBreakdown;
   readonly preferencesKey = EXPENSES_TABLE_PREFERENCES_KEY;
+  readonly filtersVisible = signal(false);
+  readonly activeFiltersCount = computed(() => {
+    const filters = this.filters();
+
+    return (
+      Number(this.search().trim().length > 0) +
+      Number(filters.status !== 'all') +
+      Number(filters.category !== 'all') +
+      Number(filters.paymentMethod !== 'all') +
+      Number(filters.receipt !== 'all') +
+      Number(Boolean(filters.dateFrom)) +
+      Number(Boolean(filters.dateTo)) +
+      Number(filters.minAmount !== null) +
+      Number(filters.maxAmount !== null) +
+      Number(this.sort() !== 'expenseDate')
+    );
+  });
 
   readonly columns = computed<readonly TableColumn<ExpenseListItem>[]>(() => [
     {
@@ -105,16 +138,6 @@ export class ExpensesPageComponent implements OnInit {
       align: 'left',
     },
     {
-      key: 'responsible',
-      label: 'Responsable',
-      type: 'text',
-      sortable: true,
-      searchable: true,
-      visible: true,
-      minWidth: '10rem',
-      align: 'left',
-    },
-    {
       key: 'amount',
       label: 'Valor',
       type: 'currency',
@@ -137,7 +160,7 @@ export class ExpensesPageComponent implements OnInit {
     },
     {
       key: 'hasReceipt',
-      label: 'Comprobante',
+      label: 'Soporte',
       type: 'boolean',
       sortable: true,
       searchable: false,
@@ -146,12 +169,22 @@ export class ExpensesPageComponent implements OnInit {
       formatter: (value) => (value ? 'Sí' : 'No'),
     },
     {
+      key: 'responsible',
+      label: 'Responsable',
+      type: 'text',
+      sortable: true,
+      searchable: true,
+      visible: false,
+      minWidth: '10rem',
+      align: 'left',
+    },
+    {
       key: 'updatedAt',
       label: 'Actualización',
       type: 'date',
       sortable: true,
       searchable: false,
-      visible: true,
+      visible: false,
       minWidth: '8rem',
       align: 'left',
       formatter: (value) => formatExpenseDate(String(value).slice(0, 10)),
@@ -167,7 +200,7 @@ export class ExpensesPageComponent implements OnInit {
       icon: 'delete',
       variant: 'danger',
       confirmationRequired: true,
-      confirmationMessage: '¿Eliminar este gasto? El backend actual realiza eliminación física.',
+      confirmationMessage: 'Eliminar este movimiento financiero?',
     },
   ]);
 
@@ -181,6 +214,10 @@ export class ExpensesPageComponent implements OnInit {
 
   refresh(): void {
     this.store.loadExpenses();
+  }
+
+  toggleFilters(): void {
+    this.filtersVisible.update((visible) => !visible);
   }
 
   applySearch(search: string): void {

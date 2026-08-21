@@ -54,15 +54,15 @@ export class FilesStore {
   readonly listItems = computed(() => this.filesState().map(toFileListItem));
   readonly filteredFiles = computed(() =>
     sortFiles(
-      this.listItems().filter((file) =>
-        matchesFile(file, this.searchState(), this.filtersState()),
-      ),
+      this.listItems().filter((file) => matchesFile(file, this.searchState(), this.filtersState())),
       this.sortState(),
     ),
   );
   readonly totalFiles = computed(() => this.statisticsState()?.total ?? this.filesState().length);
   readonly activeFiles = computed(
-    () => this.statisticsState()?.active ?? this.filesState().filter((file) => file.status === 'active').length,
+    () =>
+      this.statisticsState()?.active ??
+      this.filesState().filter((file) => file.status === 'active').length,
   );
   readonly archivedFiles = computed(
     () =>
@@ -70,7 +70,9 @@ export class FilesStore {
       this.filesState().filter((file) => file.status === 'archived').length,
   );
   readonly images = computed(
-    () => this.statisticsState()?.images ?? this.filesState().filter((file) => file.category === 'image').length,
+    () =>
+      this.statisticsState()?.images ??
+      this.filesState().filter((file) => file.category === 'image').length,
   );
   readonly documents = computed(
     () =>
@@ -78,7 +80,9 @@ export class FilesStore {
       this.filesState().filter((file) => file.category === 'document').length,
   );
   readonly totalSize = computed(
-    () => this.statisticsState()?.totalSize ?? this.filesState().reduce((sum, file) => sum + file.size, 0),
+    () =>
+      this.statisticsState()?.totalSize ??
+      this.filesState().reduce((sum, file) => sum + file.size, 0),
   );
 
   loadFiles(): void {

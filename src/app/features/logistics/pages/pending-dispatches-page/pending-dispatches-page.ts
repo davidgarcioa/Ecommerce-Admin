@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, Signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { LogisticsOrdersTableComponent } from '../../components/logistics-orders-table/logistics-orders-table';
@@ -18,7 +18,7 @@ export class PendingDispatchesPageComponent implements OnInit {
   private readonly store = inject(LogisticsStore);
   private readonly router = inject(Router);
 
-  readonly orders = this.store.filteredOrders;
+  readonly orders: Signal<readonly LogisticsOrderListItem[]> = this.store.filteredOrders;
   readonly loading = this.store.loading;
   readonly error = this.store.error;
   readonly canUpdateShipment = this.store.canUpdateShipment;

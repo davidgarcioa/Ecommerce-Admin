@@ -7,11 +7,7 @@ import { HomeStore } from '../../data-access/home.store';
 
 @Component({
   selector: 'app-home-page',
-  imports: [
-    HomeHeaderComponent,
-    QuickAccessGridComponent,
-    HomeWorkItemsComponent,
-  ],
+  imports: [HomeHeaderComponent, QuickAccessGridComponent, HomeWorkItemsComponent],
   providers: [HomeStore],
   templateUrl: './home-page.html',
   styleUrl: './home-page.scss',

@@ -1,4 +1,17 @@
-<form class="label-form" [formGroup]="form" (ngSubmit)="onSubmit()" aria-label="Formulario de etiqueta">
+<form
+  class="label-form"
+  [formGroup]="form"
+  (ngSubmit)="onSubmit()"
+  aria-label="Formulario de etiqueta"
+>
+  <section class="label-form__preview" [style.--label-color]="previewColor()">
+    <span class="label-form__preview-swatch" aria-hidden="true"></span>
+    <div>
+      <strong>{{ form.controls.name.value || 'Nueva etiqueta' }}</strong>
+      <p>{{ form.controls.code.value || 'CODIGO' }}</p>
+    </div>
+  </section>
+
   @if (validationErrors().length > 0) {
     <div class="label-form__error" role="alert">
       @for (error of validationErrors(); track error) {
@@ -8,33 +21,56 @@
   }
 
   <label>
-    Codigo
+    <span>Codigo</span>
     <input formControlName="code" maxlength="28" autocomplete="off" />
   </label>
 
   <label>
-    Nombre
+    <span>Nombre</span>
     <input formControlName="name" maxlength="64" autocomplete="off" />
   </label>
 
   <label class="label-form__wide">
-    Descripcion
+    <span>Descripcion</span>
     <textarea formControlName="description" rows="4" maxlength="240"></textarea>
   </label>
 
-  <label>
-    Color opcional
-    <input formControlName="color" placeholder="#A1A1A1" maxlength="7" autocomplete="off" />
+  <label class="label-form__wide">
+    <span>Color</span>
+    <div class="label-form__color-row">
+      <span
+        class="label-form__color-preview"
+        [style.background]="previewColor()"
+        aria-hidden="true"
+      ></span>
+      <input formControlName="color" placeholder="#A1A1A1" maxlength="7" autocomplete="off" />
+    </div>
   </label>
+
+  <div class="label-form__swatches" aria-label="Colores sugeridos">
+    @for (color of presetColors; track color) {
+      <button
+        type="button"
+        [class.label-form__swatch--selected]="previewColor() === color"
+        [style.background]="color"
+        [attr.aria-label]="'Usar color ' + color"
+        (click)="selectColor(color)"
+      ></button>
+    }
+  </div>
 
   <label class="label-form__check">
     <input type="checkbox" formControlName="active" />
-    Activa
+    <span>Activa</span>
   </label>
 
   <div class="label-form__actions">
-    <button type="button" (click)="cancel.emit()">Cancelar</button>
+    <button type="button" (click)="cancel.emit()">
+      <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      Cancelar
+    </button>
     <button type="submit" class="label-form__primary" [disabled]="saving()">
+      <span class="material-symbols-rounded" aria-hidden="true">save</span>
       {{ saving() ? 'Guardando' : 'Guardar' }}
     </button>
   </div>

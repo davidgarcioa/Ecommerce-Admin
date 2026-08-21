@@ -1,5 +1,6 @@
 export type TestingStatus = 'draft' | 'active' | 'paused' | 'completed' | 'archived';
-export type TestingType = 'campaign' | 'creative' | 'product-group' | 'product' | 'offer' | 'operational';
+export type TestingType =
+  'campaign' | 'creative' | 'product-group' | 'product' | 'offer' | 'operational';
 export type TestingAssociationType = 'campaign' | 'product-group' | 'product' | 'order' | 'none';
 export type TestingSortOption = 'updatedAt' | 'name' | 'startDate' | 'status';
 
@@ -59,6 +60,7 @@ export interface TestingStatistics {
 }
 
 export interface TestingFilters {
+  readonly searchTerm: string;
   readonly status: TestingStatus | 'all';
   readonly type: TestingType | 'all';
   readonly associationType: TestingAssociationType | 'all';

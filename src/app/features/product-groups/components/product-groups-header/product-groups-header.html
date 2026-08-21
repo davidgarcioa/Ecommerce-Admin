@@ -1,25 +1,53 @@
 <header class="product-groups-header">
-  <div>
-    <p class="product-groups-header__eyebrow">Catálogo operativo</p>
+  <div class="product-groups-header__copy">
+    <p class="product-groups-header__eyebrow">Catalogo operativo</p>
     <h1>Conjuntos</h1>
-    <p>Administra grupos de productos, rentabilidad y asociaciones sin salir del módulo.</p>
-    @if (lastUpdated(); as date) {
-      <span>Actualizado {{ date | date: 'dd/MM/yyyy HH:mm' }}</span>
-    }
+    <p>Administra grupos de productos, rentabilidad y asociaciones sin salir del modulo.</p>
+    <div class="product-groups-header__meta" aria-label="Estado de conjuntos">
+      <span>
+        <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
+        Administracion de conjuntos
+      </span>
+      <span>
+        <span class="material-symbols-rounded" aria-hidden="true">sync</span>
+        @if (lastUpdated(); as date) {
+          {{ date | date: 'dd/MM/yyyy HH:mm' }}
+        } @else {
+          Sin sincronizar
+        }
+      </span>
+    </div>
   </div>
 
-  <div class="product-groups-header__actions">
+  <div class="product-groups-header__actions" aria-label="Acciones de conjuntos">
     <button
       type="button"
-      class="button button--ghost"
+      class="product-groups-header__action"
       [disabled]="loading()"
       (click)="refresh.emit()"
     >
       <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
       Actualizar
     </button>
+    <button
+      type="button"
+      class="product-groups-header__action"
+      [class.product-groups-header__action--active]="filtersVisible() || activeFiltersCount() > 0"
+      [attr.aria-expanded]="filtersVisible()"
+      (click)="toggleFilters.emit()"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+      Filtros
+      @if (activeFiltersCount() > 0) {
+        <span class="product-groups-header__count">{{ activeFiltersCount() }}</span>
+      }
+    </button>
     @if (canCreate()) {
-      <button type="button" class="button button--primary" (click)="create.emit()">
+      <button
+        type="button"
+        class="product-groups-header__action product-groups-header__action--primary"
+        (click)="create.emit()"
+      >
         <span class="material-symbols-rounded" aria-hidden="true">add</span>
         Nuevo conjunto
       </button>

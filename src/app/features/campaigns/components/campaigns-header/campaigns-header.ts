@@ -17,7 +17,7 @@ export class CampaignsHeaderComponent {
   readonly toggleFilters = output<void>();
 
   formatLastSync(value: string): string {
-    if (!value) return 'Sin sincronización';
+    if (!value) return 'Sin importaciones';
 
     return new Intl.DateTimeFormat('es-CO', {
       dateStyle: 'medium',

@@ -10,9 +10,9 @@
   <input id="file-input" type="file" accept=".xlsx,.xls,.csv" (change)="onInputChange($event)" />
   <label for="file-input" tabindex="0">
     <span class="dropzone__icon material-symbols-rounded" aria-hidden="true">upload_file</span>
-    <strong>{{ importedFile() ? 'Cambiar archivo' : 'Suelta aquí el archivo de Dropi' }}</strong>
+    <strong>{{ importedFile() ? 'Cambiar archivo' : 'Suelta aquí tu archivo' }}</strong>
     <small id="dropzone-help">
-      Excel o CSV, máximo 15 MB. Detectamos tipo, hoja y columnas automáticamente.
+      Excel o CSV, máximo 15 MB. Puede ser de órdenes o de Meta Ads.
     </small>
   </label>
 

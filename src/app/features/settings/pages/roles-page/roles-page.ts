@@ -2,7 +2,10 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { Router } from '@angular/router';
 
 import { DataTableComponent } from '../../../../shared/components/data-table/data-table.component';
-import { TableAction, TableActionClick } from '../../../../shared/components/data-table/models/table-action.model';
+import {
+  TableAction,
+  TableActionClick,
+} from '../../../../shared/components/data-table/models/table-action.model';
 import { TableColumn } from '../../../../shared/components/data-table/models/table-column.model';
 import { RoleListItem } from '../../data-access/settings.models';
 import { SettingsStore } from '../../data-access/settings.store';
@@ -25,12 +28,66 @@ export class RolesPageComponent {
   readonly totalPermissions = this.store.totalPermissions;
 
   readonly columns = computed<readonly TableColumn<RoleListItem>[]>(() => [
-    { key: 'name', label: 'Rol', type: 'text', sortable: true, searchable: true, visible: true, minWidth: '12rem', align: 'left' },
-    { key: 'description', label: 'Descripción', type: 'text', sortable: false, searchable: true, visible: true, minWidth: '18rem', align: 'left' },
-    { key: 'statusLabel', label: 'Estado', type: 'status', sortable: true, searchable: true, visible: true, minWidth: '8rem', align: 'left' },
-    { key: 'permissionsCount', label: 'Permisos', type: 'number', sortable: true, searchable: false, visible: true, minWidth: '7rem', align: 'right' },
-    { key: 'systemLabel', label: 'Origen', type: 'text', sortable: true, searchable: true, visible: true, minWidth: '10rem', align: 'left' },
-    { key: 'updatedAt', label: 'Actualizacion', type: 'text', sortable: true, searchable: false, visible: true, minWidth: '10rem', align: 'left' },
+    {
+      key: 'name',
+      label: 'Rol',
+      type: 'text',
+      sortable: true,
+      searchable: true,
+      visible: true,
+      minWidth: '12rem',
+      align: 'left',
+    },
+    {
+      key: 'description',
+      label: 'Descripción',
+      type: 'text',
+      sortable: false,
+      searchable: true,
+      visible: true,
+      minWidth: '18rem',
+      align: 'left',
+    },
+    {
+      key: 'statusLabel',
+      label: 'Estado',
+      type: 'status',
+      sortable: true,
+      searchable: true,
+      visible: true,
+      minWidth: '8rem',
+      align: 'left',
+    },
+    {
+      key: 'permissionsCount',
+      label: 'Permisos',
+      type: 'number',
+      sortable: true,
+      searchable: false,
+      visible: true,
+      minWidth: '7rem',
+      align: 'right',
+    },
+    {
+      key: 'systemLabel',
+      label: 'Origen',
+      type: 'text',
+      sortable: true,
+      searchable: true,
+      visible: true,
+      minWidth: '10rem',
+      align: 'left',
+    },
+    {
+      key: 'updatedAt',
+      label: 'Actualización',
+      type: 'text',
+      sortable: true,
+      searchable: false,
+      visible: true,
+      minWidth: '10rem',
+      align: 'left',
+    },
   ]);
 
   readonly rowActions = computed<readonly TableAction<RoleListItem>[]>(() => [
@@ -52,6 +109,8 @@ export class RolesPageComponent {
 
   onAction(event: TableActionClick<RoleListItem>): void {
     if (event.action.id === 'view') this.openRole(event.row);
-    if (event.action.id === 'edit') void this.router.navigate(['/configuracion/roles', event.row.id, 'editar']);
+    if (event.action.id === 'edit') {
+      void this.router.navigate(['/configuracion/roles', event.row.id, 'editar']);
+    }
   }
 }

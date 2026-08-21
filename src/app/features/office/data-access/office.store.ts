@@ -160,12 +160,17 @@ export class OfficeStore {
       .pipe(finalize(() => this.loadingState.set(false)))
       .subscribe({
         next: ({ result, statistics }) => {
+          if (result.data.length === 0) {
+            this.applyLocalOrders([]);
+            return;
+          }
+
           this.ordersState.set(result.data);
           this.paginationState.set(result.meta);
           this.statisticsState.set(statistics);
           this.lastUpdatedState.set(new Date().toISOString());
         },
-        error: (error: Error) => this.errorState.set(error.message),
+        error: () => this.applyLocalOrders([]),
       });
   }
 
@@ -184,7 +189,18 @@ export class OfficeStore {
           this.selectedCustomerState.set(order ? toOrderCustomer(order) : null);
           this.historyState.set(history);
         },
-        error: (error: Error) => this.errorState.set(error.message),
+        error: (error: Error) => {
+          const localOrder = this.ordersState().find((order) => order.id === id) ?? null;
+
+          if (!localOrder) {
+            this.errorState.set(error.message);
+            return;
+          }
+
+          this.selectedOrderState.set(localOrder);
+          this.selectedCustomerState.set(toOrderCustomer(localOrder));
+          this.historyState.set([]);
+        },
       });
   }
 
@@ -195,6 +211,13 @@ export class OfficeStore {
   }
 
   applyFilters(filters: OrderFilters): void {
+    this.filtersState.set(filters);
+    this.paginationState.update((pagination) => ({ ...pagination, page: 1 }));
+    this.loadOrders();
+  }
+
+  applySearchAndFilters(search: string, filters: OrderFilters): void {
+    this.searchState.set(search);
     this.filtersState.set(filters);
     this.paginationState.update((pagination) => ({ ...pagination, page: 1 }));
     this.loadOrders();
@@ -298,7 +321,11 @@ export class OfficeStore {
   }
 
   private applyImportedOrders(importedOrders: readonly DailyOrder[]): void {
-    const orders = this.filterImportedOrders(toOfficeOrders(importedOrders));
+    this.applyLocalOrders(toOfficeOrders(importedOrders));
+  }
+
+  private applyLocalOrders(source: readonly Order[]): void {
+    const orders = this.filterOrders(source);
     const pagination = this.paginationState();
 
     this.ordersState.set(orders);
@@ -313,49 +340,53 @@ export class OfficeStore {
     this.lastUpdatedState.set(new Date().toISOString());
   }
 
-  private filterImportedOrders(orders: readonly Order[]): readonly Order[] {
+  private filterOrders(orders: readonly Order[]): readonly Order[] {
     const filters = this.filtersState();
     const search = this.searchState().trim().toLowerCase();
 
-    return orders.filter((order) => {
-      if (filters.orderStatus !== 'all' && order.orderStatus !== filters.orderStatus) return false;
-      if (filters.paymentStatus !== 'all' && order.paymentStatus !== filters.paymentStatus) {
-        return false;
-      }
-      if (filters.deliveryStatus !== 'all' && order.deliveryStatus !== filters.deliveryStatus) {
-        return false;
-      }
-      if (filters.city && !order.city.toLowerCase().includes(filters.city.toLowerCase())) {
-        return false;
-      }
-      if (
-        filters.carrier &&
-        !String(order.carrier ?? '')
-          .toLowerCase()
-          .includes(filters.carrier.toLowerCase())
-      ) {
-        return false;
-      }
-      if (filters.urgent === 'urgent' && !order.urgent) return false;
-      if (filters.urgent === 'standard' && order.urgent) return false;
-      if (filters.dateFrom && order.createdAt.slice(0, 10) < filters.dateFrom) return false;
-      if (filters.dateTo && order.createdAt.slice(0, 10) > filters.dateTo) return false;
-      if (!search) return true;
+    return orders
+      .filter((order) => {
+        if (filters.pendingConfirmation && order.orderStatus !== 'Pending') return false;
+        if (filters.orderStatus !== 'all' && order.orderStatus !== filters.orderStatus)
+          return false;
+        if (filters.paymentStatus !== 'all' && order.paymentStatus !== filters.paymentStatus) {
+          return false;
+        }
+        if (filters.deliveryStatus !== 'all' && order.deliveryStatus !== filters.deliveryStatus) {
+          return false;
+        }
+        if (filters.city && !order.city.toLowerCase().includes(filters.city.toLowerCase())) {
+          return false;
+        }
+        if (
+          filters.carrier &&
+          !String(order.carrier ?? '')
+            .toLowerCase()
+            .includes(filters.carrier.toLowerCase())
+        ) {
+          return false;
+        }
+        if (filters.urgent === 'urgent' && !order.urgent) return false;
+        if (filters.urgent === 'standard' && order.urgent) return false;
+        if (filters.dateFrom && order.createdAt.slice(0, 10) < filters.dateFrom) return false;
+        if (filters.dateTo && order.createdAt.slice(0, 10) > filters.dateTo) return false;
+        if (!search) return true;
 
-      return [
-        order.orderNumber,
-        order.customerName,
-        order.customerPhone,
-        order.productName,
-        order.productGroupName,
-        order.city,
-        order.carrier ?? '',
-        order.trackingNumber ?? '',
-      ]
-        .join(' ')
-        .toLowerCase()
-        .includes(search);
-    });
+        return [
+          order.orderNumber,
+          order.customerName,
+          order.customerPhone,
+          order.productName,
+          order.productGroupName,
+          order.city,
+          order.carrier ?? '',
+          order.trackingNumber ?? '',
+        ]
+          .join(' ')
+          .toLowerCase()
+          .includes(search);
+      })
+      .sort((first, second) => second.createdAt.localeCompare(first.createdAt));
   }
 
   private upsertOrder(order: Order): void {

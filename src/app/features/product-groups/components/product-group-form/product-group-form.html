@@ -1,41 +1,56 @@
-<form class="product-group-form" [formGroup]="form" (ngSubmit)="submit()">
+<form
+  class="product-group-form"
+  [formGroup]="form"
+  (ngSubmit)="submit()"
+  aria-label="Formulario de conjunto"
+>
   @if (error(); as message) {
-    <p class="product-group-form__error" role="alert">{{ message }}</p>
+    <p class="product-group-form__error" role="alert">
+      <span class="material-symbols-rounded" aria-hidden="true">warning</span>
+      {{ message }}
+    </p>
   }
 
   <div class="product-group-form__grid">
-    <label>
-      Código
-      <input formControlName="code" type="text" autocomplete="off" aria-describedby="code-error" />
+    <label class="product-group-form__field">
+      <span>Codigo</span>
+      <input type="text" formControlName="code" autocomplete="off" placeholder="HELVOR-2" />
       @if (codeError(); as message) {
-        <small id="code-error">{{ message }}</small>
+        <small>{{ message }}</small>
       }
     </label>
 
-    <label>
-      Nombre
-      <input formControlName="name" type="text" autocomplete="off" aria-describedby="name-error" />
+    <label class="product-group-form__field">
+      <span>Nombre</span>
+      <input type="text" formControlName="name" autocomplete="off" placeholder="Helvor 2" />
       @if (nameError(); as message) {
-        <small id="name-error">{{ message }}</small>
+        <small>{{ message }}</small>
       }
     </label>
 
-    <label class="product-group-form__wide">
-      Descripción
-      <textarea formControlName="description" rows="4"></textarea>
+    <label class="product-group-form__field product-group-form__wide">
+      <span>Descripcion</span>
+      <textarea
+        formControlName="description"
+        rows="4"
+        placeholder="Describe el objetivo comercial del conjunto"
+      ></textarea>
     </label>
 
-    <label>
-      Color
-      <select formControlName="color">
-        @for (color of colorOptions; track color) {
-          <option [value]="color">{{ color }}</option>
-        }
-      </select>
+    <label class="product-group-form__field">
+      <span>Color</span>
+      <div class="product-group-form__select-with-preview">
+        <i [style.background]="form.controls.color.value" aria-hidden="true"></i>
+        <select formControlName="color">
+          @for (color of colorOptions; track color) {
+            <option [value]="color">{{ color }}</option>
+          }
+        </select>
+      </div>
     </label>
 
-    <label>
-      Icono
+    <label class="product-group-form__field">
+      <span>Icono</span>
       <select formControlName="icon">
         @for (icon of iconOptions; track icon) {
           <option [value]="icon">{{ icon }}</option>
@@ -43,26 +58,34 @@
       </select>
     </label>
 
-    <label>
-      Orden
-      <input formControlName="sortOrder" type="number" min="0" />
+    <label class="product-group-form__field">
+      <span>Orden</span>
+      <input type="number" formControlName="sortOrder" min="0" inputmode="numeric" />
     </label>
 
     <label class="product-group-form__check">
-      <input formControlName="active" type="checkbox" />
-      Activo
+      <input type="checkbox" formControlName="active" />
+      <span>Activo</span>
     </label>
 
     <label class="product-group-form__check">
-      <input formControlName="featured" type="checkbox" />
-      Destacado
+      <input type="checkbox" formControlName="featured" />
+      <span>Destacado</span>
     </label>
   </div>
 
-  <footer>
-    <button type="button" class="button button--ghost" (click)="cancel.emit()">Cancelar</button>
-    <button type="submit" class="button button--primary" [disabled]="form.invalid || saving()">
-      {{ saving() ? 'Guardando' : mode() === 'create' ? 'Crear conjunto' : 'Guardar cambios' }}
+  <footer class="product-group-form__actions">
+    <button type="button" class="product-group-form__button" (click)="cancel.emit()">
+      <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      Cancelar
+    </button>
+    <button
+      type="submit"
+      class="product-group-form__button product-group-form__button--primary"
+      [disabled]="saving()"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">check</span>
+      {{ saving() ? 'Guardando...' : mode() === 'create' ? 'Crear conjunto' : 'Guardar cambios' }}
     </button>
   </footer>
 </form>

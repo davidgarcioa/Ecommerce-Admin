@@ -1,35 +1,85 @@
 @use '../../../../styles/abstracts/variables' as *;
+@use '../../../../styles/abstracts/mixins' as *;
 
 .expenses-page {
+  @include fade-in;
+
   display: grid;
   gap: $space-6;
   min-width: 0;
+  overflow: visible;
+
+  &__filters {
+    animation: expenses-panel-in 160ms ease both;
+    min-width: 0;
+  }
 
   &__error {
     align-items: center;
-    background: var(--color-card);
-    border: 1px solid color-mix(in srgb, var(--color-error) 45%, var(--color-border));
+    background: rgb(239 68 68 / 8%);
+    border: 1px solid rgb(239 68 68 / 42%);
     border-radius: $radius-lg;
-    color: var(--color-text-primary);
+    color: var(--color-text-secondary);
     display: flex;
     gap: $space-4;
-    justify-content: space-between;
+    min-width: 0;
     padding: $space-4;
 
+    > .material-symbols-rounded {
+      color: rgb(239 68 68);
+      font-size: 1.4rem;
+      line-height: 1;
+    }
+
+    strong {
+      color: var(--color-text-primary);
+    }
+
     p {
-      color: var(--color-text-secondary);
       margin: $space-1 0 0;
     }
 
     button {
-      background: var(--color-card-elevated);
+      background: rgb(255 255 255 / 2.5%);
       border: 1px solid var(--color-border);
       border-radius: $radius-md;
       color: var(--color-text-primary);
       cursor: pointer;
       font: inherit;
+      font-weight: $font-weight-bold;
+      margin-left: auto;
       min-height: 2.5rem;
       padding: 0 $space-4;
+      white-space: nowrap;
+
+      &:hover {
+        background: rgb(59 130 246 / 8%);
+        border-color: rgb(59 130 246 / 42%);
+      }
+    }
+  }
+}
+
+@keyframes expenses-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.35rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 720px) {
+  .expenses-page__error {
+    align-items: stretch;
+    display: grid;
+
+    button {
+      margin-left: 0;
+      width: 100%;
     }
   }
 }

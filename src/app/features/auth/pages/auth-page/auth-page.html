@@ -111,7 +111,9 @@
             <button
               type="button"
               class="auth-field__toggle"
-              [attr.aria-label]="loginPasswordVisible() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              [attr.aria-label]="
+                loginPasswordVisible() ? 'Ocultar contraseña' : 'Mostrar contraseña'
+              "
               [title]="loginPasswordVisible() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
               (click)="$event.stopPropagation(); toggleLoginPassword()"
             >
@@ -217,7 +219,9 @@
             <button
               type="button"
               class="auth-field__toggle"
-              [attr.aria-label]="registerPasswordVisible() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              [attr.aria-label]="
+                registerPasswordVisible() ? 'Ocultar contraseña' : 'Mostrar contraseña'
+              "
               [title]="registerPasswordVisible() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
               (click)="$event.stopPropagation(); toggleRegisterPassword()"
             >
@@ -232,9 +236,7 @@
         </p>
 
         @if (showRegisterPasswordHint()) {
-          <p id="register-password-rules" class="auth-card__hint">
-            Mínimo 6 caracteres.
-          </p>
+          <p id="register-password-rules" class="auth-card__hint">Mínimo 6 caracteres.</p>
         }
 
         <button class="auth-card__submit" type="submit" [disabled]="loading()">
@@ -251,4 +253,3 @@
     </div>
   </section>
 </main>
-

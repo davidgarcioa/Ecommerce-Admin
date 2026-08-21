@@ -1,29 +1,53 @@
 <section class="tracking-result-summary">
-  <div>
-    <p>{{ result().order.orderNumber }}</p>
-    <h2>{{ deliveryStatusLabel(result().shipment.deliveryStatus) }}</h2>
-    <span>{{ result().currentStatus.description }}</span>
-    <small>Último evento {{ formatDate(result().currentStatus.date) }}</small>
+  <div class="tracking-result-summary__status">
+    <span class="tracking-result-summary__icon material-symbols-rounded" aria-hidden="true">
+      local_shipping
+    </span>
+    <div>
+      <p>{{ result().order.orderNumber }}</p>
+      <h2>{{ deliveryStatusLabel(result().shipment.deliveryStatus) }}</h2>
+      <span>{{ result().currentStatus.description }}</span>
+      <small>Último evento {{ formatDate(result().currentStatus.date) }}</small>
+    </div>
   </div>
 
-  <div class="tracking-result-summary__meta">
-    <span>Transportadora: {{ result().shipment.carrier || 'Sin transportadora' }}</span>
-    <span>Guía: {{ result().shipment.trackingNumber || 'Sin guía' }}</span>
-    <span>Pedido: {{ orderStatusLabel(result().order.orderStatus) }}</span>
+  <div class="tracking-result-summary__meta" aria-label="Datos del envío">
+    <span>
+      <strong>Transportadora</strong>
+      {{ result().shipment.carrier || 'Sin transportadora' }}
+    </span>
+    <span>
+      <strong>Guía</strong>
+      {{ result().shipment.trackingNumber || 'Sin guía' }}
+    </span>
+    <span>
+      <strong>Pedido</strong>
+      {{ orderStatusLabel(result().order.orderStatus) }}
+    </span>
   </div>
 
   <div class="tracking-result-summary__actions">
     <button type="button" (click)="copyOrder.emit(result().order.orderNumber)">
-      Copiar pedido
+      <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>
+      Pedido
     </button>
     @if (result().shipment.trackingNumber; as trackingNumber) {
-      <button type="button" (click)="copyTracking.emit(trackingNumber)">Copiar guía</button>
+      <button type="button" (click)="copyTracking.emit(trackingNumber)">
+        <span class="material-symbols-rounded" aria-hidden="true">tag</span>
+        Guía
+      </button>
     }
     @if (canViewOrder()) {
-      <button type="button" (click)="openOffice.emit(result().id)">Oficina</button>
+      <button type="button" (click)="openOffice.emit(result().id)">
+        <span class="material-symbols-rounded" aria-hidden="true">business_center</span>
+        Oficina
+      </button>
     }
     @if (canViewLogistics()) {
-      <button type="button" (click)="openLogistics.emit(result().id)">Torre Logística</button>
+      <button type="button" (click)="openLogistics.emit(result().id)">
+        <span class="material-symbols-rounded" aria-hidden="true">route</span>
+        Torre
+      </button>
     }
   </div>
 </section>

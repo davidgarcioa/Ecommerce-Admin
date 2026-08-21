@@ -48,7 +48,10 @@ export class IntegrationsApiService {
 
   testMetaConnection(): Observable<MetaConnectionCheck> {
     return this.http
-      .post<ApiResponse<MetaConnectionCheck>>(`${this.baseUrl}/integrations/meta/test-connection`, {})
+      .post<ApiResponse<MetaConnectionCheck>>(
+        `${this.baseUrl}/integrations/meta/test-connection`,
+        {},
+      )
       .pipe(
         map((response) => response.data),
         catchError((error: HttpErrorResponse) => throwError(() => toReadableError(error))),

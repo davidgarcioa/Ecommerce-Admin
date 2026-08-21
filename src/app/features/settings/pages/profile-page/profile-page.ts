@@ -12,5 +12,4 @@ export class ProfilePageComponent {
   private readonly store = inject(SettingsStore);
 
   readonly profile = this.store.profile;
-  readonly permissions = this.store.profile;
 }

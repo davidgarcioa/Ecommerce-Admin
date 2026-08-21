@@ -22,6 +22,6 @@ export function toLogisticsOrderListItem(order: LogisticsOrder): LogisticsOrderL
     trackingLabel: trackingLabel(order.trackingNumber),
     dispatchStateLabel: dispatchStateLabel(order),
     incidentLabel: hasLogisticsIncident(order) ? 'Con novedad' : 'Sin novedad',
-    returnLabel: hasReturn(order) ? 'Con devolución' : 'Sin devolución',
+    returnLabel: hasReturn(order) ? 'Con devolucion' : 'Sin devolucion',
   };
 }

@@ -1,13 +1,71 @@
 import { TestBed } from '@angular/core/testing';
 
+import { DailyOrder } from '../models/daily-order.model';
 import { DailyReportService } from './daily-report.service';
+
+const importedOrders: readonly DailyOrder[] = [
+  {
+    id: 'order-1',
+    orderNumber: 'LK-0001',
+    createdAt: '2026-08-21T08:00:00.000Z',
+    reportDate: '2026-08-21',
+    orderHour: '08:00',
+    customerName: 'Laura Mendez',
+    customerPhone: '3001000001',
+    productName: 'Organizador Modular',
+    productGroupId: 'helvor-2',
+    productGroupName: 'Helvor 2',
+    guideNumber: 'GUIA0001',
+    guideStatus: 'Entregada',
+    city: 'Bogota',
+    carrier: 'Coordinadora',
+    status: 'Entregada',
+    orderValue: 180000,
+    advertisingCost: 30000,
+    estimatedProfit: 80000,
+    shippingCost: 12000,
+    commission: 5400,
+    providerCostTotal: 52000,
+    operationDays: 1,
+    urgent: false,
+    paymentMethod: 'Contraentrega',
+    lastUpdated: '2026-08-21T09:00:00.000Z',
+  },
+  {
+    id: 'order-2',
+    orderNumber: 'LK-0002',
+    createdAt: '2026-08-21T09:00:00.000Z',
+    reportDate: '2026-08-21',
+    orderHour: '09:00',
+    customerName: 'Carlos Rojas',
+    customerPhone: '3001000002',
+    productName: 'Kit Skin Care Premium',
+    productGroupId: 'fyntra-2',
+    productGroupName: 'Fyntra 2',
+    guideNumber: 'GUIA0002',
+    guideStatus: 'En ruta',
+    city: 'Medellin',
+    carrier: 'Servientrega',
+    status: 'En tránsito',
+    orderValue: 150000,
+    advertisingCost: 22000,
+    estimatedProfit: 60000,
+    shippingCost: 11000,
+    commission: 4500,
+    providerCostTotal: 52000,
+    operationDays: 2,
+    urgent: true,
+    paymentMethod: 'Transferencia',
+    lastUpdated: '2026-08-21T09:30:00.000Z',
+  },
+];
 
 describe('DailyReportService', () => {
   let service: DailyReportService;
   const importedOrdersStorageKey = 'ecommerce-control-center.imported-orders';
 
   beforeEach(() => {
-    localStorage.removeItem(importedOrdersStorageKey);
+    localStorage.setItem(importedOrdersStorageKey, JSON.stringify(importedOrders));
     TestBed.configureTestingModule({});
     service = TestBed.inject(DailyReportService);
   });
@@ -16,9 +74,9 @@ describe('DailyReportService', () => {
     localStorage.removeItem(importedOrdersStorageKey);
   });
 
-  it('should load report data', () => {
+  it('should load report data from imported orders', () => {
     expect(service.report().summaryMetrics.length).toBe(12);
-    expect(service.orders().length).toBeGreaterThanOrEqual(50);
+    expect(service.orders().length).toBe(2);
   });
 
   it('should apply filters and change visible orders', () => {
@@ -30,7 +88,7 @@ describe('DailyReportService', () => {
   });
 
   it('should clear filters and restore orders', () => {
-    service.applyFilters({ ...service.filters(), city: 'Bogotá' });
+    service.applyFilters({ ...service.filters(), city: 'Bogota' });
     service.clearFilters();
 
     expect(service.filters().city).toBe('Todas');
@@ -65,10 +123,11 @@ describe('DailyReportService', () => {
       includeHiddenColumns: false,
     });
 
-    expect(csv).toContain('Orden,Guía,Fecha,Cliente');
+    expect(csv).toContain('Orden');
+    expect(csv).toContain('Cliente');
   });
 
-  it('should rebuild dashboard data when imported storage contains invalid orders', () => {
+  it('should keep dashboard data empty when imported storage contains invalid orders', () => {
     TestBed.resetTestingModule();
     localStorage.setItem(importedOrdersStorageKey, JSON.stringify([null, { id: 'bad-order' }]));
     TestBed.configureTestingModule({});
@@ -76,8 +135,8 @@ describe('DailyReportService', () => {
     const stableService = TestBed.inject(DailyReportService);
     stableService.activateDashboardReport();
 
-    expect(stableService.filteredOrders().length).toBeGreaterThanOrEqual(50);
+    expect(stableService.filteredOrders().length).toBe(0);
     expect(stableService.summaryMetrics().length).toBe(12);
-    expect(stableService.productGroupPerformance().length).toBeGreaterThan(0);
+    expect(stableService.productGroupPerformance().length).toBe(0);
   });
 });

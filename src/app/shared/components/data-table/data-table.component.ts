@@ -131,7 +131,8 @@ export class DataTableComponent<T extends object> {
   );
 
   readonly activeFilterCount = computed(
-    () => this.activeFilters().filter((filter) => filter.value !== null && filter.value !== '').length,
+    () =>
+      this.activeFilters().filter((filter) => filter.value !== null && filter.value !== '').length,
   );
 
   onSearchChange(term: string): void {
@@ -188,8 +189,13 @@ export class DataTableComponent<T extends object> {
     return filter.options ?? [];
   }
 
-  isFilterOptionSelected(filter: TableFilter<T>, value: TableFilterOption['value'] | null): boolean {
-    return filter.value === value || (value === null && (filter.value === null || filter.value === ''));
+  isFilterOptionSelected(
+    filter: TableFilter<T>,
+    value: TableFilterOption['value'] | null,
+  ): boolean {
+    return (
+      filter.value === value || (value === null && (filter.value === null || filter.value === ''))
+    );
   }
 
   onFilterOptionSelect(filter: TableFilter<T>, value: TableFilterOption['value'] | null): void {
@@ -362,23 +368,50 @@ export class DataTableComponent<T extends object> {
   getStatusTone(value: string): string {
     const normalizedValue = normalizeStatusValue(value);
 
-    if (normalizedValue.includes('entregada') || normalizedValue.includes('confirmada')) {
+    if (
+      normalizedValue.includes('activa') ||
+      normalizedValue.includes('activo') ||
+      normalizedValue.includes('entregada') ||
+      normalizedValue.includes('entregado') ||
+      normalizedValue.includes('confirmada') ||
+      normalizedValue.includes('confirmado') ||
+      normalizedValue.includes('pagado') ||
+      normalizedValue.includes('gestionado') ||
+      normalizedValue.includes('finalizado')
+    ) {
       return 'positive';
     }
 
     if (
       normalizedValue.includes('transito') ||
       normalizedValue.includes('despachada') ||
+      normalizedValue.includes('enviado') ||
+      normalizedValue.includes('asignado') ||
+      normalizedValue.includes('asignada') ||
       normalizedValue.includes('preparacion')
     ) {
       return 'info';
     }
 
-    if (normalizedValue.includes('pendiente')) {
+    if (
+      normalizedValue.includes('borrador') ||
+      normalizedValue.includes('pausado') ||
+      normalizedValue.includes('pendiente') ||
+      normalizedValue.includes('urgente') ||
+      normalizedValue.includes('sin guia')
+    ) {
       return 'warning';
     }
 
-    if (normalizedValue.includes('devuelta') || normalizedValue.includes('cancelada')) {
+    if (
+      normalizedValue.includes('archivado') ||
+      normalizedValue.includes('devuelta') ||
+      normalizedValue.includes('devuelto') ||
+      normalizedValue.includes('fallido') ||
+      normalizedValue.includes('novedad') ||
+      normalizedValue.includes('cancelada') ||
+      normalizedValue.includes('cancelado')
+    ) {
       return 'danger';
     }
 

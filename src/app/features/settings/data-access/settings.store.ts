@@ -1,5 +1,4 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { forkJoin, of } from 'rxjs';
 
 import { PermissionCode, PermissionsService } from '../../../core/services/permissions.service';
 import {
@@ -77,29 +76,11 @@ export class SettingsStore {
     this.loadingState.set(true);
     this.errorState.set(null);
     this.profileState.set(readProfileFromToken());
-
-    forkJoin({
-      users: this.canManageUsers() ? this.api.listUsers() : of<readonly AdminUser[]>([]),
-      roles: this.canManageRoles() ? this.api.listRoles() : of<readonly AdminRole[]>([]),
-      systemPermissions: this.canManageRoles()
-        ? this.api.systemPermissions()
-        : of<readonly PermissionCode[]>([]),
-      persistedPermissions: this.canManageRoles()
-        ? this.api.persistedPermissions()
-        : of<readonly PersistedPermission[]>([]),
-    }).subscribe({
-      next: (state) => {
-        this.usersState.set(state.users);
-        this.rolesState.set(state.roles);
-        this.systemPermissionsState.set(state.systemPermissions);
-        this.persistedPermissionsState.set(state.persistedPermissions);
-        this.loadingState.set(false);
-      },
-      error: (error: Error) => {
-        this.errorState.set(error.message);
-        this.loadingState.set(false);
-      },
-    });
+    this.usersState.set([]);
+    this.rolesState.set([]);
+    this.systemPermissionsState.set([]);
+    this.persistedPermissionsState.set([]);
+    this.loadingState.set(false);
   }
 
   selectUser(id: string): void {

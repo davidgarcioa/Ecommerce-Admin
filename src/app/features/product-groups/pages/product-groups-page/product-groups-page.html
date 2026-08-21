@@ -1,11 +1,28 @@
-<div class="product-groups-page">
+<section class="product-groups-page" aria-labelledby="product-groups-title">
   <app-product-groups-header
     [canCreate]="canCreate()"
     [loading]="loading()"
     [lastUpdated]="lastUpdated()"
+    [filtersVisible]="filtersVisible()"
+    [activeFiltersCount]="activeFiltersCount()"
     (create)="create()"
     (refresh)="refresh()"
+    (toggleFilters)="toggleFilters()"
   />
+
+  @if (filtersVisible()) {
+    <div class="product-groups-page__filters">
+      <app-product-groups-filters
+        [search]="search()"
+        [filters]="filters()"
+        [sort]="sort()"
+        (searchChange)="applySearch($event)"
+        (filtersChange)="applyFilters($event)"
+        (sortChange)="setSort($event)"
+        (clear)="clearFilters()"
+      />
+    </div>
+  }
 
   <app-product-group-summary
     [total]="totalGroups()"
@@ -16,16 +33,6 @@
     [profit]="estimatedProfit()"
     [margin]="averageMargin()"
     [loading]="loading()"
-  />
-
-  <app-product-groups-filters
-    [search]="search()"
-    [filters]="filters()"
-    [sort]="sort()"
-    (searchChange)="applySearch($event)"
-    (filtersChange)="applyFilters($event)"
-    (sortChange)="setSort($event)"
-    (clear)="clearFilters()"
   />
 
   @if (error(); as message) {
@@ -45,6 +52,7 @@
     [loading]="loading()"
     [error]="null"
     rowIdKey="id"
+    [searchable]="false"
     [selectable]="true"
     [multiSelect]="true"
     [sortable]="true"
@@ -62,4 +70,4 @@
     (actionClick)="onAction($event)"
     (retry)="refresh()"
   />
-</div>
+</section>

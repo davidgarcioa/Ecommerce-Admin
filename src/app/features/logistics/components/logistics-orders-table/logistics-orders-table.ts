@@ -60,7 +60,7 @@ export class LogisticsOrdersTableComponent {
     },
     {
       key: 'customerPhone',
-      label: 'Teléfono',
+      label: 'Telefono',
       type: 'text',
       sortable: false,
       searchable: true,
@@ -89,7 +89,7 @@ export class LogisticsOrdersTableComponent {
     },
     {
       key: 'trackingLabel',
-      label: 'Guía',
+      label: 'Guia',
       type: 'text',
       sortable: true,
       searchable: true,
@@ -136,7 +136,7 @@ export class LogisticsOrdersTableComponent {
     },
     {
       key: 'updatedAt',
-      label: 'Actualización',
+      label: 'Actualizacion',
       type: 'date',
       sortable: true,
       searchable: false,
@@ -150,7 +150,7 @@ export class LogisticsOrdersTableComponent {
     { id: 'view', label: 'Ver detalle', icon: 'visibility', variant: 'default' },
     {
       id: 'shipment',
-      label: 'Registrar guía',
+      label: 'Registrar guia',
       icon: 'receipt_long',
       variant: 'default',
       hidden: () => !this.canUpdate(),
@@ -165,7 +165,7 @@ export class LogisticsOrdersTableComponent {
     { id: 'history', label: 'Historial', icon: 'history', variant: 'default' },
     {
       id: 'copy-tracking',
-      label: 'Copiar guía',
+      label: 'Copiar guia',
       icon: 'content_copy',
       variant: 'default',
       hidden: (row) => !row.trackingNumber,

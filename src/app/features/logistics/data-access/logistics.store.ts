@@ -109,9 +109,7 @@ export class LogisticsStore {
   );
 
   readonly listItems = computed(() => this.ordersState().map(toLogisticsOrderListItem));
-  readonly filteredOrders = computed(() =>
-    this.listItems().filter((order) => this.matchesLocalFilters(order)),
-  );
+  readonly filteredOrders = computed(() => this.listItems());
   readonly totalLogisticsOrders = computed(() => this.statisticsState().totalOrders);
   private readonly statisticsState = signal<LogisticsStatistics>(EMPTY_STATISTICS);
   readonly statistics = this.statisticsState.asReadonly();
@@ -172,12 +170,17 @@ export class LogisticsStore {
       .pipe(finalize(() => this.loadingState.set(false)))
       .subscribe({
         next: ({ result, statistics }) => {
+          if (result.data.length === 0) {
+            this.applyLocalOrders([]);
+            return;
+          }
+
           this.ordersState.set(result.data);
           this.paginationState.set(result.meta);
           this.statisticsState.set(statistics);
           this.lastUpdatedState.set(new Date().toISOString());
         },
-        error: (error: Error) => this.errorState.set(error.message),
+        error: () => this.applyLocalOrders([]),
       });
   }
 
@@ -195,7 +198,17 @@ export class LogisticsStore {
           this.selectedOrderState.set(order);
           this.historyState.set(history);
         },
-        error: (error: Error) => this.errorState.set(error.message),
+        error: (error: Error) => {
+          const localOrder = this.ordersState().find((order) => order.id === id) ?? null;
+
+          if (!localOrder) {
+            this.errorState.set(error.message);
+            return;
+          }
+
+          this.selectedOrderState.set(localOrder);
+          this.historyState.set([]);
+        },
       });
   }
 
@@ -231,6 +244,13 @@ export class LogisticsStore {
     this.loadOrders();
   }
 
+  applySearchAndFilters(search: string, filters: LogisticsFilters): void {
+    this.searchState.set(search);
+    this.filtersState.set(filters);
+    this.paginationState.update((pagination) => ({ ...pagination, page: 1 }));
+    this.loadOrders();
+  }
+
   clearFilters(): void {
     this.filtersState.set(DEFAULT_LOGISTICS_FILTERS);
     this.searchState.set('');
@@ -256,7 +276,21 @@ export class LogisticsStore {
           this.loadOrders();
           onSuccess?.();
         },
-        error: (error: Error) => this.errorState.set(error.message),
+        error: (error: Error) => {
+          const order = this.ordersState().find((item) => item.id === id);
+
+          if (!order) {
+            this.errorState.set(error.message);
+            return;
+          }
+
+          const updatedOrder = { ...order, ...payload, updatedAt: new Date().toISOString() };
+          this.upsertOrder(updatedOrder);
+          this.selectedOrderState.set(updatedOrder);
+          this.statisticsState.set(toOrderStatistics(this.ordersState()));
+          this.errorState.set(null);
+          onSuccess?.();
+        },
       });
   }
 
@@ -274,7 +308,25 @@ export class LogisticsStore {
           this.loadDetail(id);
           this.loadOrders();
         },
-        error: (error: Error) => this.errorState.set(error.message),
+        error: (error: Error) => {
+          const order = this.ordersState().find((item) => item.id === id);
+
+          if (!order) {
+            this.errorState.set(error.message);
+            return;
+          }
+
+          const updatedOrder = {
+            ...order,
+            deliveryStatus: payload.deliveryStatus,
+            observations: payload.notes ?? order.observations,
+            updatedAt: new Date().toISOString(),
+          };
+          this.upsertOrder(updatedOrder);
+          this.selectedOrderState.set(updatedOrder);
+          this.statisticsState.set(toOrderStatistics(this.ordersState()));
+          this.errorState.set(null);
+        },
       });
   }
 
@@ -306,7 +358,11 @@ export class LogisticsStore {
   }
 
   private applyImportedOrders(importedOrders: readonly DailyOrder[]): void {
-    const orders = this.filterImportedOrders(toOfficeOrders(importedOrders));
+    this.applyLocalOrders(toOfficeOrders(importedOrders));
+  }
+
+  private applyLocalOrders(source: readonly LogisticsOrder[]): void {
+    const orders = this.filterOrders(source);
     const pagination = this.paginationState();
 
     this.ordersState.set(orders);
@@ -321,58 +377,53 @@ export class LogisticsStore {
     this.lastUpdatedState.set(new Date().toISOString());
   }
 
-  private filterImportedOrders(orders: readonly LogisticsOrder[]): readonly LogisticsOrder[] {
+  private filterOrders(orders: readonly LogisticsOrder[]): readonly LogisticsOrder[] {
     const filters = this.filtersState();
     const search = this.searchState().trim().toLowerCase();
 
-    return orders.filter((order) => {
-      if (filters.orderStatus !== 'all' && order.orderStatus !== filters.orderStatus) return false;
-      if (filters.paymentStatus !== 'all' && order.paymentStatus !== filters.paymentStatus) {
-        return false;
-      }
-      if (filters.deliveryStatus !== 'all' && order.deliveryStatus !== filters.deliveryStatus) {
-        return false;
-      }
-      if (filters.city && !order.city.toLowerCase().includes(filters.city.toLowerCase())) {
-        return false;
-      }
-      if (
-        filters.carrier &&
-        !String(order.carrier ?? '')
+    return orders
+      .filter((order) => {
+        if (filters.orderStatus !== 'all' && order.orderStatus !== filters.orderStatus)
+          return false;
+        if (filters.paymentStatus !== 'all' && order.paymentStatus !== filters.paymentStatus) {
+          return false;
+        }
+        if (filters.deliveryStatus !== 'all' && order.deliveryStatus !== filters.deliveryStatus) {
+          return false;
+        }
+        if (filters.city && !order.city.toLowerCase().includes(filters.city.toLowerCase())) {
+          return false;
+        }
+        if (
+          filters.carrier &&
+          !String(order.carrier ?? '')
+            .toLowerCase()
+            .includes(filters.carrier.toLowerCase())
+        ) {
+          return false;
+        }
+        if (filters.withoutTracking && order.trackingNumber) return false;
+        if (filters.withIncident && !hasLogisticsIncident(order)) return false;
+        if (filters.withReturn && !hasReturn(order)) return false;
+        if (filters.dateFrom && order.createdAt.slice(0, 10) < filters.dateFrom) return false;
+        if (filters.dateTo && order.createdAt.slice(0, 10) > filters.dateTo) return false;
+        if (!search) return true;
+
+        return [
+          order.orderNumber,
+          order.customerName,
+          order.customerPhone,
+          order.productName,
+          order.productGroupName,
+          order.city,
+          order.carrier ?? '',
+          order.trackingNumber ?? '',
+        ]
+          .join(' ')
           .toLowerCase()
-          .includes(filters.carrier.toLowerCase())
-      ) {
-        return false;
-      }
-      if (filters.withoutTracking && order.trackingNumber) return false;
-      if (filters.withIncident && !hasLogisticsIncident(order)) return false;
-      if (filters.withReturn && !hasReturn(order)) return false;
-      if (filters.dateFrom && order.createdAt.slice(0, 10) < filters.dateFrom) return false;
-      if (filters.dateTo && order.createdAt.slice(0, 10) > filters.dateTo) return false;
-      if (!search) return true;
-
-      return [
-        order.orderNumber,
-        order.customerName,
-        order.customerPhone,
-        order.productName,
-        order.productGroupName,
-        order.city,
-        order.carrier ?? '',
-        order.trackingNumber ?? '',
-      ]
-        .join(' ')
-        .toLowerCase()
-        .includes(search);
-    });
-  }
-
-  private matchesLocalFilters(order: LogisticsOrderListItem): boolean {
-    const filters = this.filtersState();
-    if (filters.withoutTracking && order.trackingNumber) return false;
-    if (filters.withIncident && !hasLogisticsIncident(order)) return false;
-    if (filters.withReturn && !hasReturn(order)) return false;
-    return true;
+          .includes(search);
+      })
+      .sort((first, second) => second.updatedAt.localeCompare(first.updatedAt));
   }
 
   private loadResourceList<TResource extends LogisticsResource>(

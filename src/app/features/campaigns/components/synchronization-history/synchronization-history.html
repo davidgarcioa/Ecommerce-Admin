@@ -1,11 +1,11 @@
 <section class="sync-history" aria-labelledby="sync-history-title">
   <header>
-    <h3 id="sync-history-title">Historial de sincronizaciones</h3>
-    <p>Preparado para futuras integraciones con Meta Marketing API.</p>
+    <h3 id="sync-history-title">Historial de importaciones</h3>
+    <p>Actualizaciones cargadas desde archivos de Meta Ads.</p>
   </header>
 
   @if (records().length === 0) {
-    <div class="sync-history__empty">Sin sincronizaciones registradas.</div>
+    <div class="sync-history__empty">Sin importaciones registradas.</div>
   } @else {
     <div class="sync-history__list" aria-live="polite">
       @for (record of records(); track record.id) {

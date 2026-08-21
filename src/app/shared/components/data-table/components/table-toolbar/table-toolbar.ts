@@ -9,6 +9,7 @@ import { ChangeDetectionStrategy, Component, computed, input, output, signal } f
 export class TableToolbarComponent {
   readonly searchable = input(true);
   readonly searchTerm = input('');
+  readonly filterEnabled = input(false);
   readonly filterPanelVisible = input(false);
   readonly activeFilterCount = input(0);
   readonly exportEnabled = input(false);

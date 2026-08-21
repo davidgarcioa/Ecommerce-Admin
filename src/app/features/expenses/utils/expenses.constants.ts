@@ -7,6 +7,26 @@ import {
 
 export const EXPENSES_TABLE_PREFERENCES_KEY = 'expenses-table-preferences';
 
+export const FINANCE_MONTHLY_INCOME_TARGET = 78_500_000;
+
+export const EXPENSE_CATEGORY_BUDGETS: Record<ExpenseCategory, number> = {
+  advertising: 9_500_000,
+  logistics: 6_200_000,
+  office: 2_300_000,
+  services: 3_800_000,
+  supplies: 2_700_000,
+  other: 1_500_000,
+};
+
+export const EXPENSE_CATEGORY_COLORS: Record<ExpenseCategory, string> = {
+  advertising: '#3B82F6',
+  logistics: '#10B981',
+  office: '#F59E0B',
+  services: '#22D3EE',
+  supplies: '#8B5CF6',
+  other: '#EF4444',
+};
+
 export const DEFAULT_EXPENSE_FILTERS: ExpenseFilters = {
   status: 'all',
   category: 'all',

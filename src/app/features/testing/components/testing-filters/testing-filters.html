@@ -1,28 +1,160 @@
-<form class="testing-filters" [formGroup]="form" (ngSubmit)="onApply()" aria-label="Filtros de testeos">
-  <label>
-    Estado
-    <select formControlName="status">
-      @for (option of statusOptions; track option.value) {
-        <option [value]="option.value">{{ option.label }}</option>
-      }
-    </select>
-  </label>
-  <label>
-    Tipo
-    <select formControlName="type">
-      @for (option of typeOptions; track option.value) {
-        <option [value]="option.value">{{ option.label }}</option>
-      }
-    </select>
-  </label>
-  <label>
-    Asociacion
-    <select formControlName="associationType">
-      @for (option of associationOptions; track option.value) {
-        <option [value]="option.value">{{ option.label }}</option>
-      }
-    </select>
-  </label>
-  <button type="submit">Aplicar</button>
-  <button type="button" (click)="onClear()">Limpiar</button>
+<form class="testing-filters" (ngSubmit)="onApply()" aria-label="Filtros de testeos">
+  <header class="testing-filters__header">
+    <div class="testing-filters__title">
+      <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+      <div>
+        <strong>Filtros</strong>
+        <p>
+          {{
+            activeFiltersCount() === 1
+              ? '1 ajuste activo'
+              : activeFiltersCount() + ' ajustes activos'
+          }}
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <div class="testing-filters__grid">
+    <label class="testing-filters__field testing-filters__field--search">
+      <span>Buscar</span>
+      <div class="testing-filters__search">
+        <span class="material-symbols-rounded" aria-hidden="true">search</span>
+        <input
+          type="search"
+          placeholder="Nombre, codigo, objetivo o responsable"
+          [value]="current().searchTerm"
+          (focus)="closeSelects()"
+          (input)="onSearchChange($event)"
+        />
+      </div>
+    </label>
+
+    <label class="testing-filters__field">
+      <span>Estado</span>
+      <div
+        class="testing-filters__select"
+        [class.testing-filters__select--open]="isSelectOpen('status')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="testing-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('status')"
+          (click)="toggleSelect('status')"
+        >
+          <span>{{ selectedStatusLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+
+        @if (isSelectOpen('status')) {
+          <div class="testing-filters__select-menu" role="listbox">
+            @for (option of statusOptions; track option.value) {
+              <button
+                type="button"
+                role="option"
+                [class.testing-filters__select-option--selected]="current().status === option.value"
+                [attr.aria-selected]="current().status === option.value"
+                (click)="selectStatus(option.value)"
+              >
+                <span>{{ option.label }}</span>
+                @if (current().status === option.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
+
+    <label class="testing-filters__field">
+      <span>Tipo</span>
+      <div
+        class="testing-filters__select"
+        [class.testing-filters__select--open]="isSelectOpen('type')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="testing-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('type')"
+          (click)="toggleSelect('type')"
+        >
+          <span>{{ selectedTypeLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+
+        @if (isSelectOpen('type')) {
+          <div class="testing-filters__select-menu" role="listbox">
+            @for (option of typeOptions; track option.value) {
+              <button
+                type="button"
+                role="option"
+                [class.testing-filters__select-option--selected]="current().type === option.value"
+                [attr.aria-selected]="current().type === option.value"
+                (click)="selectType(option.value)"
+              >
+                <span>{{ option.label }}</span>
+                @if (current().type === option.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
+
+    <label class="testing-filters__field">
+      <span>Asociacion</span>
+      <div
+        class="testing-filters__select"
+        [class.testing-filters__select--open]="isSelectOpen('associationType')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="testing-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('associationType')"
+          (click)="toggleSelect('associationType')"
+        >
+          <span>{{ selectedAssociationLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+
+        @if (isSelectOpen('associationType')) {
+          <div class="testing-filters__select-menu" role="listbox">
+            @for (option of associationOptions; track option.value) {
+              <button
+                type="button"
+                role="option"
+                [class.testing-filters__select-option--selected]="
+                  current().associationType === option.value
+                "
+                [attr.aria-selected]="current().associationType === option.value"
+                (click)="selectAssociation(option.value)"
+              >
+                <span>{{ option.label }}</span>
+                @if (current().associationType === option.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
+
+    <div class="testing-filters__actions">
+      <button type="submit" class="testing-filters__button testing-filters__button--primary">
+        <span class="material-symbols-rounded" aria-hidden="true">check</span>
+        Aplicar
+      </button>
+      <button type="button" class="testing-filters__button" (click)="onClear()">
+        <span class="material-symbols-rounded" aria-hidden="true">restart_alt</span>
+        Limpiar
+      </button>
+    </div>
+  </div>
 </form>

@@ -1,4 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+
+import { DailyOrder, OrderStatus } from '../../../daily-report/models/daily-order.model';
+import { ImportedOrdersStoreService } from '../../../daily-report/services/imported-orders-store.service';
 
 type MetricTone = 'blue' | 'green' | 'teal' | 'amber' | 'red';
 type UrgentFilter = 'all' | 'yes' | 'no';
@@ -16,6 +19,12 @@ interface GuideSegment {
   readonly id: string;
   readonly label: string;
   readonly count: number;
+  readonly color: string;
+  readonly enabled: boolean;
+}
+
+interface GuidePreference {
+  readonly id: string;
   readonly color: string;
   readonly enabled: boolean;
 }
@@ -48,6 +57,7 @@ interface StatusRow {
   readonly label: string;
   readonly count: number;
   readonly percentage: number;
+  readonly percentageLabel: string;
   readonly icon: string;
   readonly color: string;
 }
@@ -68,19 +78,99 @@ interface OrderRow {
   readonly profit: string;
   readonly valueAmount: number;
   readonly profitAmount: number;
+  readonly costAmount: number;
   readonly urgent: boolean;
 }
 
-const GUIDE_STORAGE_KEY = 'linkoba.dashboard.guideSegments';
+interface DashboardTotals {
+  readonly total: number;
+  readonly confirmed: number;
+  readonly delivered: number;
+  readonly sales: number;
+  readonly profit: number;
+  readonly costs: number;
+  readonly returns: number;
+  readonly cancelled: number;
+  readonly urgent: number;
+  readonly deliveryRate: number;
+  readonly marginRate: number;
+  readonly roas: number;
+  readonly cpa: number;
+}
 
-const INITIAL_GUIDE_SEGMENTS: readonly GuideSegment[] = [
-  { id: 'generated', label: 'Guía generada', count: 17, color: '#3b82f6', enabled: true },
-  { id: 'picked', label: 'Recogida', count: 15, color: '#06b6d4', enabled: true },
-  { id: 'route', label: 'En ruta', count: 38, color: '#8b5cf6', enabled: true },
-  { id: 'delivered', label: 'Entregada', count: 136, color: '#10b981', enabled: true },
-  { id: 'issue', label: 'Novedad', count: 13, color: '#ef4444', enabled: true },
-  { id: 'returned', label: 'Devuelta', count: 12, color: '#f97316', enabled: true },
-  { id: 'cancelled', label: 'Cancelada', count: 8, color: '#d99009', enabled: true },
+const GUIDE_STORAGE_KEY = 'linkoba.dashboard.guideSegments';
+const FALLBACK_GUIDE_SEGMENT: GuideSegment = {
+  id: 'sin-datos',
+  label: 'Sin estados',
+  count: 0,
+  color: '#64748b',
+  enabled: true,
+};
+
+const GUIDE_STATUS_ORDER = [
+  'guia-generada',
+  'recogida',
+  'en-ruta',
+  'entregada',
+  'novedad',
+  'devuelta',
+  'cancelada',
+  'preparado-para-transportadora',
+  'en-procesamiento',
+  'en-bodega',
+  'en-reparto',
+] as const;
+
+const GUIDE_STATUS_COLORS: Record<string, string> = {
+  'guia-generada': '#3b82f6',
+  recogida: '#06b6d4',
+  'en-ruta': '#8b5cf6',
+  entregada: '#10b981',
+  novedad: '#ef4444',
+  devuelta: '#f97316',
+  cancelada: '#d99009',
+  'preparado-para-transportadora': '#eab308',
+  'en-procesamiento': '#a855f7',
+  'en-bodega': '#14b8a6',
+  'en-reparto': '#38bdf8',
+  despachada: '#22c55e',
+  pendiente: '#f59e0b',
+  'pendiente-confirmacion': '#f59e0b',
+  'sin-estado': '#64748b',
+};
+
+const GUIDE_COLOR_PALETTE = [
+  '#3b82f6',
+  '#06b6d4',
+  '#8b5cf6',
+  '#10b981',
+  '#ef4444',
+  '#f97316',
+  '#d99009',
+  '#14b8a6',
+  '#eab308',
+  '#a855f7',
+] as const;
+
+const LEGACY_GUIDE_IDS_BY_LABEL = new Map<string, string>([
+  ['guia-generada', 'generated'],
+  ['recogida', 'picked'],
+  ['en-ruta', 'route'],
+  ['entregada', 'delivered'],
+  ['novedad', 'issue'],
+  ['devuelta', 'returned'],
+  ['cancelada', 'cancelled'],
+]);
+
+const STATUS_CONFIG: readonly { label: OrderStatus; icon: string; color: string }[] = [
+  { label: 'Pendiente', icon: 'schedule', color: '#3b82f6' },
+  { label: 'Confirmada', icon: 'task_alt', color: '#10b981' },
+  { label: 'En preparación', icon: 'inventory_2', color: '#14b8a6' },
+  { label: 'Despachada', icon: 'local_shipping', color: '#06b6d4' },
+  { label: 'En tránsito', icon: 'route', color: '#8b5cf6' },
+  { label: 'Entregada', icon: 'verified', color: '#10b981' },
+  { label: 'Devuelta', icon: 'assignment_return', color: '#ef4444' },
+  { label: 'Cancelada', icon: 'block', color: '#f59e0b' },
 ];
 
 @Component({
@@ -91,6 +181,8 @@ const INITIAL_GUIDE_SEGMENTS: readonly GuideSegment[] = [
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardPageComponent {
+  private readonly importedOrdersStore = inject(ImportedOrdersStoreService);
+
   readonly filtersVisible = signal(false);
   readonly guideEditorVisible = signal(false);
   readonly searchTerm = signal('');
@@ -101,92 +193,27 @@ export class DashboardPageComponent {
   readonly urgentFilter = signal<UrgentFilter>('all');
   readonly dateFromFilter = signal('');
   readonly dateToFilter = signal('');
-  readonly guideSegments = signal<readonly GuideSegment[]>(loadGuideSegments());
-  readonly selectedGuideSegmentId = signal(INITIAL_GUIDE_SEGMENTS[0].id);
+  readonly guidePreferences = signal<readonly GuidePreference[]>(loadGuidePreferences());
+  readonly selectedGuideSegmentId = signal(FALLBACK_GUIDE_SEGMENT.id);
   readonly hoveredGuideSegmentId = signal<string | null>(null);
   readonly donutRadius = 45;
   readonly donutCircumference = 2 * Math.PI * this.donutRadius;
 
-  readonly standardDonutMetrics: readonly DonutMetric[] = [
-    {
-      id: 'confirmed',
-      label: 'Órdenes confirmadas',
-      value: '181',
-      helper: '181 de 239 órdenes',
-      percentage: 75.7,
-      tone: 'green',
-    },
-    {
-      id: 'deliveries',
-      label: 'Entregas',
-      value: '136',
-      helper: '136 de 181 confirmadas',
-      percentage: 75.1,
-      tone: 'teal',
-    },
-  ];
+  readonly orders = computed<readonly OrderRow[]>(() =>
+    this.importedOrdersStore
+      .orders()
+      .map((dailyOrder) => toOrderRow(dailyOrder))
+      .sort((first, second) => second.dateIso.localeCompare(first.dateIso)),
+  );
 
-  readonly marginDonutMetric: DonutMetric = {
-    id: 'profit',
-    label: 'Margen estimado',
-    value: '$10,8M',
-    helper: '52,9 % sobre ventas',
-    percentage: 52.9,
-    tone: 'amber',
-  };
-
-  readonly summaryMetrics: readonly SummaryMetric[] = [
-    card('orders', 'Órdenes recibidas', '239', 'Órdenes filtradas', 'receipt_long', 100, 'blue'),
-    card('confirmed', 'Órdenes confirmadas', '181', 'Validación comercial', 'fact_check', 75.7, 'green'),
-    card('sales', 'Ventas totales', '$ 20.515.997', 'Recaudo filtrado', 'payments', 100, 'teal'),
-    card('deliveries', 'Entregas', '136', 'Paquetes entregados', 'local_shipping', 75.1, 'green'),
-    card('delivery-rate', 'Tasa de entrega', '75,1 %', 'Efectividad operativa', 'percent', 75.1, 'blue'),
-    card('profit', 'Ganancia estimada', '$ 10.848.279', 'Después de costos', 'wallet', 52.9, 'green'),
-    card('costs', 'Costos operativos', '$ 4.846.198', 'Flete y comisiones', 'campaign', 24, 'blue'),
-    card('roas', 'ROAS', '4,23x', 'Ventas / costos', 'query_stats', 100, 'teal'),
-    card('cpa', 'CPA', '$ 26.775', 'Costo por adquisición', 'ads_click', 88, 'red'),
-    card('returns', 'Devoluciones', '43', 'Casos registrados', 'assignment_return', 18, 'red'),
-    card('cancelled', 'Cancelaciones', '47', 'Órdenes canceladas', 'cancel', 20, 'amber'),
-    card('urgent', 'Órdenes urgentes', '13', 'Requieren atención', 'priority_high', 6, 'amber'),
-  ];
-
-  readonly productGroups: readonly ProductGroupRow[] = [
-    group('Fyntra 2', 18, 44, '$ 4.860.000', '81%', '4,72x', '$ 24.900', '$ 2.520.000', 100, 100, 'strong'),
-    group('Helvor 2', 14, 39, '$ 4.210.000', '76%', '4,31x', '$ 25.800', '$ 2.110.000', 86, 84, 'strong'),
-    group('Fondal', 11, 35, '$ 3.720.000', '71%', '3,98x', '$ 27.100', '$ 1.860.000', 76, 74, 'stable'),
-    group('Gadrix 2', 9, 31, '$ 3.010.000', '68%', '3,54x', '$ 29.400', '$ 1.460.000', 62, 58, 'stable'),
-    group('Halcor', 8, 28, '$ 2.610.000', '63%', '3,19x', '$ 31.900', '$ 1.220.000', 54, 48, 'attention'),
-    group('Gemvia', 7, 22, '$ 2.104.997', '59%', '2,91x', '$ 34.300', '$ 918.279', 43, 36, 'attention'),
-  ];
-
-  readonly statusRows: readonly StatusRow[] = [
-    status('Pendiente', 24, 10, 'schedule', '#3b82f6'),
-    status('Confirmada', 45, 18.8, 'task_alt', '#10b981'),
-    status('En preparación', 26, 10.9, 'inventory_2', '#14b8a6'),
-    status('Despachada', 29, 12.1, 'local_shipping', '#06b6d4'),
-    status('En tránsito', 31, 13, 'route', '#8b5cf6'),
-    status('Entregada', 136, 56.9, 'verified', '#10b981'),
-    status('Devuelta', 43, 18, 'assignment_return', '#ef4444'),
-    status('Cancelada', 47, 19.7, 'block', '#f59e0b'),
-  ];
-
-  readonly orders: readonly OrderRow[] = [
-    order('LK-0001', '2026-08-19', 'GUIA890001', 'Entregada', 'Entregada', 'Laura Méndez', 'Kit Skin Care Premium', 'Fyntra 2', 'Bogotá', 'Coordinadora', 189000, 91300, false),
-    order('LK-0002', '2026-08-19', 'GUIA890002', 'En tránsito', 'En ruta', 'Carlos Rojas', 'Organizador Modular', 'Helvor 2', 'Medellín', 'Servientrega', 149000, 63700, false),
-    order('LK-0003', '2026-08-18', 'GUIA890003', 'Confirmada', 'Guía generada', 'Natalia Pérez', 'Audífonos Pro', 'Fondal', 'Cali', 'Envía', 219000, 102900, true),
-    order('LK-0004', '2026-08-17', 'GUIA890004', 'Despachada', 'Recogida', 'Andrés Soto', 'Set Cocina Práctica', 'Gadrix 2', 'Barranquilla', 'TCC', 176000, 78400, false),
-    order('LK-0005', '2026-08-16', 'GUIA890005', 'Devuelta', 'Novedad', 'Camila Torres', 'Corrector Postural', 'Halcor', 'Bucaramanga', 'Inter Rapidísimo', 132000, 34100, true),
-    order('LK-0006', '2026-08-15', 'GUIA890006', 'Cancelada', 'Cancelada', 'Felipe Gómez', 'Lámpara LED Smart', 'Gemvia', 'Pereira', 'Coordinadora', 158000, 0, false),
-  ];
-
-  readonly groupOptions = computed(() => unique(this.orders.map((row) => row.group)));
-  readonly carrierOptions = computed(() => unique(this.orders.map((row) => row.carrier)));
-  readonly cityOptions = computed(() => unique(this.orders.map((row) => row.city)));
-  readonly guideStatusOptions = computed(() => unique(this.orders.map((row) => row.guideStatus)));
-  readonly latestOrderDate = computed(() => [...this.orders].sort((a, b) => a.dateIso.localeCompare(b.dateIso)).at(-1)?.dateIso ?? '');
-  readonly visibleGuideSegments = computed(() => this.guideSegments().filter((segment) => segment.enabled));
-  readonly allGuideTotal = computed(() =>
-    this.guideSegments().reduce((total, segment) => total + segment.count, 0),
+  readonly groupOptions = computed(() => unique(this.orders().map((row) => row.group)));
+  readonly carrierOptions = computed(() => unique(this.orders().map((row) => row.carrier)));
+  readonly cityOptions = computed(() => unique(this.orders().map((row) => row.city)));
+  readonly guideStatusOptions = computed(() => unique(this.orders().map((row) => row.guideStatus)));
+  readonly latestOrderDate = computed(
+    () =>
+      [...this.orders()].sort((a, b) => a.dateIso.localeCompare(b.dateIso)).at(-1)?.dateIso ??
+      toDateIso(new Date()),
   );
 
   readonly filteredOrders = computed(() => {
@@ -199,7 +226,7 @@ export class DashboardPageComponent {
     const dateFrom = this.dateFromFilter();
     const dateTo = this.dateToFilter();
 
-    return this.orders.filter((row) => {
+    return this.orders().filter((row) => {
       const haystack = normalize(
         `${row.order} ${row.dateLabel} ${row.guide} ${row.status} ${row.guideStatus} ${row.customer} ${row.product} ${row.group} ${row.city} ${row.carrier}`,
       );
@@ -217,6 +244,205 @@ export class DashboardPageComponent {
     });
   });
 
+  readonly totals = computed<DashboardTotals>(() => buildTotals(this.filteredOrders()));
+
+  readonly standardDonutMetrics = computed<readonly DonutMetric[]>(() => {
+    const totals = this.totals();
+
+    return [
+      {
+        id: 'confirmed',
+        label: 'Órdenes confirmadas',
+        value: formatNumber(totals.confirmed),
+        helper: `${formatNumber(totals.confirmed)} de ${formatNumber(totals.total)} órdenes`,
+        percentage: totals.total > 0 ? (totals.confirmed / totals.total) * 100 : 0,
+        tone: 'green',
+      },
+      {
+        id: 'deliveries',
+        label: 'Entregas',
+        value: formatNumber(totals.delivered),
+        helper: `${formatNumber(totals.delivered)} de ${formatNumber(totals.confirmed)} confirmadas`,
+        percentage: totals.deliveryRate,
+        tone: 'teal',
+      },
+    ];
+  });
+
+  readonly marginDonutMetric = computed<DonutMetric>(() => {
+    const totals = this.totals();
+
+    return {
+      id: 'profit',
+      label: 'Margen estimado',
+      value: formatCompactCurrency(totals.profit),
+      helper: `${formatPercent(totals.marginRate)} % sobre ventas`,
+      percentage: totals.marginRate,
+      tone: 'amber',
+    };
+  });
+
+  readonly guideSegments = computed<readonly GuideSegment[]>(() =>
+    buildGuideSegments(this.filteredOrders(), this.guidePreferences()),
+  );
+
+  readonly visibleGuideSegments = computed(() =>
+    this.guideSegments().filter((segment) => segment.enabled),
+  );
+
+  readonly allGuideTotal = computed(() =>
+    this.guideSegments().reduce((total, segment) => total + segment.count, 0),
+  );
+
+  readonly guideTotal = computed(() =>
+    this.visibleGuideSegments().reduce((total, segment) => total + segment.count, 0),
+  );
+
+  readonly guideSummaryText = computed(() => {
+    const segments = this.visibleGuideSegments();
+
+    return segments.length > 0
+      ? segments.map((segment) => `${segment.label} ${this.segmentShare(segment)}`).join(', ')
+      : 'Sin estados de guía visibles';
+  });
+
+  readonly hoveredGuideSegment = computed(() => {
+    const hoveredId = this.hoveredGuideSegmentId();
+    return hoveredId
+      ? (this.visibleGuideSegments().find((segment) => segment.id === hoveredId) ?? null)
+      : null;
+  });
+
+  readonly selectedGuideSegment = computed<GuideSegment>(() => {
+    const selectedId = this.selectedGuideSegmentId();
+
+    return (
+      this.guideSegments().find((segment) => segment.id === selectedId) ??
+      this.guideSegments()[0] ??
+      FALLBACK_GUIDE_SEGMENT
+    );
+  });
+
+  readonly summaryMetrics = computed<readonly SummaryMetric[]>(() => {
+    const totals = this.totals();
+
+    return [
+      card(
+        'orders',
+        'Órdenes recibidas',
+        formatNumber(totals.total),
+        'Órdenes filtradas',
+        'receipt_long',
+        100,
+        'blue',
+      ),
+      card(
+        'confirmed',
+        'Órdenes confirmadas',
+        formatNumber(totals.confirmed),
+        'Validación comercial',
+        'fact_check',
+        ratioPercent(totals.confirmed, totals.total),
+        'green',
+      ),
+      card(
+        'sales',
+        'Ventas totales',
+        formatCurrency(totals.sales),
+        'Recaudo filtrado',
+        'payments',
+        100,
+        'teal',
+      ),
+      card(
+        'deliveries',
+        'Entregas',
+        formatNumber(totals.delivered),
+        'Paquetes entregados',
+        'local_shipping',
+        totals.deliveryRate,
+        'green',
+      ),
+      card(
+        'delivery-rate',
+        'Tasa de entrega',
+        `${formatPercent(totals.deliveryRate)} %`,
+        'Efectividad operativa',
+        'percent',
+        totals.deliveryRate,
+        'blue',
+      ),
+      card(
+        'profit',
+        'Ganancia estimada',
+        formatCurrency(totals.profit),
+        'Después de costos',
+        'wallet',
+        totals.marginRate,
+        'green',
+      ),
+      card(
+        'costs',
+        'Costos operativos',
+        formatCurrency(totals.costs),
+        'Costo estimado',
+        'campaign',
+        ratioPercent(totals.costs, totals.sales),
+        'blue',
+      ),
+      card(
+        'roas',
+        'ROAS',
+        formatMultiplier(totals.roas),
+        'Ventas / costos',
+        'query_stats',
+        100,
+        'teal',
+      ),
+      card(
+        'cpa',
+        'CPA',
+        formatCurrency(totals.cpa),
+        'Costo por adquisición',
+        'ads_click',
+        clamp(ratioPercent(totals.cpa, 30_000), 0, 100),
+        'red',
+      ),
+      card(
+        'returns',
+        'Devoluciones',
+        formatNumber(totals.returns),
+        'Casos registrados',
+        'assignment_return',
+        ratioPercent(totals.returns, totals.total),
+        'red',
+      ),
+      card(
+        'cancelled',
+        'Cancelaciones',
+        formatNumber(totals.cancelled),
+        'Órdenes canceladas',
+        'cancel',
+        ratioPercent(totals.cancelled, totals.total),
+        'amber',
+      ),
+      card(
+        'urgent',
+        'Órdenes urgentes',
+        formatNumber(totals.urgent),
+        'Requieren atención',
+        'priority_high',
+        ratioPercent(totals.urgent, totals.total),
+        'amber',
+      ),
+    ];
+  });
+
+  readonly productGroups = computed<readonly ProductGroupRow[]>(() =>
+    buildProductGroups(this.filteredOrders()),
+  );
+  readonly statusRows = computed<readonly StatusRow[]>(() => buildStatusRows(this.filteredOrders()));
+
   readonly activeFilterCount = computed(() => {
     const filters = [
       this.searchTerm().trim(),
@@ -232,30 +458,6 @@ export class DashboardPageComponent {
     return filters.filter(Boolean).length;
   });
 
-  readonly guideTotal = computed(() =>
-    this.visibleGuideSegments().reduce((total, segment) => total + segment.count, 0),
-  );
-
-  readonly guideSummaryText = computed(() =>
-    this.visibleGuideSegments().map((segment) => `${segment.label} ${this.segmentShare(segment)}`).join(', '),
-  );
-
-  readonly hoveredGuideSegment = computed(() => {
-    const hoveredId = this.hoveredGuideSegmentId();
-    return hoveredId
-      ? this.visibleGuideSegments().find((segment) => segment.id === hoveredId) ?? null
-      : null;
-  });
-
-  readonly selectedGuideSegment = computed<GuideSegment>(() => {
-    const selectedId = this.selectedGuideSegmentId();
-    return (
-      this.guideSegments().find((segment) => segment.id === selectedId) ??
-      this.guideSegments()[0] ??
-      INITIAL_GUIDE_SEGMENTS[0]
-    );
-  });
-
   readonly filteredRevenue = computed(() =>
     formatCurrency(this.filteredOrders().reduce((total, row) => total + row.valueAmount, 0)),
   );
@@ -269,6 +471,15 @@ export class DashboardPageComponent {
   }
 
   toggleGuideEditor(): void {
+    const segments = this.guideSegments();
+    if (segments.length === 0) {
+      return;
+    }
+
+    if (!segments.some((segment) => segment.id === this.selectedGuideSegmentId())) {
+      this.selectedGuideSegmentId.set(segments[0].id);
+    }
+
     this.guideEditorVisible.update((visible) => !visible);
   }
 
@@ -312,18 +523,14 @@ export class DashboardPageComponent {
     this.dateToFilter.set(toDateIso(latestDate));
   }
 
-  updateGuideCount(segmentId: string, value: unknown): void {
-    const count = Math.max(0, Math.round(Number(value) || 0));
-    this.updateGuideSegment(segmentId, (segment) => ({ ...segment, count }));
-  }
-
   updateGuideColor(segmentId: string, value: string): void {
     const color = isHexColor(value) ? value : '#3b82f6';
     this.updateGuideSegment(segmentId, (segment) => ({ ...segment, color }));
   }
 
   toggleGuideSegmentVisibility(segmentId: string, visible: boolean): void {
-    if (!visible && this.visibleGuideSegments().length <= 1) {
+    const segmentExists = this.guideSegments().some((segment) => segment.id === segmentId);
+    if (!segmentExists || (!visible && this.visibleGuideSegments().length <= 1)) {
       return;
     }
 
@@ -341,13 +548,16 @@ export class DashboardPageComponent {
 
   updateSelectedGuideColor(value: string): void {
     const selected = this.selectedGuideSegment();
-    if (selected) {
+    if (this.guideSegments().some((segment) => segment.id === selected.id)) {
       this.updateGuideColor(selected.id, value);
     }
   }
 
   toggleSelectedGuideSegmentVisibility(visible: boolean): void {
-    this.toggleGuideSegmentVisibility(this.selectedGuideSegment().id, visible);
+    const selected = this.selectedGuideSegment();
+    if (this.guideSegments().some((segment) => segment.id === selected.id)) {
+      this.toggleGuideSegmentVisibility(selected.id, visible);
+    }
   }
 
   setHoveredGuideSegment(segmentId: string | null): void {
@@ -355,8 +565,15 @@ export class DashboardPageComponent {
   }
 
   resetGuideSegments(): void {
-    this.setGuideSegments(cloneInitialGuideSegments());
-    this.selectedGuideSegmentId.set(INITIAL_GUIDE_SEGMENTS[0].id);
+    const segments = this.guideSegments();
+    const preferences = segments.map((segment, index) => ({
+      id: segment.id,
+      color: defaultGuideColor(segment.label, index),
+      enabled: true,
+    }));
+
+    this.setGuidePreferences(preferences);
+    this.selectedGuideSegmentId.set(preferences[0]?.id ?? FALLBACK_GUIDE_SEGMENT.id);
   }
 
   guideBackground(): string {
@@ -374,7 +591,10 @@ export class DashboardPageComponent {
   }
 
   guideStatusColor(label: string): string {
-    return this.guideSegments().find((segment) => segment.label === label)?.color ?? '#3b82f6';
+    return (
+      this.guideSegments().find((segment) => segment.label === label)?.color ??
+      defaultGuideColor(label, 0)
+    );
   }
 
   donutSegmentDash(percentage: number): string {
@@ -386,7 +606,8 @@ export class DashboardPageComponent {
     const total = Math.max(this.guideTotal(), 1);
     const visibleCount = Math.max(segment.count, 0);
     const segmentLength = (visibleCount / total) * this.donutCircumference;
-    const visualLength = this.visibleGuideSegments().length > 1 ? Math.max(segmentLength - 2, 0) : segmentLength;
+    const visualLength =
+      this.visibleGuideSegments().length > 1 ? Math.max(segmentLength - 2, 0) : segmentLength;
 
     return `${visualLength} ${this.donutCircumference}`;
   }
@@ -429,16 +650,27 @@ export class DashboardPageComponent {
     segmentId: string,
     updater: (segment: GuideSegment) => GuideSegment,
   ): void {
-    const next = this.guideSegments().map((segment) =>
-      segment.id === segmentId ? updater(segment) : segment,
-    );
+    const currentSegment = this.guideSegments().find((segment) => segment.id === segmentId);
+    if (!currentSegment) {
+      return;
+    }
 
-    this.setGuideSegments(next);
+    const updatedSegment = updater(currentSegment);
+    const preferences = new Map(
+      this.guidePreferences().map((preference) => [preference.id, preference] as const),
+    );
+    preferences.set(segmentId, {
+      id: segmentId,
+      color: updatedSegment.color,
+      enabled: updatedSegment.enabled,
+    });
+
+    this.setGuidePreferences(Array.from(preferences.values()));
   }
 
-  private setGuideSegments(segments: readonly GuideSegment[]): void {
-    this.guideSegments.set(segments);
-    saveGuideSegments(segments);
+  private setGuidePreferences(preferences: readonly GuidePreference[]): void {
+    this.guidePreferences.set(preferences);
+    saveGuidePreferences(preferences);
   }
 }
 
@@ -451,111 +683,308 @@ function card(
   percentage: number,
   tone: MetricTone,
 ): SummaryMetric {
-  return { id, title, value, subtitle, icon, percentage, tone };
+  return { id, title, value, subtitle, icon, percentage: clamp(percentage, 0, 100), tone };
 }
 
-function group(
-  name: string,
-  products: number,
-  orders: number,
-  sales: string,
-  deliveryRate: string,
-  roas: string,
-  cpa: string,
-  profit: string,
-  salesPercentage: number,
-  profitPercentage: number,
-  tone: ProductGroupRow['tone'],
-): ProductGroupRow {
-  return { name, products, orders, sales, deliveryRate, roas, cpa, profit, salesPercentage, profitPercentage, tone };
-}
+function toOrderRow(dailyOrder: DailyOrder): OrderRow {
+  const dateIso = toDateIsoFromValue(dailyOrder.createdAt);
+  const guideStatus = normalizeGuideStatusLabel(dailyOrder.guideStatus, dailyOrder.status);
+  const costAmount = readOrderCost(dailyOrder);
 
-function status(label: string, count: number, percentage: number, icon: string, color: string): StatusRow {
-  return { label, count, percentage, icon, color };
-}
-
-function order(
-  orderNumber: string,
-  dateIso: string,
-  guide: string,
-  rowStatus: string,
-  guideStatus: string,
-  customer: string,
-  product: string,
-  groupName: string,
-  city: string,
-  carrier: string,
-  valueAmount: number,
-  profitAmount: number,
-  urgent: boolean,
-): OrderRow {
   return {
-    order: orderNumber,
+    order: dailyOrder.orderNumber,
     dateIso,
     dateLabel: formatDateLabel(dateIso),
-    guide,
-    status: rowStatus,
+    guide: dailyOrder.guideNumber?.trim() || 'Sin guía',
+    status: dailyOrder.status,
     guideStatus,
-    customer,
-    product,
-    group: groupName,
-    city,
-    carrier,
-    value: formatCurrency(valueAmount),
-    profit: formatCurrency(profitAmount),
-    valueAmount,
-    profitAmount,
-    urgent,
+    customer: dailyOrder.customerName || 'Cliente sin nombre',
+    product: dailyOrder.productName || 'Producto sin nombre',
+    group: dailyOrder.productGroupName || 'Sin conjunto',
+    city: dailyOrder.city || 'Sin ciudad',
+    carrier: dailyOrder.carrier || 'Sin transportadora',
+    value: formatCurrency(dailyOrder.orderValue),
+    profit: formatCurrency(dailyOrder.estimatedProfit),
+    valueAmount: dailyOrder.orderValue,
+    profitAmount: dailyOrder.estimatedProfit,
+    costAmount,
+    urgent: dailyOrder.urgent,
   };
 }
 
-function loadGuideSegments(): GuideSegment[] {
+function buildTotals(orders: readonly OrderRow[]): DashboardTotals {
+  const total = orders.length;
+  const confirmed = orders.filter((orderRow) => isConfirmedOrder(orderRow.status)).length;
+  const delivered = orders.filter((orderRow) => isDeliveredOrder(orderRow)).length;
+  const sales = orders.reduce((sum, orderRow) => sum + orderRow.valueAmount, 0);
+  const profit = orders.reduce((sum, orderRow) => sum + orderRow.profitAmount, 0);
+  const costs = orders.reduce((sum, orderRow) => sum + orderRow.costAmount, 0);
+  const returns = orders.filter((orderRow) => orderRow.status === 'Devuelta').length;
+  const cancelled = orders.filter((orderRow) => orderRow.status === 'Cancelada').length;
+  const urgent = orders.filter((orderRow) => orderRow.urgent).length;
+
+  return {
+    total,
+    confirmed,
+    delivered,
+    sales,
+    profit,
+    costs,
+    returns,
+    cancelled,
+    urgent,
+    deliveryRate: ratioPercent(delivered, confirmed),
+    marginRate: ratioPercent(profit, sales),
+    roas: costs > 0 ? sales / costs : 0,
+    cpa: confirmed > 0 ? costs / confirmed : 0,
+  };
+}
+
+function buildGuideSegments(
+  orders: readonly OrderRow[],
+  preferences: readonly GuidePreference[],
+): readonly GuideSegment[] {
+  const counts = new Map<string, { label: string; count: number; firstIndex: number }>();
+
+  orders.forEach((orderRow, index) => {
+    const label = orderRow.guideStatus || 'Sin estado';
+    const id = guideSegmentId(label);
+    const current = counts.get(id);
+    counts.set(id, {
+      label,
+      count: (current?.count ?? 0) + 1,
+      firstIndex: current?.firstIndex ?? index,
+    });
+  });
+
+  const preferenceById = new Map(preferences.map((preference) => [preference.id, preference]));
+
+  return Array.from(counts.entries())
+    .sort(([firstId, first], [secondId, second]) => {
+      const firstOrder = guideStatusSortIndex(firstId);
+      const secondOrder = guideStatusSortIndex(secondId);
+      return firstOrder === secondOrder
+        ? first.firstIndex - second.firstIndex
+        : firstOrder - secondOrder;
+    })
+    .map(([id, item], index) => {
+      const legacyPreference = preferenceById.get(LEGACY_GUIDE_IDS_BY_LABEL.get(id) ?? '');
+      const preference = preferenceById.get(id) ?? legacyPreference;
+
+      return {
+        id,
+        label: item.label,
+        count: item.count,
+        color: isHexColor(preference?.color)
+          ? preference.color
+          : defaultGuideColor(item.label, index),
+        enabled: typeof preference?.enabled === 'boolean' ? preference.enabled : true,
+      };
+    });
+}
+
+function buildProductGroups(orders: readonly OrderRow[]): readonly ProductGroupRow[] {
+  const byGroup = new Map<
+    string,
+    {
+      products: Set<string>;
+      orders: number;
+      delivered: number;
+      sales: number;
+      profit: number;
+      costs: number;
+    }
+  >();
+
+  orders.forEach((orderRow) => {
+    const item =
+      byGroup.get(orderRow.group) ??
+      {
+        products: new Set<string>(),
+        orders: 0,
+        delivered: 0,
+        sales: 0,
+        profit: 0,
+        costs: 0,
+      };
+
+    item.products.add(orderRow.product);
+    item.orders += 1;
+    item.delivered += isDeliveredOrder(orderRow) ? 1 : 0;
+    item.sales += orderRow.valueAmount;
+    item.profit += orderRow.profitAmount;
+    item.costs += orderRow.costAmount;
+    byGroup.set(orderRow.group, item);
+  });
+
+  const groups = Array.from(byGroup.entries()).sort(
+    (first, second) => second[1].sales - first[1].sales,
+  );
+  const maxSales = Math.max(...groups.map(([, item]) => item.sales), 1);
+  const maxProfit = Math.max(...groups.map(([, item]) => item.profit), 1);
+
+  return groups.map(([name, item]) => {
+    const deliveryRate = ratioPercent(item.delivered, item.orders);
+    const roas = item.costs > 0 ? item.sales / item.costs : 0;
+    const cpa = item.orders > 0 ? item.costs / item.orders : 0;
+
+    return {
+      name,
+      products: item.products.size,
+      orders: item.orders,
+      sales: formatCompactCurrency(item.sales),
+      deliveryRate: `${formatPercent(deliveryRate)}%`,
+      roas: formatMultiplier(roas),
+      cpa: formatCompactCurrency(cpa),
+      profit: formatCompactCurrency(item.profit),
+      salesPercentage: ratioPercent(item.sales, maxSales),
+      profitPercentage: ratioPercent(item.profit, maxProfit),
+      tone: groupTone(deliveryRate, item.profit),
+    };
+  });
+}
+
+function buildStatusRows(orders: readonly OrderRow[]): readonly StatusRow[] {
+  const total = orders.length;
+
+  return STATUS_CONFIG.map((config) => {
+    const count = orders.filter((orderRow) => orderRow.status === config.label).length;
+    const percentage = ratioPercent(count, total);
+
+    return {
+      label: config.label,
+      count,
+      percentage,
+      percentageLabel: formatPercent(percentage),
+      icon: config.icon,
+      color: config.color,
+    };
+  });
+}
+
+function loadGuidePreferences(): GuidePreference[] {
   try {
     if (typeof localStorage === 'undefined') {
-      return cloneInitialGuideSegments();
+      return [];
     }
 
     const raw = localStorage.getItem(GUIDE_STORAGE_KEY);
     if (!raw) {
-      return cloneInitialGuideSegments();
+      return [];
     }
 
-    const saved = JSON.parse(raw) as Partial<GuideSegment>[];
+    const saved = JSON.parse(raw) as Partial<GuidePreference>[];
     if (!Array.isArray(saved)) {
-      return cloneInitialGuideSegments();
+      return [];
     }
 
-    const savedById = new Map(saved.map((segment) => [segment.id, segment]));
-    return INITIAL_GUIDE_SEGMENTS.map((base) => {
-      const segment = savedById.get(base.id);
-      return {
-        ...base,
-        count: Math.max(0, Math.round(Number(segment?.count ?? base.count) || 0)),
-        color: isHexColor(segment?.color) ? segment.color : base.color,
-        enabled: typeof segment?.enabled === 'boolean' ? segment.enabled : base.enabled,
-      };
-    });
+    return saved
+      .filter((preference) => typeof preference.id === 'string' && preference.id.trim().length > 0)
+      .map((preference) => ({
+        id: String(preference.id),
+        color: isHexColor(preference.color) ? preference.color : '#3b82f6',
+        enabled: typeof preference.enabled === 'boolean' ? preference.enabled : true,
+      }));
   } catch {
-    return cloneInitialGuideSegments();
+    return [];
   }
 }
 
-function saveGuideSegments(segments: readonly GuideSegment[]): void {
+function saveGuidePreferences(preferences: readonly GuidePreference[]): void {
   try {
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(GUIDE_STORAGE_KEY, JSON.stringify(segments));
+      localStorage.setItem(GUIDE_STORAGE_KEY, JSON.stringify(preferences));
     }
   } catch {
     // The dashboard still works when browser storage is unavailable.
   }
 }
 
-function cloneInitialGuideSegments(): GuideSegment[] {
-  return INITIAL_GUIDE_SEGMENTS.map((segment) => ({ ...segment }));
+function readOrderCost(dailyOrder: DailyOrder): number {
+  const knownCosts = [
+    dailyOrder.shippingCost,
+    dailyOrder.returnShippingCost,
+    dailyOrder.commission,
+    dailyOrder.providerCostTotal,
+    dailyOrder.advertisingCost,
+  ].reduce<number>((total, value) => total + safeNumber(value), 0);
+  const derivedCost = Math.max(0, dailyOrder.orderValue - dailyOrder.estimatedProfit);
+
+  return knownCosts > 0 ? knownCosts : derivedCost;
+}
+
+function safeNumber(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
 }
 
 function unique(values: readonly string[]): string[] {
-  return Array.from(new Set(values)).sort((a, b) => a.localeCompare(b, 'es'));
+  return Array.from(new Set(values.filter(Boolean))).sort((a, b) => a.localeCompare(b, 'es'));
+}
+
+function isConfirmedOrder(status: string): boolean {
+  return status !== 'Pendiente' && status !== 'Cancelada';
+}
+
+function isDeliveredOrder(orderRow: OrderRow): boolean {
+  return (
+    orderRow.status === 'Entregada' || normalizeForMatch(orderRow.guideStatus).includes('entregada')
+  );
+}
+
+function normalizeGuideStatusLabel(value: string | undefined, fallbackStatus: OrderStatus): string {
+  const source = value?.trim() || fallbackStatus || 'Sin estado';
+  const normalized = normalizeForMatch(source);
+  const aliases: readonly [readonly string[], string][] = [
+    [['guia generada', 'guiagenerada'], 'Guía generada'],
+    [['recogido por dropi', 'recogida'], 'Recogida'],
+    [['preparado para transportadora'], 'Preparado para transportadora'],
+    [['en procesamiento'], 'En procesamiento'],
+    [['en bodega transportadora', 'en bodega origen', 'en bodega'], 'En bodega'],
+    [['en reparto'], 'En reparto'],
+    [['transito nacional', 'en transito', 'en ruta', 'intento de entrega'], 'En ruta'],
+    [['entregado', 'entregada'], 'Entregada'],
+    [['novedad'], 'Novedad'],
+    [['devolucion', 'devuelta', 'rechazado', 'reclame en oficina'], 'Devuelta'],
+    [['cancelado', 'cancelada'], 'Cancelada'],
+    [['despachado', 'despachada'], 'Despachada'],
+    [['pendiente confirmacion'], 'Pendiente confirmación'],
+    [['pendiente'], 'Pendiente'],
+  ];
+  const match = aliases.find(([items]) => items.some((item) => normalized.includes(item)));
+
+  return match?.[1] ?? toTitleCase(source.replace(/[_-]+/g, ' '));
+}
+
+function guideSegmentId(label: string): string {
+  return (
+    normalizeForMatch(label)
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'sin-estado'
+  );
+}
+
+function guideStatusSortIndex(id: string): number {
+  const index = GUIDE_STATUS_ORDER.findIndex((item) => item === id);
+  return index === -1 ? GUIDE_STATUS_ORDER.length : index;
+}
+
+function defaultGuideColor(label: string, index: number): string {
+  return (
+    GUIDE_STATUS_COLORS[guideSegmentId(label)] ??
+    GUIDE_COLOR_PALETTE[index % GUIDE_COLOR_PALETTE.length]
+  );
+}
+
+function groupTone(deliveryRate: number, profit: number): ProductGroupRow['tone'] {
+  if (deliveryRate >= 75 && profit > 0) {
+    return 'strong';
+  }
+
+  if (deliveryRate >= 55 && profit >= 0) {
+    return 'stable';
+  }
+
+  return 'attention';
 }
 
 function normalize(value: string): string {
@@ -563,6 +992,22 @@ function normalize(value: string): string {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
+}
+
+function normalizeForMatch(value: string): string {
+  return normalize(value)
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function toTitleCase(value: string): string {
+  return value
+    .toLowerCase()
+    .split(' ')
+    .filter(Boolean)
+    .map((word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`)
+    .join(' ');
 }
 
 function formatCurrency(value: number): string {
@@ -573,9 +1018,56 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
+function formatCompactCurrency(value: number): string {
+  const sign = value < 0 ? '-' : '';
+  const absolute = Math.abs(value);
+
+  if (absolute >= 1_000_000) {
+    return `${sign}$${formatDecimal(absolute / 1_000_000)}M`;
+  }
+
+  if (absolute >= 1_000) {
+    return `${sign}$${formatDecimal(absolute / 1_000)}K`;
+  }
+
+  return formatCurrency(value);
+}
+
+function formatNumber(value: number): string {
+  return new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 }).format(value);
+}
+
+function formatDecimal(value: number): string {
+  return new Intl.NumberFormat('es-CO', {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: Number.isInteger(value) ? 0 : 1,
+  }).format(value);
+}
+
+function formatMultiplier(value: number): string {
+  return `${new Intl.NumberFormat('es-CO', {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: value > 0 && value < 10 ? 2 : 0,
+  }).format(value)}x`;
+}
+
+function ratioPercent(value: number, total: number): number {
+  return total > 0 ? (value / total) * 100 : 0;
+}
+
 function formatDateLabel(dateIso: string): string {
   const [year, month, day] = dateIso.split('-');
   return `${day}/${month}/${year}`;
+}
+
+function toDateIsoFromValue(value: string): string {
+  const dateMatch = /^\d{4}-\d{2}-\d{2}/.exec(value);
+  if (dateMatch) {
+    return dateMatch[0];
+  }
+
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? toDateIso(new Date()) : toDateIso(parsed);
 }
 
 function parseDateIso(dateIso: string): Date {

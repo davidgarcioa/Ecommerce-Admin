@@ -3,17 +3,22 @@ import { finalize, forkJoin, of } from 'rxjs';
 
 import { PermissionsService } from '../../../core/services/permissions.service';
 import { DEFAULT_TAG_FILTERS, TAGS_PERMISSIONS } from '../utils/tags.constants';
+import { resolveSafeTagColor } from '../utils/tags.formatters';
 import { validateTagForm } from '../utils/tags.validators';
 import { toCreateTagRequest, toTagListItem, toUpdateTagRequest } from './tags.mapper';
 import {
+  CreateTagRequest,
   Tag,
   TagFilters,
   TagFormValue,
   TagListItem,
   TagSortOption,
   TagStatistics,
+  UpdateTagRequest,
 } from './tags.models';
 import { TagsApiService } from './tags-api.service';
+
+const LOCAL_TAGS_STORAGE_KEY = 'ecommerce.tags.local.records';
 
 @Injectable()
 export class TagsStore {
@@ -75,11 +80,13 @@ export class TagsStore {
       this.tagsState().filter((tag) => tag.status === 'archived').length,
   );
   readonly usedTags = computed(
-    () => this.statisticsState()?.used ?? this.tagsState().filter((tag) => tag.usageCount > 0).length,
+    () =>
+      this.statisticsState()?.used ?? this.tagsState().filter((tag) => tag.usageCount > 0).length,
   );
   readonly unusedTags = computed(
     () =>
-      this.statisticsState()?.unused ?? this.tagsState().filter((tag) => tag.usageCount === 0).length,
+      this.statisticsState()?.unused ??
+      this.tagsState().filter((tag) => tag.usageCount === 0).length,
   );
   readonly totalAssociations = computed(
     () =>
@@ -104,15 +111,16 @@ export class TagsStore {
       .pipe(finalize(() => this.loadingState.set(false)))
       .subscribe({
         next: ({ tags, statistics }) => {
-          const resolvedTags = tags.length > 0 ? tags : SEED_TAGS;
-          this.tagsState.set(resolvedTags);
-          this.statisticsState.set(statistics ?? buildTagStatistics(resolvedTags));
-          this.lastUpdatedState.set(new Date().toISOString());
+          const storedTags = readStoredTags();
+          const resolvedTags = storedTags ?? tags;
+
+          this.replaceTags(resolvedTags, false);
+          this.statisticsState.set(
+            statistics && !storedTags ? statistics : buildTagStatistics(resolvedTags),
+          );
         },
         error: () => {
-          this.tagsState.set(SEED_TAGS);
-          this.statisticsState.set(buildTagStatistics(SEED_TAGS));
-          this.lastUpdatedState.set(new Date().toISOString());
+          this.replaceTags(readStoredTags() ?? [], false);
         },
       });
   }
@@ -120,13 +128,24 @@ export class TagsStore {
   loadTag(id: string): void {
     this.loadingDetailState.set(true);
     this.errorState.set(null);
+    this.selectedTagState.set(this.findKnownTag(id));
 
     this.api
       .getTag(id)
       .pipe(finalize(() => this.loadingDetailState.set(false)))
       .subscribe({
-        next: (tag) => this.selectedTagState.set(tag),
-        error: (error: Error) => this.errorState.set(error.message),
+        next: (tag) => {
+          const resolvedTag = tag ?? this.findKnownTag(id);
+
+          this.selectedTagState.set(resolvedTag);
+          if (!resolvedTag) this.errorState.set('No se encontro la etiqueta solicitada.');
+        },
+        error: () => {
+          const fallbackTag = this.findKnownTag(id);
+
+          this.selectedTagState.set(fallbackTag);
+          if (!fallbackTag) this.errorState.set('No se encontro la etiqueta solicitada.');
+        },
       });
   }
 
@@ -143,10 +162,15 @@ export class TagsStore {
       .pipe(finalize(() => this.savingState.set(false)))
       .subscribe({
         next: (tag) => {
-          this.upsertTag(tag);
+          this.upsertTag(tag, true);
           onSuccess(tag);
         },
-        error: (error: Error) => this.errorState.set(error.message),
+        error: () => {
+          const tag = createLocalTag(toCreateTagRequest(value));
+
+          this.upsertTag(tag, true);
+          onSuccess(tag);
+        },
       });
   }
 
@@ -163,20 +187,39 @@ export class TagsStore {
       .pipe(finalize(() => this.savingState.set(false)))
       .subscribe({
         next: (tag) => {
-          this.upsertTag(tag);
+          this.upsertTag(tag, true);
           this.selectedTagState.set(tag);
           onSuccess(tag);
         },
-        error: (error: Error) => this.errorState.set(error.message),
+        error: () => {
+          const tag = updateLocalTag(this.findKnownTag(id), toUpdateTagRequest(value));
+
+          if (!tag) {
+            this.errorState.set('No se encontro la etiqueta solicitada.');
+            return;
+          }
+
+          this.upsertTag(tag, true);
+          this.selectedTagState.set(tag);
+          onSuccess(tag);
+        },
       });
   }
 
   archive(id: string): void {
-    this.mutateTag(() => this.api.archiveTag(id));
+    this.mutateTag(
+      id,
+      () => this.api.archiveTag(id),
+      (tag) => archiveLocalTag(tag),
+    );
   }
 
   restore(id: string): void {
-    this.mutateTag(() => this.api.restoreTag(id));
+    this.mutateTag(
+      id,
+      () => this.api.restoreTag(id),
+      (tag) => restoreLocalTag(tag),
+    );
   }
 
   delete(id: string, onSuccess?: () => void): void {
@@ -188,11 +231,13 @@ export class TagsStore {
       .pipe(finalize(() => this.deletingState.set(false)))
       .subscribe({
         next: () => {
-          this.tagsState.update((tags) => tags.filter((tag) => tag.id !== id));
-          if (this.selectedTagState()?.id === id) this.selectedTagState.set(null);
+          this.removeTag(id, true);
           onSuccess?.();
         },
-        error: (error: Error) => this.errorState.set(error.message),
+        error: () => {
+          this.removeTag(id, true);
+          onSuccess?.();
+        },
       });
   }
 
@@ -217,37 +262,82 @@ export class TagsStore {
     this.selectedIdsState.set(new Set(tags.map((tag) => tag.id)));
   }
 
-  private mutateTag(request: () => ReturnType<TagsApiService['archiveTag']>): void {
+  private mutateTag(
+    id: string,
+    request: () => ReturnType<TagsApiService['archiveTag']>,
+    fallback: (tag: Tag) => Tag,
+  ): void {
     this.savingState.set(true);
     this.errorState.set(null);
 
     request()
       .pipe(finalize(() => this.savingState.set(false)))
       .subscribe({
-        next: (tag) => this.upsertTag(tag),
-        error: (error: Error) => this.errorState.set(error.message),
+        next: (tag) => {
+          this.upsertTag(tag, true);
+          this.selectedTagState.set(tag);
+        },
+        error: () => {
+          const tag = this.findKnownTag(id);
+
+          if (!tag) {
+            this.errorState.set('No se encontro la etiqueta solicitada.');
+            return;
+          }
+
+          const updatedTag = fallback(tag);
+
+          this.upsertTag(updatedTag, true);
+          this.selectedTagState.set(updatedTag);
+        },
       });
   }
 
-  private upsertTag(tag: Tag): void {
-    this.tagsState.update((tags) =>
-      tags.some((item) => item.id === tag.id)
-        ? tags.map((item) => (item.id === tag.id ? tag : item))
-        : [tag, ...tags],
+  private upsertTag(tag: Tag, persist: boolean): void {
+    const nextTags = this.resolveWorkingTags().some((item) => item.id === tag.id)
+      ? this.resolveWorkingTags().map((item) => (item.id === tag.id ? tag : item))
+      : [tag, ...this.resolveWorkingTags()];
+
+    this.replaceTags(nextTags, persist);
+  }
+
+  private removeTag(id: string, persist: boolean): void {
+    this.replaceTags(
+      this.resolveWorkingTags().filter((tag) => tag.id !== id),
+      persist,
     );
+
+    if (this.selectedTagState()?.id === id) this.selectedTagState.set(null);
+  }
+
+  private replaceTags(tags: readonly Tag[], persist: boolean): void {
+    this.tagsState.set(tags);
+    this.statisticsState.set(buildTagStatistics(tags));
+    this.lastUpdatedState.set(new Date().toISOString());
+
+    if (persist) persistTags(tags);
+  }
+
+  private findKnownTag(id: string): Tag | null {
+    return this.resolveWorkingTags().find((tag) => tag.id === id) ?? null;
+  }
+
+  private resolveWorkingTags(): readonly Tag[] {
+    return this.tagsState().length > 0 ? this.tagsState() : (readStoredTags() ?? []);
   }
 }
 
 function matchesTag(tag: TagListItem, searchValue: string, filters: TagFilters): boolean {
-  const search = normalize(searchValue);
+  const search = normalize(filters.searchTerm || searchValue);
   const searchable = normalize(`${tag.name} ${tag.code} ${tag.description}`);
   const matchesSearch = !search || searchable.includes(search);
   const matchesStatus = filters.status === 'all' || tag.status === filters.status;
   const matchesUsage =
     filters.usage === 'all' ||
     (filters.usage === 'used' ? tag.usageCount > 0 : tag.usageCount === 0);
+  const matchesColor = filters.color === 'all' || resolveSafeTagColor(tag.color) === filters.color;
 
-  return matchesSearch && matchesStatus && matchesUsage;
+  return matchesSearch && matchesStatus && matchesUsage && matchesColor;
 }
 
 function sortTags(tags: readonly TagListItem[], sort: TagSortOption): readonly TagListItem[] {
@@ -273,61 +363,6 @@ function normalize(value: string): string {
     .trim();
 }
 
-const SEED_TAGS: readonly Tag[] = [
-  {
-    id: 'tag-prioridad-alta',
-    code: 'URGENTE',
-    name: 'Prioridad alta',
-    description: 'Pedidos que requieren gestion inmediata.',
-    color: '#EF4444',
-    status: 'active',
-    active: true,
-    usageCount: 18,
-    createdBy: 'Sistema',
-    createdAt: '2026-07-01T08:00:00.000Z',
-    updatedAt: '2026-08-06T15:30:00.000Z',
-  },
-  {
-    id: 'tag-whatsapp',
-    code: 'WSP',
-    name: 'WhatsApp',
-    description: 'Contactos y validaciones por WhatsApp.',
-    color: '#10B981',
-    status: 'active',
-    active: true,
-    usageCount: 32,
-    createdBy: 'Sistema',
-    createdAt: '2026-07-02T08:00:00.000Z',
-    updatedAt: '2026-08-06T14:10:00.000Z',
-  },
-  {
-    id: 'tag-revision',
-    code: 'REVISION',
-    name: 'Revision logistica',
-    description: 'Casos pendientes por guia, direccion o transportadora.',
-    color: '#3B82F6',
-    status: 'active',
-    active: true,
-    usageCount: 11,
-    createdBy: 'Sistema',
-    createdAt: '2026-07-04T08:00:00.000Z',
-    updatedAt: '2026-08-05T11:45:00.000Z',
-  },
-  {
-    id: 'tag-promocion',
-    code: 'PROMO',
-    name: 'Promocion',
-    description: 'Ordenes asociadas a ofertas vigentes.',
-    color: '#F59E0B',
-    status: 'inactive',
-    active: false,
-    usageCount: 7,
-    createdBy: 'Sistema',
-    createdAt: '2026-07-08T08:00:00.000Z',
-    updatedAt: '2026-08-01T09:20:00.000Z',
-  },
-];
-
 function buildTagStatistics(tags: readonly Tag[]): TagStatistics {
   const active = tags.filter((tag) => tag.active).length;
   const archived = tags.filter((tag) => tag.status === 'archived').length;
@@ -349,4 +384,113 @@ function buildTagStatistics(tags: readonly Tag[]): TagStatistics {
       ? { id: mostUsedTag.id, name: mostUsedTag.name, usageCount: mostUsedTag.usageCount }
       : null,
   };
+}
+
+function createLocalTag(payload: CreateTagRequest): Tag {
+  const now = new Date().toISOString();
+  const active = payload.active;
+
+  return {
+    id: `tag-${payload.code.toLowerCase()}-${Date.now()}`,
+    code: payload.code,
+    name: payload.name,
+    description: payload.description,
+    color: payload.color,
+    status: active ? 'active' : 'inactive',
+    active,
+    usageCount: 0,
+    createdBy: 'Local',
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+function updateLocalTag(tag: Tag | null, payload: UpdateTagRequest): Tag | null {
+  if (!tag) return null;
+
+  const now = new Date().toISOString();
+  const active = payload.active ?? tag.active;
+
+  return {
+    ...tag,
+    code: payload.code ?? tag.code,
+    name: payload.name ?? tag.name,
+    description: payload.description,
+    color: payload.color,
+    active,
+    status: active ? 'active' : 'inactive',
+    archivedAt: active ? undefined : tag.archivedAt,
+    archivedBy: active ? undefined : tag.archivedBy,
+    updatedAt: now,
+  };
+}
+
+function archiveLocalTag(tag: Tag): Tag {
+  const now = new Date().toISOString();
+
+  return {
+    ...tag,
+    status: 'archived',
+    active: false,
+    archivedAt: now,
+    archivedBy: 'Local',
+    updatedAt: now,
+  };
+}
+
+function restoreLocalTag(tag: Tag): Tag {
+  return {
+    ...tag,
+    status: 'active',
+    active: true,
+    archivedAt: undefined,
+    archivedBy: undefined,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function readStoredTags(): readonly Tag[] | null {
+  try {
+    const rawTags = globalThis.localStorage?.getItem(LOCAL_TAGS_STORAGE_KEY);
+
+    if (!rawTags) return null;
+
+    const parsedTags: unknown = JSON.parse(rawTags);
+
+    if (!Array.isArray(parsedTags)) return null;
+
+    return parsedTags.filter(isTag);
+  } catch {
+    return null;
+  }
+}
+
+function persistTags(tags: readonly Tag[]): void {
+  try {
+    globalThis.localStorage?.setItem(LOCAL_TAGS_STORAGE_KEY, JSON.stringify(tags));
+  } catch {
+    return;
+  }
+}
+
+function isTag(value: unknown): value is Tag {
+  if (!value || typeof value !== 'object') return false;
+
+  const tag = value as Partial<Tag>;
+
+  return (
+    typeof tag.id === 'string' &&
+    typeof tag.code === 'string' &&
+    typeof tag.name === 'string' &&
+    typeof tag.active === 'boolean' &&
+    typeof tag.usageCount === 'number' &&
+    isTagStatus(tag.status) &&
+    typeof tag.createdBy === 'string' &&
+    typeof tag.createdAt === 'string' &&
+    typeof tag.updatedAt === 'string'
+  );
+}
+
+function isTagStatus(value: unknown): value is Tag['status'] {
+  return value === 'active' || value === 'inactive' || value === 'archived';
 }

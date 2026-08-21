@@ -26,7 +26,9 @@ export function formatTestingType(value: TestingType): string {
 }
 
 export function formatAssociationType(value: TestingAssociationType): string {
-  return TESTING_ASSOCIATION_OPTIONS.find((option) => option.value === value)?.label ?? 'Sin asociacion';
+  return (
+    TESTING_ASSOCIATION_OPTIONS.find((option) => option.value === value)?.label ?? 'Sin asociacion'
+  );
 }
 
 export function normalizeTestingCode(value: string): string {

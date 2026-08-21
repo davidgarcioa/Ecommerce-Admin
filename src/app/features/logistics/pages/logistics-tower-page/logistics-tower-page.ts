@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { Router } from '@angular/router';
 
 import { TableActionClick } from '../../../../shared/components/data-table/models/table-action.model';
@@ -41,6 +48,24 @@ export class LogisticsTowerPageComponent implements OnInit {
   readonly pendingReturns = this.store.pendingReturns;
   readonly returnedOrders = this.store.returnedOrders;
   readonly canUpdateShipment = this.store.canUpdateShipment;
+  readonly filtersOpen = signal(false);
+  readonly activeFilterCount = computed(() => {
+    const filters = this.filters();
+
+    return (
+      Number(this.search().trim().length > 0) +
+      Number(filters.orderStatus !== 'all') +
+      Number(filters.deliveryStatus !== 'all') +
+      Number(filters.paymentStatus !== 'all') +
+      Number(filters.carrier.trim().length > 0) +
+      Number(filters.city.trim().length > 0) +
+      Number(filters.withoutTracking) +
+      Number(filters.withIncident) +
+      Number(filters.withReturn) +
+      Number(filters.dateFrom.length > 0) +
+      Number(filters.dateTo.length > 0)
+    );
+  });
 
   ngOnInit(): void {
     this.store.loadOrders();
@@ -58,12 +83,20 @@ export class LogisticsTowerPageComponent implements OnInit {
     void this.router.navigate(['/torre-logistica/incidencias']);
   }
 
+  toggleFilters(): void {
+    this.filtersOpen.update((open) => !open);
+  }
+
   applySearch(search: string): void {
     this.store.applySearch(search);
   }
 
   applyFilters(filters: LogisticsFilters): void {
     this.store.applyFilters(filters);
+  }
+
+  applyFilterState(event: { readonly search: string; readonly filters: LogisticsFilters }): void {
+    this.store.applySearchAndFilters(event.search, event.filters);
   }
 
   clearFilters(): void {

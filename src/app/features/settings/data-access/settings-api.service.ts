@@ -82,5 +82,5 @@ export class SettingsApiService {
 function toReadableError(error: HttpErrorResponse): Error {
   if (error.status === 0) return new Error('No fue posible conectar con el backend.');
   const response = error.error as Partial<ApiResponse<unknown>> | null;
-  return new Error(response?.message || 'No fue posible completar la operacion.');
+  return new Error(response?.message || 'No fue posible completar la operación.');
 }

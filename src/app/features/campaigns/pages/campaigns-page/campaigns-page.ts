@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { TableActionClick } from '../../../../shared/components/data-table/models/table-action.model';
 import { AdPerformanceTableComponent } from '../../components/ad-performance-table/ad-performance-table';
@@ -43,6 +44,7 @@ type CampaignPerformanceView = 'campaigns' | 'products' | 'adSets' | 'ads' | 'hi
 })
 export class CampaignsPageComponent {
   private readonly campaignsService = inject(CampaignsService);
+  private readonly router = inject(Router);
 
   readonly report = this.campaignsService.report;
   readonly summaryMetrics = this.campaignsService.summaryMetrics;
@@ -126,7 +128,7 @@ export class CampaignsPageComponent {
   }
 
   synchronize(): void {
-    this.campaignsService.synchronizeCampaigns();
+    void this.router.navigate(['/archivos/importar']);
   }
 
   openCreate(): void {

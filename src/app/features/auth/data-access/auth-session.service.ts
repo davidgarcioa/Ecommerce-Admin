@@ -9,7 +9,7 @@ import {
   signOut,
   updateProfile,
 } from 'firebase/auth';
-import { catchError, from, map, Observable, switchMap, tap, throwError } from 'rxjs';
+import { catchError, from, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
 
 import { API_CONFIG } from '../../../core/config/api.config';
 import { FIREBASE_CONFIG } from '../../../core/config/firebase.config';
@@ -45,7 +45,9 @@ export class AuthSessionService {
         if (!credential.user.emailVerified) {
           return from(signOut(auth)).pipe(
             switchMap(() =>
-              throwError(() => 'Verifica tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.'),
+              throwError(
+                () => 'Verifica tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.',
+              ),
             ),
           );
         }
@@ -63,9 +65,7 @@ export class AuthSessionService {
   register(value: RegisterFormValue): Observable<void> {
     const auth = this.firebaseAuth;
 
-    return from(
-      createUserWithEmailAndPassword(auth, value.email.trim(), value.password),
-    ).pipe(
+    return from(createUserWithEmailAndPassword(auth, value.email.trim(), value.password)).pipe(
       switchMap((credential) =>
         from(
           updateProfile(credential.user, {
@@ -104,19 +104,21 @@ export class AuthSessionService {
 
   logout(): Observable<void> {
     const refreshToken = this.readRefreshToken();
+    this.clearSession();
+
     const request$: Observable<unknown> = refreshToken
       ? this.http.post<ApiResponse<void>>(`${this.apiConfig.baseUrl}/auth/logout`, {
           refreshToken,
         })
-      : from(Promise.resolve(null));
+      : of(null);
 
     return request$.pipe(
+      catchError(() => of(null)),
       switchMap(() => from(signOut(this.firebaseAuth))),
-      tap(() => this.clearSession()),
       map(() => undefined),
       catchError(() => {
         this.clearSession();
-        return from(Promise.resolve(undefined));
+        return of(undefined);
       }),
     );
   }
@@ -194,9 +196,7 @@ export class AuthSessionService {
       return mapBackendMessage(response?.message, error.status);
     }
 
-    return typeof error === 'string'
-      ? error
-      : 'Ocurrió un problema. Inténtalo nuevamente.';
+    return typeof error === 'string' ? error : 'Ocurrió un problema. Inténtalo nuevamente.';
   }
 }
 
@@ -228,13 +228,17 @@ function toFirebaseMessage(code: string): string {
     'auth/invalid-email': 'El correo no tiene un formato válido.',
     'auth/weak-password': 'La contraseña no cumple con los requisitos mínimos.',
     'auth/missing-password': 'Ingresa una contraseña.',
-    'auth/operation-not-allowed': 'El registro con correo y contraseña no está habilitado en Firebase.',
-    'auth/configuration-not-found': 'Firebase Authentication no está configurado para esta aplicación.',
+    'auth/operation-not-allowed':
+      'El registro con correo y contraseña no está habilitado en Firebase.',
+    'auth/configuration-not-found':
+      'Firebase Authentication no está configurado para esta aplicación.',
     'auth/api-key-not-valid': 'La configuración de Firebase no es válida.',
     'auth/invalid-api-key': 'La configuración de Firebase no es válida.',
     'auth/app-not-authorized': 'Esta aplicación no está autorizada en Firebase.',
-    'auth/unauthorized-domain': 'El dominio localhost no está autorizado en Firebase Authentication.',
-    'auth/network-request-failed': 'No pudimos conectarnos. Revisa tu conexión e inténtalo nuevamente.',
+    'auth/unauthorized-domain':
+      'El dominio localhost no está autorizado en Firebase Authentication.',
+    'auth/network-request-failed':
+      'No pudimos conectarnos. Revisa tu conexión e inténtalo nuevamente.',
     'auth/too-many-requests': 'Demasiados intentos. Espera un momento.',
   };
 

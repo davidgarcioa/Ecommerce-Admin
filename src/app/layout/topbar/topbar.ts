@@ -5,6 +5,7 @@ import { APP_NAVIGATION_ITEMS } from '../../core/constants/navigation.constants'
 import { NAVIGATION_PERMISSIONS } from '../../core/constants/navigation-permissions.constants';
 import { LayoutStateService } from '../../core/services/layout-state.service';
 import { PermissionsService } from '../../core/services/permissions.service';
+import { ThemeService } from '../../core/services/theme.service';
 import { AuthSessionService } from '../../features/auth/data-access/auth-session.service';
 
 interface TopbarSearchResult {
@@ -24,6 +25,7 @@ export class Topbar {
   private readonly layoutState = inject(LayoutStateService);
   private readonly authSession = inject(AuthSessionService);
   private readonly permissions = inject(PermissionsService);
+  private readonly theme = inject(ThemeService);
   private readonly router = inject(Router);
   readonly toggleSidebar = output<void>();
   readonly title = this.layoutState.activeTitle;
@@ -31,6 +33,9 @@ export class Topbar {
   readonly isHomeRoute = this.layoutState.isHomeRoute;
   readonly searchQuery = signal('');
   readonly searchOpen = signal(false);
+  readonly loggingOut = signal(false);
+  readonly themeToggleLabel = this.theme.nextThemeLabel;
+  readonly themeToggleIcon = this.theme.nextThemeIcon;
   readonly searchResults = computed<readonly TopbarSearchResult[]>(() => {
     const query = normalizeSearchText(this.searchQuery());
     const allowedItems = APP_NAVIGATION_ITEMS.filter((item) => {
@@ -50,9 +55,19 @@ export class Topbar {
   }
 
   logout(): void {
+    if (this.loggingOut()) {
+      return;
+    }
+
+    this.loggingOut.set(true);
     this.authSession.logout().subscribe({
-      next: () => void this.router.navigate(['/auth']),
+      complete: () => this.loggingOut.set(false),
     });
+    void this.router.navigateByUrl('/auth', { replaceUrl: true });
+  }
+
+  toggleTheme(): void {
+    this.theme.toggleTheme();
   }
 
   onSearchInput(event: Event): void {

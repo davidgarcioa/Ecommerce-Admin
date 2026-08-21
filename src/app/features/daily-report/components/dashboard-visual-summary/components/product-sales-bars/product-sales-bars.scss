@@ -18,7 +18,10 @@
   min-width: 0;
   padding: $space-5;
   position: relative;
-  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
 
   &:hover {
     background: var(--color-card-elevated);
@@ -145,7 +148,9 @@
       height: 100%;
       transform: scaleX(0);
       transform-origin: left;
-      transition: filter 180ms ease, width 180ms ease;
+      transition:
+        filter 180ms ease,
+        width 180ms ease;
     }
 
     &:hover span {

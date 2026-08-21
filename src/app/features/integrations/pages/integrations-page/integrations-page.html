@@ -3,12 +3,19 @@
     <div>
       <p class="integrations-page__eyebrow">Centro de conexiones</p>
       <h1 id="integrations-title">Integraciones</h1>
-      <p class="integrations-page__summary">Estado real de los servicios que alimentan la operación.</p>
+      <p class="integrations-page__summary">
+        Estado real de los servicios que alimentan la operación.
+      </p>
     </div>
 
     <div class="integrations-page__actions">
       <span class="integrations-page__updated">{{ formatLastChecked(lastChecked()) }}</span>
-      <button type="button" class="integrations-page__button" (click)="refresh()" [disabled]="loading()">
+      <button
+        type="button"
+        class="integrations-page__button"
+        (click)="refresh()"
+        [disabled]="loading()"
+      >
         <span class="material-symbols-rounded" aria-hidden="true">sync</span>
         {{ loading() ? 'Revisando' : 'Revisar conexiones' }}
       </button>
@@ -89,10 +96,18 @@
         <div class="integration-panel__result" aria-live="polite">
           <strong>Última sincronización</strong>
           <div class="integration-panel__result-grid">
-            <span><b>{{ dropiSyncSummary()?.received }}</b> recibidas desde Dropi</span>
-            <span><b>{{ dropiSyncSummary()?.imported }}</b> nuevas</span>
-            <span><b>{{ dropiSyncSummary()?.updated }}</b> actualizadas</span>
-            <span><b>{{ dropiSyncSummary()?.skipped }}</b> omitidas</span>
+            <span
+              ><b>{{ dropiSyncSummary()?.received }}</b> recibidas desde Dropi</span
+            >
+            <span
+              ><b>{{ dropiSyncSummary()?.imported }}</b> nuevas</span
+            >
+            <span
+              ><b>{{ dropiSyncSummary()?.updated }}</b> actualizadas</span
+            >
+            <span
+              ><b>{{ dropiSyncSummary()?.skipped }}</b> omitidas</span
+            >
           </div>
         </div>
       }
@@ -174,9 +189,15 @@
         <div class="integration-panel__result" aria-live="polite">
           <strong>Conexión validada</strong>
           <div class="integration-panel__result-grid">
-            <span><b>{{ metaConnection()?.accountName ?? 'Cuenta Meta' }}</b> cuenta publicitaria</span>
-            <span><b>{{ metaConnection()?.currency ?? 'Sin moneda' }}</b> moneda</span>
-            <span><b>{{ metaConnection()?.timezoneName ?? 'Sin zona horaria' }}</b> zona horaria</span>
+            <span
+              ><b>{{ metaConnection()?.accountName ?? 'Cuenta Meta' }}</b> cuenta publicitaria</span
+            >
+            <span
+              ><b>{{ metaConnection()?.currency ?? 'Sin moneda' }}</b> moneda</span
+            >
+            <span
+              ><b>{{ metaConnection()?.timezoneName ?? 'Sin zona horaria' }}</b> zona horaria</span
+            >
           </div>
         </div>
       }

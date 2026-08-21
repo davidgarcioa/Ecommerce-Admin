@@ -11,7 +11,10 @@
           <strong>{{ item.count }}</strong>
         </div>
 
-        <div class="campaign-status-summary__bar" [title]="item.status + ' · ' + item.percentage + ' %'">
+        <div
+          class="campaign-status-summary__bar"
+          [title]="item.status + ' · ' + item.percentage + ' %'"
+        >
           <span [style.width.%]="item.percentage"></span>
         </div>
 

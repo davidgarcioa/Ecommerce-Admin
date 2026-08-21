@@ -7,7 +7,10 @@
     <ul>
       @for (item of items(); track item.id) {
         <li [class]="'work-items__item work-items__item--' + item.level">
-          <a [routerLink]="item.route" [attr.aria-label]="formatNumber(item.count) + ' ' + item.title">
+          <a
+            [routerLink]="item.route"
+            [attr.aria-label]="formatNumber(item.count) + ' ' + item.title"
+          >
             <span class="material-symbols-rounded" aria-hidden="true">priority_high</span>
             <strong>{{ formatNumber(item.count) }}</strong>
             <span>{{ item.title }}</span>

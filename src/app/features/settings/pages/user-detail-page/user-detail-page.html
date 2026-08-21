@@ -6,20 +6,45 @@
     </div>
     <div class="settings-page__actions">
       <a class="settings-button" routerLink="/configuracion/usuarios">Volver</a>
-      <button type="button" class="settings-button settings-button--primary" (click)="edit()">Editar</button>
+      <button type="button" class="settings-button settings-button--primary" (click)="edit()">
+        Editar
+      </button>
     </div>
   </header>
 
   @if (user(); as selectedUser) {
     <article class="settings-card">
       <div class="settings-grid">
-        <div><p class="settings-muted">Nombre</p><strong>{{ selectedUser.firstName }} {{ selectedUser.lastName }}</strong></div>
-        <div><p class="settings-muted">Correo</p><strong>{{ selectedUser.email }}</strong></div>
-        <div><p class="settings-muted">Alias</p><strong>{{ selectedUser.username }}</strong></div>
-        <div><p class="settings-muted">Acceso</p><strong>{{ selectedUser.active ? 'Aprobado' : 'Pendiente' }}</strong></div>
-        <div><p class="settings-muted">Verificación</p><strong>{{ selectedUser.emailVerified ? 'Correo verificado' : 'Correo pendiente' }}</strong></div>
-        <div><p class="settings-muted">Rol</p><strong>{{ selectedUser.roleId }}</strong></div>
-        <div><p class="settings-muted">Teléfono</p><strong>{{ selectedUser.phone || 'Sin teléfono' }}</strong></div>
+        <div>
+          <p class="settings-muted">Nombre</p>
+          <strong>{{ selectedUser.firstName }} {{ selectedUser.lastName }}</strong>
+        </div>
+        <div>
+          <p class="settings-muted">Correo</p>
+          <strong>{{ selectedUser.email }}</strong>
+        </div>
+        <div>
+          <p class="settings-muted">Alias</p>
+          <strong>{{ selectedUser.username }}</strong>
+        </div>
+        <div>
+          <p class="settings-muted">Acceso</p>
+          <strong>{{ selectedUser.active ? 'Aprobado' : 'Pendiente' }}</strong>
+        </div>
+        <div>
+          <p class="settings-muted">Verificación</p>
+          <strong>
+            {{ selectedUser.emailVerified ? 'Correo verificado' : 'Correo pendiente' }}
+          </strong>
+        </div>
+        <div>
+          <p class="settings-muted">Rol</p>
+          <strong>{{ selectedUser.roleId }}</strong>
+        </div>
+        <div>
+          <p class="settings-muted">Teléfono</p>
+          <strong>{{ selectedUser.phone || 'Sin teléfono' }}</strong>
+        </div>
       </div>
 
       <div>
@@ -34,6 +59,8 @@
       </div>
     </article>
   } @else {
-    <article class="settings-card"><p class="settings-muted">No se encontro el usuario solicitado.</p></article>
+    <article class="settings-card">
+      <p class="settings-muted">No se encontró el usuario solicitado.</p>
+    </article>
   }
 </section>

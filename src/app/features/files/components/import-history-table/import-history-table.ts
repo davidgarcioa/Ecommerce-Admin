@@ -139,8 +139,7 @@ export class ImportHistoryTableComponent {
       icon: 'delete',
       variant: 'danger',
       confirmationRequired: true,
-      confirmationMessage: 'Eliminar este registro del historial?',
+      confirmationMessage: '¿Eliminar este registro del historial?',
     },
   ];
 }
-

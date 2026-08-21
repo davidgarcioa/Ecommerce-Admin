@@ -1,49 +1,178 @@
 @use '../../../../styles/abstracts/variables' as *;
 
 .tracking-result-summary {
-  display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
-  gap: $space-4;
+  align-items: center;
+  background:
+    radial-gradient(circle at 96% 0%, rgb(59 130 246 / 6%), transparent 30%), var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: $radius-lg;
-  padding: $space-5;
-  background: var(--color-card);
+  display: grid;
+  gap: $space-4;
+  grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.9fr) auto;
   min-width: 0;
+  padding: $space-5;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+
+  &:hover {
+    background:
+      radial-gradient(circle at 96% 0%, rgb(59 130 246 / 10%), transparent 32%),
+      var(--color-card-elevated);
+    border-color: rgb(59 130 246 / 34%);
+    box-shadow: 0 0 1.25rem rgb(59 130 246 / 9%);
+    transform: translateY(-0.0625rem);
+  }
+
+  &__status {
+    align-items: center;
+    display: grid;
+    gap: $space-4;
+    grid-template-columns: auto minmax(0, 1fr);
+    min-width: 0;
+  }
+
+  &__icon {
+    align-items: center;
+    background: rgb(59 130 246 / 10%);
+    border: 1px solid rgb(59 130 246 / 34%);
+    border-radius: $radius-sm;
+    color: rgb(59 130 246);
+    display: inline-flex;
+    font-size: 1.35rem;
+    height: 3rem;
+    justify-content: center;
+    line-height: 1;
+    width: 3rem;
+  }
 
   h2,
   p {
     margin: 0;
   }
 
+  p {
+    color: rgb(59 130 246);
+    font-size: $font-size-xs;
+    font-weight: $font-weight-bold;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
   h2 {
     color: var(--color-text-primary);
-    font-size: $font-size-xl;
+    font-size: clamp(1.55rem, 3vw, 2.25rem);
+    line-height: 1.05;
+    margin-top: 0.15rem;
   }
 
-  p,
   span,
   small {
-    display: block;
     color: var(--color-text-secondary);
+    display: block;
   }
 
-  &__meta,
+  small {
+    color: var(--color-text-disabled);
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+    margin-top: $space-2;
+  }
+
+  &__meta {
+    display: grid;
+    gap: $space-2;
+    min-width: 0;
+
+    > span {
+      background: rgb(255 255 255 / 3%);
+      border: 1px solid var(--color-border);
+      border-radius: $radius-md;
+      color: var(--color-text-primary);
+      font-size: $font-size-sm;
+      font-weight: $font-weight-semibold;
+      min-width: 0;
+      overflow: hidden;
+      padding: $space-2 $space-3;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    strong {
+      color: var(--color-text-secondary);
+      display: block;
+      font-size: $font-size-xs;
+      margin-bottom: 0.1rem;
+    }
+  }
+
   &__actions {
     display: grid;
     gap: $space-2;
+    justify-items: stretch;
+    min-width: 8rem;
   }
 
   button {
+    align-items: center;
+    background: rgb(255 255 255 / 2.5%);
     border: 1px solid var(--color-border);
     border-radius: $radius-md;
-    padding: $space-2 $space-3;
-    background: var(--color-card-elevated);
     color: var(--color-text-primary);
+    cursor: pointer;
+    display: inline-flex;
+    font: inherit;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-bold;
+    gap: $space-2;
+    height: 2.45rem;
+    justify-content: center;
+    padding: 0 $space-3;
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      transform 180ms ease;
+
+    .material-symbols-rounded {
+      color: rgb(59 130 246);
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    &:hover,
+    &:focus-visible {
+      background: rgb(59 130 246 / 8%);
+      border-color: rgb(59 130 246 / 42%);
+      box-shadow: 0 0 1rem rgb(59 130 246 / 9%);
+      outline: none;
+      transform: translateY(-0.0625rem);
+    }
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1120px) {
   .tracking-result-summary {
     grid-template-columns: 1fr;
+
+    &__actions {
+      display: flex;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .tracking-result-summary {
+    &__status {
+      align-items: start;
+    }
+
+    &__actions {
+      display: grid;
+    }
   }
 }

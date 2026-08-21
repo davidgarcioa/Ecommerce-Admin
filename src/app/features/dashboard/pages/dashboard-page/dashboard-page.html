@@ -1,7 +1,11 @@
 <section class="dashboard-page">
   <section class="dashboard-donuts" aria-label="Estadísticas circulares">
-    @for (metric of standardDonutMetrics; track metric.id; let index = $index) {
-      <article class="donut-card" [style.--accent]="toneColor(metric.tone)" [style.--delay]="index * 60 + 'ms'">
+    @for (metric of standardDonutMetrics(); track metric.id; let index = $index) {
+      <article
+        class="donut-card"
+        [style.--accent]="toneColor(metric.tone)"
+        [style.--delay]="index * 60 + 'ms'"
+      >
         <span class="donut-card__ring" [attr.aria-label]="metric.label + ': ' + metric.helper">
           <svg class="donut-chart" viewBox="0 0 120 120" aria-hidden="true">
             <circle class="donut-chart__track" cx="60" cy="60" r="45"></circle>
@@ -26,7 +30,11 @@
       </article>
     }
 
-    <article class="donut-card donut-card--guide" [style.--accent]="'#3b82f6'" [style.--delay]="'120ms'">
+    <article
+      class="donut-card donut-card--guide"
+      [style.--accent]="'#3b82f6'"
+      [style.--delay]="'120ms'"
+    >
       <button
         class="icon-button donut-card__tool"
         type="button"
@@ -34,6 +42,7 @@
         title="Editar estados de guía"
         aria-label="Editar estados de guía"
         [attr.aria-expanded]="guideEditorVisible()"
+        [disabled]="guideSegments().length === 0"
         (click)="toggleGuideEditor()"
       >
         <span class="material-symbols-rounded" aria-hidden="true">tune</span>
@@ -80,8 +89,15 @@
       </div>
     </article>
 
-    <article class="donut-card" [style.--accent]="toneColor(marginDonutMetric.tone)" [style.--delay]="'180ms'">
-      <span class="donut-card__ring" [attr.aria-label]="marginDonutMetric.label + ': ' + marginDonutMetric.helper">
+    <article
+      class="donut-card"
+      [style.--accent]="toneColor(marginDonutMetric().tone)"
+      [style.--delay]="'180ms'"
+    >
+      <span
+        class="donut-card__ring"
+        [attr.aria-label]="marginDonutMetric().label + ': ' + marginDonutMetric().helper"
+      >
         <svg class="donut-chart" viewBox="0 0 120 120" aria-hidden="true">
           <circle class="donut-chart__track" cx="60" cy="60" r="45"></circle>
           <circle
@@ -89,32 +105,47 @@
             cx="60"
             cy="60"
             r="45"
-            [attr.stroke]="toneColor(marginDonutMetric.tone)"
-            [style.color]="toneColor(marginDonutMetric.tone)"
-            [attr.stroke-dasharray]="donutSegmentDash(marginDonutMetric.percentage)"
+            [attr.stroke]="toneColor(marginDonutMetric().tone)"
+            [style.color]="toneColor(marginDonutMetric().tone)"
+            [attr.stroke-dasharray]="donutSegmentDash(marginDonutMetric().percentage)"
             stroke-dashoffset="0"
           ></circle>
         </svg>
         <span class="donut-card__center">
-          <span class="donut-card__value">{{ marginDonutMetric.value }}</span>
+          <span class="donut-card__value">{{ marginDonutMetric().value }}</span>
         </span>
       </span>
-      <strong>{{ marginDonutMetric.label }}</strong>
-      <p>{{ marginDonutMetric.helper }}</p>
+      <strong>{{ marginDonutMetric().label }}</strong>
+      <p>{{ marginDonutMetric().helper }}</p>
       <div class="donut-card__legend donut-card__legend--placeholder" aria-hidden="true"></div>
     </article>
-
   </section>
 
   @if (guideEditorVisible()) {
-    <section class="guide-editor-backdrop" aria-label="Editor de estados de guía" (click)="closeGuideEditor()">
-      <article class="guide-editor" role="dialog" aria-modal="true" aria-labelledby="guide-editor-title" (click)="$event.stopPropagation()">
+    <section
+      class="guide-editor-backdrop"
+      aria-label="Editor de estados de guía"
+      (click)="closeGuideEditor()"
+    >
+      <article
+        class="guide-editor"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="guide-editor-title"
+        (click)="$event.stopPropagation()"
+      >
         <header>
           <div>
             <h3 id="guide-editor-title">Editar estados de guía</h3>
             <p>{{ guideTotal() }} visibles de {{ allGuideTotal() }} guías</p>
           </div>
-          <button class="icon-button" type="button" title="Cerrar editor" aria-label="Cerrar editor" (click)="closeGuideEditor()">
+          <button
+            class="icon-button"
+            type="button"
+            title="Cerrar editor"
+            aria-label="Cerrar editor"
+            (click)="closeGuideEditor()"
+          >
             <span class="material-symbols-rounded" aria-hidden="true">close</span>
           </button>
         </header>
@@ -162,7 +193,11 @@
               <strong>{{ selectedGuideSegment().label }}</strong>
               <small>
                 {{ selectedGuideSegment().count }} guías ·
-                {{ selectedGuideSegment().enabled ? segmentShare(selectedGuideSegment()) : 'Oculto en dona' }}
+                {{
+                  selectedGuideSegment().enabled
+                    ? segmentShare(selectedGuideSegment())
+                    : 'Oculto en dona'
+                }}
               </small>
             </div>
           </div>
@@ -170,8 +205,16 @@
 
         <div class="guide-editor__swatches" aria-label="Estados visibles y colores actuales">
           @for (segment of guideSegments(); track segment.id) {
-            <article class="guide-editor__status" [class.is-active]="segment.id === selectedGuideSegmentId()" [class.is-hidden]="!segment.enabled">
-              <button type="button" class="guide-editor__status-main" (click)="selectGuideSegment(segment.id)">
+            <article
+              class="guide-editor__status"
+              [class.is-active]="segment.id === selectedGuideSegmentId()"
+              [class.is-hidden]="!segment.enabled"
+            >
+              <button
+                type="button"
+                class="guide-editor__status-main"
+                (click)="selectGuideSegment(segment.id)"
+              >
                 <i [style.background]="segment.color" aria-hidden="true"></i>
                 <span>{{ segment.label }}</span>
                 <small>{{ segment.enabled ? segmentShare(segment) : 'Oculto' }}</small>
@@ -215,8 +258,12 @@
     </header>
 
     <div class="summary-cards">
-      @for (metric of summaryMetrics; track metric.id; let index = $index) {
-        <article class="metric-card" [style.--accent]="toneColor(metric.tone)" [style.--delay]="index * 35 + 'ms'">
+      @for (metric of summaryMetrics(); track metric.id; let index = $index) {
+        <article
+          class="metric-card"
+          [style.--accent]="toneColor(metric.tone)"
+          [style.--delay]="index * 35 + 'ms'"
+        >
           <div class="metric-card__top">
             <span class="material-symbols-rounded" aria-hidden="true">{{ metric.icon }}</span>
             <i aria-hidden="true"></i>
@@ -242,12 +289,12 @@
       </div>
       <aside>
         <span>Líder</span>
-        <strong>{{ productGroups[0].name }}</strong>
+        <strong>{{ productGroups()[0]?.name ?? 'Sin datos' }}</strong>
       </aside>
     </header>
 
     <div class="group-list">
-      @for (group of productGroups; track group.name; let index = $index) {
+      @for (group of productGroups(); track group.name; let index = $index) {
         <article
           class="group-row"
           [class.group-row--strong]="group.tone === 'strong'"
@@ -263,13 +310,25 @@
             <span class="group-row__track"><i [style.width.%]="group.salesPercentage"></i></span>
           </div>
           <div class="group-row__signals">
-            <span><small>Ventas</small><strong>{{ group.sales }}</strong></span>
-            <span><small>Entrega</small><strong>{{ group.deliveryRate }}</strong></span>
-            <span><small>ROAS</small><strong>{{ group.roas }}</strong></span>
-            <span><small>CPA</small><strong>{{ group.cpa }}</strong></span>
-            <span><small>Ganancia</small><strong>{{ group.profit }}</strong></span>
+            <span
+              ><small>Ventas</small><strong>{{ group.sales }}</strong></span
+            >
+            <span
+              ><small>Entrega</small><strong>{{ group.deliveryRate }}</strong></span
+            >
+            <span
+              ><small>ROAS</small><strong>{{ group.roas }}</strong></span
+            >
+            <span
+              ><small>CPA</small><strong>{{ group.cpa }}</strong></span
+            >
+            <span
+              ><small>Ganancia</small><strong>{{ group.profit }}</strong></span
+            >
           </div>
         </article>
+      } @empty {
+        <p class="table-empty">No hay conjuntos calculados con los datos importados.</p>
       }
     </div>
   </section>
@@ -282,20 +341,26 @@
       </div>
       <aside>
         <span>Total</span>
-        <strong>239</strong>
+        <strong>{{ filteredOrders().length }}</strong>
       </aside>
     </header>
 
     <div class="status-grid">
-      @for (item of statusRows; track item.label; let index = $index) {
-        <article class="status-card" [style.--accent]="item.color" [style.--delay]="index * 35 + 'ms'">
+      @for (item of statusRows(); track item.label; let index = $index) {
+        <article
+          class="status-card"
+          [style.--accent]="item.color"
+          [style.--delay]="index * 35 + 'ms'"
+        >
           <span class="material-symbols-rounded" [style.color]="item.color" aria-hidden="true">
             {{ item.icon }}
           </span>
           <strong>{{ item.count }}</strong>
           <p>{{ item.label }}</p>
-          <small>{{ item.percentage }} %</small>
-          <span class="status-card__bar"><i [style.width.%]="item.percentage" [style.background]="item.color"></i></span>
+          <small>{{ item.percentageLabel }} %</small>
+          <span class="status-card__bar"
+            ><i [style.width.%]="item.percentage" [style.background]="item.color"></i
+          ></span>
         </article>
       }
     </div>
@@ -305,9 +370,18 @@
     <header class="orders-section__header">
       <div>
         <h3 id="orders-title">Todas las órdenes</h3>
-        <p>{{ filteredOrders().length }} de {{ orders.length }} órdenes · {{ filteredRevenue() }} ventas · {{ filteredProfit() }} ganancia</p>
+        <p>
+          {{ filteredOrders().length }} de {{ orders().length }} órdenes ·
+          {{ filteredRevenue() }} ventas · {{ filteredProfit() }} ganancia
+        </p>
       </div>
-      <button type="button" data-testid="orders-filter-button" [class.is-open]="filtersVisible()" [attr.aria-expanded]="filtersVisible()" (click)="toggleFilters()">
+      <button
+        type="button"
+        data-testid="orders-filter-button"
+        [class.is-open]="filtersVisible()"
+        [attr.aria-expanded]="filtersVisible()"
+        (click)="toggleFilters()"
+      >
         <span class="material-symbols-rounded" aria-hidden="true">filter_list</span>
         Filtros
         @if (activeFilterCount() > 0) {
@@ -317,7 +391,11 @@
     </header>
 
     @if (filtersVisible()) {
-      <form class="orders-section__filters" data-testid="orders-filters" aria-label="Filtros de órdenes">
+      <form
+        class="orders-section__filters"
+        data-testid="orders-filters"
+        aria-label="Filtros de órdenes"
+      >
         <label class="filter-field filter-field--wide">
           <span>Buscar</span>
           <span class="filter-control filter-control--search">
@@ -369,7 +447,12 @@
 
         <label class="filter-field">
           <span>Conjunto</span>
-          <select name="groupFilter" data-testid="group-filter-select" [value]="groupFilter()" (change)="groupFilter.set($any($event.target).value)">
+          <select
+            name="groupFilter"
+            data-testid="group-filter-select"
+            [value]="groupFilter()"
+            (change)="groupFilter.set($any($event.target).value)"
+          >
             <option value="all">Todos</option>
             @for (option of groupOptions(); track option) {
               <option [value]="option">{{ option }}</option>
@@ -379,7 +462,12 @@
 
         <label class="filter-field">
           <span>Transportadora</span>
-          <select name="carrierFilter" data-testid="carrier-filter-select" [value]="carrierFilter()" (change)="carrierFilter.set($any($event.target).value)">
+          <select
+            name="carrierFilter"
+            data-testid="carrier-filter-select"
+            [value]="carrierFilter()"
+            (change)="carrierFilter.set($any($event.target).value)"
+          >
             <option value="all">Todas</option>
             @for (option of carrierOptions(); track option) {
               <option [value]="option">{{ option }}</option>
@@ -389,7 +477,12 @@
 
         <label class="filter-field">
           <span>Ciudad</span>
-          <select name="cityFilter" data-testid="city-filter-select" [value]="cityFilter()" (change)="cityFilter.set($any($event.target).value)">
+          <select
+            name="cityFilter"
+            data-testid="city-filter-select"
+            [value]="cityFilter()"
+            (change)="cityFilter.set($any($event.target).value)"
+          >
             <option value="all">Todas</option>
             @for (option of cityOptions(); track option) {
               <option [value]="option">{{ option }}</option>
@@ -399,7 +492,12 @@
 
         <label class="filter-field">
           <span>Estado guía</span>
-          <select name="guideStatusFilter" data-testid="guide-filter-select" [value]="guideStatusFilter()" (change)="guideStatusFilter.set($any($event.target).value)">
+          <select
+            name="guideStatusFilter"
+            data-testid="guide-filter-select"
+            [value]="guideStatusFilter()"
+            (change)="guideStatusFilter.set($any($event.target).value)"
+          >
             <option value="all">Todos</option>
             @for (option of guideStatusOptions(); track option) {
               <option [value]="option">{{ option }}</option>
@@ -409,14 +507,24 @@
 
         <label class="filter-field">
           <span>Urgencia</span>
-          <select name="urgentFilter" data-testid="urgent-filter-select" [value]="urgentFilter()" (change)="urgentFilter.set($any($event.target).value)">
+          <select
+            name="urgentFilter"
+            data-testid="urgent-filter-select"
+            [value]="urgentFilter()"
+            (change)="urgentFilter.set($any($event.target).value)"
+          >
             <option value="all">Todas</option>
             <option value="yes">Urgentes</option>
             <option value="no">Sin urgencia</option>
           </select>
         </label>
 
-        <button type="button" class="ghost-button orders-section__clear" [disabled]="activeFilterCount() === 0" (click)="resetFilters()">
+        <button
+          type="button"
+          class="ghost-button orders-section__clear"
+          [disabled]="activeFilterCount() === 0"
+          (click)="resetFilters()"
+        >
           <span class="material-symbols-rounded" aria-hidden="true">backspace</span>
           Limpiar
         </button>
@@ -448,7 +556,9 @@
               <td>{{ row.order }}</td>
               <td>{{ row.dateLabel }}</td>
               <td>{{ row.guide }}</td>
-              <td><span class="pill">{{ row.status }}</span></td>
+              <td>
+                <span class="pill">{{ row.status }}</span>
+              </td>
               <td>
                 <span class="guide-pill">
                   <i [style.background]="guideStatusColor(row.guideStatus)" aria-hidden="true"></i>

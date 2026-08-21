@@ -1,11 +1,19 @@
 <header class="expenses-header">
   <div>
-    <p class="expenses-header__eyebrow">Control financiero operativo</p>
-    <h2>Gastos</h2>
-    <span
-      >Última actualización {{ formatLastUpdated(lastUpdated()) }} · Contrato actual: Expenses
-      CRUD</span
-    >
+    <p class="expenses-header__eyebrow">FINANZAS DEL NEGOCIO</p>
+    <h1>Gastos</h1>
+    <span>Control de caja, presupuesto, egresos y soportes operativos.</span>
+
+    <div class="expenses-header__meta" aria-label="Estado financiero">
+      <span>
+        <i class="material-symbols-rounded" aria-hidden="true">account_balance</i>
+        App financiera
+      </span>
+      <span>
+        <i class="material-symbols-rounded" aria-hidden="true">sync</i>
+        {{ formatLastUpdated(lastUpdated()) }}
+      </span>
+    </div>
   </div>
 
   <div class="expenses-header__actions" aria-label="Acciones de gastos">
@@ -13,9 +21,20 @@
       <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
       Actualizar
     </button>
+    <button
+      type="button"
+      [class.expenses-header__filter--active]="filtersVisible() || activeFiltersCount() > 0"
+      (click)="toggleFilters.emit()"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+      Filtros
+      @if (activeFiltersCount() > 0) {
+        <b>{{ activeFiltersCount() }}</b>
+      }
+    </button>
     <button type="button" class="expenses-header__primary" (click)="create.emit()">
       <span class="material-symbols-rounded" aria-hidden="true">add</span>
-      Nuevo gasto
+      Nuevo movimiento
     </button>
   </div>
 </header>

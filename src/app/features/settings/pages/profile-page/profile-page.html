@@ -13,28 +13,11 @@
           <p class="settings-muted">Correo</p>
           <strong>{{ currentProfile.email }}</strong>
         </div>
-        <div>
-          <p class="settings-muted">Roles</p>
-          <strong>{{ currentProfile.roles.length || 0 }}</strong>
-        </div>
-        <div>
-          <p class="settings-muted">Permisos efectivos</p>
-          <strong>{{ currentProfile.permissions.length }}</strong>
-        </div>
-      </div>
-
-      <div>
-        <p class="settings-muted">Permisos de la sesion</p>
-        <div class="settings-permissions" aria-label="Permisos actuales">
-          @for (permission of currentProfile.permissions; track permission) {
-            <span>{{ permission }}</span>
-          } @empty {
-            <span>Sin permisos en el token actual.</span>
-          }
-        </div>
       </div>
     } @else {
-      <p class="settings-muted">No hay informacion de perfil disponible. Inicia sesion nuevamente.</p>
+      <p class="settings-muted">
+        No hay información de perfil disponible. Inicia sesión nuevamente.
+      </p>
     }
   </article>
 </section>

@@ -4,11 +4,7 @@ import { catchError, map, Observable, throwError } from 'rxjs';
 
 import { API_CONFIG } from '../../../core/config/api.config';
 import { ApiResponse } from '../../../core/models/api-response.model';
-import {
-  FileAccessUrl,
-  FileStatistics,
-  ManagedFile,
-} from './files.models';
+import { FileAccessUrl, FileStatistics, ManagedFile } from './files.models';
 
 @Injectable({ providedIn: 'root' })
 export class FilesApiService {
@@ -93,7 +89,7 @@ function resolveStatusMessage(status: number): string {
     413: 'El archivo supera el tamaño permitido.',
     415: 'El tipo de archivo no está permitido.',
     500: 'Ocurrió un error interno en el servidor.',
-    503: 'Firebase Storage no está configurado.',
+    503: 'El almacenamiento de archivos no está configurado.',
   };
 
   return messages[status] ?? 'No fue posible completar la operación.';

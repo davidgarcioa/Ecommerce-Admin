@@ -1,7 +1,11 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 import { EcommerceTest } from '../../data-access/testing.models';
-import { formatTestingDate, formatTestingStatus, formatTestingType } from '../../utils/testing.formatters';
+import {
+  formatTestingDate,
+  formatTestingStatus,
+  formatTestingType,
+} from '../../utils/testing.formatters';
 
 @Component({
   selector: 'app-testing-detail-card',

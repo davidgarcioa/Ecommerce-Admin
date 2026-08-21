@@ -4,11 +4,7 @@ import {
   FILE_STATUS_LABELS,
 } from '../utils/files.constants';
 import { formatFileSize } from '../utils/files.formatters';
-import {
-  FileMetadataFormValue,
-  ManagedFile,
-  ManagedFileListItem,
-} from './files.models';
+import { FileMetadataFormValue, ManagedFile, ManagedFileListItem } from './files.models';
 
 export function toFileListItem(file: ManagedFile): ManagedFileListItem {
   return {

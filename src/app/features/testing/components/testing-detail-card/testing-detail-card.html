@@ -1,28 +1,72 @@
 <article class="testing-detail">
-  <header>
-    <p>{{ test().code }} · {{ type(test().type) }}</p>
-    <h2>{{ test().name }}</h2>
-    <span>{{ status(test().status) }} · Responsable {{ test().owner }}</span>
+  <header class="testing-detail__header">
+    <div>
+      <p class="testing-detail__eyebrow">{{ test().code }} - {{ type(test().type) }}</p>
+      <h2>{{ test().name }}</h2>
+      <span>{{ status(test().status) }} - Responsable {{ test().owner }}</span>
+    </div>
+    <span class="testing-detail__status">{{ status(test().status) }}</span>
   </header>
 
-  <dl>
-    <div><dt>Objetivo</dt><dd>{{ test().objective }}</dd></div>
-    <div><dt>Hipotesis</dt><dd>{{ test().hypothesis }}</dd></div>
-    <div><dt>Asociacion</dt><dd>{{ test().association.label }}</dd></div>
-    <div><dt>Fecha inicial</dt><dd>{{ date(test().startDate) }}</dd></div>
-    <div><dt>Fecha final</dt><dd>{{ date(test().endDate) }}</dd></div>
-    <div><dt>Resultado</dt><dd>{{ test().resultSummary || 'Sin resultado registrado' }}</dd></div>
-    <div><dt>Ganador</dt><dd>{{ test().winner || 'Sin ganador marcado' }}</dd></div>
-    <div><dt>Actualizacion</dt><dd>{{ date(test().updatedAt) }}</dd></div>
+  <dl class="testing-detail__grid">
+    <div>
+      <dt>Objetivo</dt>
+      <dd>{{ test().objective }}</dd>
+    </div>
+    <div>
+      <dt>Hipotesis</dt>
+      <dd>{{ test().hypothesis }}</dd>
+    </div>
+    <div>
+      <dt>Asociacion</dt>
+      <dd>{{ test().association.label }}</dd>
+    </div>
+    <div>
+      <dt>Fecha inicial</dt>
+      <dd>{{ date(test().startDate) }}</dd>
+    </div>
+    <div>
+      <dt>Fecha final</dt>
+      <dd>{{ date(test().endDate) }}</dd>
+    </div>
+    <div>
+      <dt>Resultado</dt>
+      <dd>{{ test().resultSummary || 'Sin resultado registrado' }}</dd>
+    </div>
+    <div>
+      <dt>Ganador</dt>
+      <dd>{{ test().winner || 'Sin ganador marcado' }}</dd>
+    </div>
+    <div>
+      <dt>Actualizacion</dt>
+      <dd>{{ date(test().updatedAt) }}</dd>
+    </div>
   </dl>
 
   <div class="testing-detail__actions">
-    <button type="button" (click)="edit.emit()" [disabled]="!canUpdate()">Editar</button>
+    <button type="button" (click)="edit.emit()" [disabled]="!canUpdate()">
+      <span class="material-symbols-rounded" aria-hidden="true">edit</span>
+      Editar
+    </button>
     @if (test().status === 'archived') {
-      <button type="button" (click)="restore.emit()" [disabled]="!canArchive()">Restaurar</button>
+      <button type="button" (click)="restore.emit()" [disabled]="!canArchive()">
+        <span class="material-symbols-rounded" aria-hidden="true">unarchive</span>
+        Restaurar
+      </button>
     } @else {
-      <button type="button" (click)="archive.emit()" [disabled]="!canArchive()">Archivar</button>
+      <button type="button" (click)="archive.emit()" [disabled]="!canArchive()">
+        <span class="material-symbols-rounded" aria-hidden="true">archive</span>
+        Archivar
+      </button>
     }
-    <button type="button" class="testing-detail__danger" (click)="deleteTest.emit()" [disabled]="!canDelete()">Eliminar</button>
+    <button
+      type="button"
+      class="testing-detail__danger"
+      (click)="deleteTest.emit()"
+      [disabled]="!canDelete()"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+      Eliminar
+    </button>
   </div>
 </article>

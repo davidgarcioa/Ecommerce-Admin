@@ -1,61 +1,207 @@
-<section class="product-groups-filters" aria-label="Filtros de conjuntos">
-  <label>
-    Buscar
-    <input
-      type="search"
-      placeholder="Nombre o código"
-      [value]="search()"
-      #searchInput
-      (input)="onSearch(searchInput.value)"
-    />
-  </label>
+<form class="product-groups-filters" (ngSubmit)="onApply()" aria-label="Filtros de conjuntos">
+  <header class="product-groups-filters__header">
+    <div class="product-groups-filters__title">
+      <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+      <div>
+        <strong>Filtros</strong>
+        <p>
+          {{
+            activeFiltersCount() === 1
+              ? '1 ajuste activo'
+              : activeFiltersCount() + ' ajustes activos'
+          }}
+        </p>
+      </div>
+    </div>
+  </header>
 
-  <label>
-    Estado
-    <select [value]="filters().status" #statusSelect (change)="onStatus(statusSelect.value)">
-      <option value="all">Todos</option>
-      <option value="active">Activos</option>
-      <option value="inactive">Inactivos</option>
-      <option value="archived">Archivados</option>
-    </select>
-  </label>
+  <div class="product-groups-filters__grid">
+    <label class="product-groups-filters__field product-groups-filters__field--search">
+      <span>Buscar</span>
+      <div class="product-groups-filters__search">
+        <span class="material-symbols-rounded" aria-hidden="true">search</span>
+        <input
+          type="search"
+          placeholder="Nombre, codigo o descripcion"
+          [value]="currentSearch()"
+          (focus)="closeSelects()"
+          (input)="onSearchChange($event)"
+        />
+      </div>
+    </label>
 
-  <label>
-    Destacado
-    <select
-      [value]="filters().featured"
-      #featuredSelect
-      (change)="onFeatured(featuredSelect.value)"
-    >
-      <option value="all">Todos</option>
-      <option value="featured">Destacados</option>
-      <option value="standard">Estándar</option>
-    </select>
-  </label>
+    <label class="product-groups-filters__field">
+      <span>Estado</span>
+      <div
+        class="product-groups-filters__select"
+        [class.product-groups-filters__select--open]="isSelectOpen('status')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="product-groups-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('status')"
+          (click)="toggleSelect('status')"
+        >
+          <span>{{ selectedStatusLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
 
-  <label>
-    Rentabilidad
-    <select
-      [value]="filters().rentability"
-      #rentabilitySelect
-      (change)="onRentability(rentabilitySelect.value)"
-    >
-      <option value="all">Todas</option>
-      <option value="profitable">Rentables</option>
-      <option value="low-margin">Margen bajo</option>
-      <option value="loss">Pérdida</option>
-    </select>
-  </label>
+        @if (isSelectOpen('status')) {
+          <div class="product-groups-filters__select-menu" role="listbox">
+            @for (option of statusOptions; track option.value) {
+              <button
+                type="button"
+                role="option"
+                [class.product-groups-filters__select-option--selected]="
+                  currentFilters().status === option.value
+                "
+                [attr.aria-selected]="currentFilters().status === option.value"
+                (click)="selectStatus(option.value)"
+              >
+                <span>{{ option.label }}</span>
+                @if (currentFilters().status === option.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
 
-  <label>
-    Orden
-    <select [value]="sort()" #sortSelect (change)="onSort(sortSelect.value)">
-      <option value="sortOrder">Orden manual</option>
-      <option value="name">Nombre</option>
-      <option value="updatedAt">Actualización</option>
-      <option value="estimatedProfit">Ganancia</option>
-    </select>
-  </label>
+    <label class="product-groups-filters__field">
+      <span>Destacado</span>
+      <div
+        class="product-groups-filters__select"
+        [class.product-groups-filters__select--open]="isSelectOpen('featured')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="product-groups-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('featured')"
+          (click)="toggleSelect('featured')"
+        >
+          <span>{{ selectedFeaturedLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
 
-  <button type="button" (click)="clear.emit()">Limpiar</button>
-</section>
+        @if (isSelectOpen('featured')) {
+          <div class="product-groups-filters__select-menu" role="listbox">
+            @for (option of featuredOptions; track option.value) {
+              <button
+                type="button"
+                role="option"
+                [class.product-groups-filters__select-option--selected]="
+                  currentFilters().featured === option.value
+                "
+                [attr.aria-selected]="currentFilters().featured === option.value"
+                (click)="selectFeatured(option.value)"
+              >
+                <span>{{ option.label }}</span>
+                @if (currentFilters().featured === option.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
+
+    <label class="product-groups-filters__field">
+      <span>Rentabilidad</span>
+      <div
+        class="product-groups-filters__select"
+        [class.product-groups-filters__select--open]="isSelectOpen('rentability')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="product-groups-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('rentability')"
+          (click)="toggleSelect('rentability')"
+        >
+          <span>{{ selectedRentabilityLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+
+        @if (isSelectOpen('rentability')) {
+          <div class="product-groups-filters__select-menu" role="listbox">
+            @for (option of rentabilityOptions; track option.value) {
+              <button
+                type="button"
+                role="option"
+                [class.product-groups-filters__select-option--selected]="
+                  currentFilters().rentability === option.value
+                "
+                [attr.aria-selected]="currentFilters().rentability === option.value"
+                (click)="selectRentability(option.value)"
+              >
+                <span>{{ option.label }}</span>
+                @if (currentFilters().rentability === option.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
+
+    <label class="product-groups-filters__field">
+      <span>Orden</span>
+      <div
+        class="product-groups-filters__select"
+        [class.product-groups-filters__select--open]="isSelectOpen('sort')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="product-groups-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('sort')"
+          (click)="toggleSelect('sort')"
+        >
+          <span>{{ selectedSortLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+
+        @if (isSelectOpen('sort')) {
+          <div class="product-groups-filters__select-menu" role="listbox">
+            @for (option of sortOptions; track option.value) {
+              <button
+                type="button"
+                role="option"
+                [class.product-groups-filters__select-option--selected]="
+                  currentSort() === option.value
+                "
+                [attr.aria-selected]="currentSort() === option.value"
+                (click)="selectSort(option.value)"
+              >
+                <span>{{ option.label }}</span>
+                @if (currentSort() === option.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
+
+    <div class="product-groups-filters__actions">
+      <button
+        type="submit"
+        class="product-groups-filters__button product-groups-filters__button--primary"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">check</span>
+        Aplicar
+      </button>
+      <button type="button" class="product-groups-filters__button" (click)="onClear()">
+        <span class="material-symbols-rounded" aria-hidden="true">restart_alt</span>
+        Limpiar
+      </button>
+    </div>
+  </div>
+</form>

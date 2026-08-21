@@ -72,7 +72,11 @@ export class AuthPageComponent {
     const password = this.registerForm.controls.password;
     const hasValue = password.value.trim().length > 0;
 
-    return hasValue && password.invalid && (this.registerPasswordFocused() || password.touched || password.dirty);
+    return (
+      hasValue &&
+      password.invalid &&
+      (this.registerPasswordFocused() || password.touched || password.dirty)
+    );
   }
 
   onLoginSubmit(event: Event): void {
@@ -217,4 +221,3 @@ function minLengthMessage(controlName: string): string {
 
   return messages[controlName] ?? 'El valor es demasiado corto.';
 }
-

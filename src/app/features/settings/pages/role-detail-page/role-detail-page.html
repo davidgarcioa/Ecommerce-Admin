@@ -6,17 +6,31 @@
     </div>
     <div class="settings-page__actions">
       <a class="settings-button" routerLink="/configuracion/roles">Volver</a>
-      <button type="button" class="settings-button settings-button--primary" (click)="edit()">Editar</button>
+      <button type="button" class="settings-button settings-button--primary" (click)="edit()">
+        Editar
+      </button>
     </div>
   </header>
 
   @if (role(); as selectedRole) {
     <article class="settings-card">
       <div class="settings-grid">
-        <div><p class="settings-muted">Nombre</p><strong>{{ selectedRole.name }}</strong></div>
-        <div><p class="settings-muted">Estado</p><strong>{{ selectedRole.active ? 'Activo' : 'Inactivo' }}</strong></div>
-        <div><p class="settings-muted">Origen</p><strong>{{ selectedRole.system ? 'Sistema' : 'Personalizado' }}</strong></div>
-        <div><p class="settings-muted">Permisos</p><strong>{{ selectedRole.permissions.length }}</strong></div>
+        <div>
+          <p class="settings-muted">Nombre</p>
+          <strong>{{ selectedRole.name }}</strong>
+        </div>
+        <div>
+          <p class="settings-muted">Estado</p>
+          <strong>{{ selectedRole.active ? 'Activo' : 'Inactivo' }}</strong>
+        </div>
+        <div>
+          <p class="settings-muted">Origen</p>
+          <strong>{{ selectedRole.system ? 'Sistema' : 'Personalizado' }}</strong>
+        </div>
+        <div>
+          <p class="settings-muted">Permisos</p>
+          <strong>{{ selectedRole.permissions.length }}</strong>
+        </div>
       </div>
 
       <p class="settings-muted">{{ selectedRole.description }}</p>
@@ -30,6 +44,8 @@
       </div>
     </article>
   } @else {
-    <article class="settings-card"><p class="settings-muted">No se encontro el rol solicitado.</p></article>
+    <article class="settings-card">
+      <p class="settings-muted">No se encontró el rol solicitado.</p>
+    </article>
   }
 </section>

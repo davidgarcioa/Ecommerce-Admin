@@ -1,6 +1,13 @@
 <section class="testing-detail-page" aria-labelledby="testing-detail-title">
-  <header><p>Testeos</p><h2 id="testing-detail-title">Detalle de testeo</h2></header>
-  @if (error(); as message) { <p class="testing-detail-page__error" role="alert">{{ message }}</p> }
+  <header class="testing-detail-page__header">
+    <p>Testeos</p>
+    <h2 id="testing-detail-title">Detalle de testeo</h2>
+  </header>
+
+  @if (error(); as message) {
+    <p class="testing-detail-page__error" role="alert">{{ message }}</p>
+  }
+
   @if (test(); as currentTest) {
     <app-testing-detail-card
       [test]="currentTest"

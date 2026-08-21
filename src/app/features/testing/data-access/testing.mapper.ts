@@ -26,7 +26,7 @@ export function toTestingListItem(item: EcommerceTest): TestingListItem {
     associationLabel:
       item.association.type === 'none'
         ? 'Sin asociacion'
-        : `${formatAssociationType(item.association.type)} · ${item.association.label}`,
+        : `${formatAssociationType(item.association.type)} - ${item.association.label}`,
     associationType: item.association.type,
     startDate: item.startDate,
     endDate: item.endDate ?? '',
@@ -58,7 +58,9 @@ function toRequest(value: TestingFormValue): CreateTestingRequest {
     hypothesis: normalizeTestingText(value.hypothesis),
     association: {
       type: value.associationType,
-      ...(optional(value.associationEntityId) ? { entityId: optional(value.associationEntityId) } : {}),
+      ...(optional(value.associationEntityId)
+        ? { entityId: optional(value.associationEntityId) }
+        : {}),
       label:
         value.associationType === 'none'
           ? 'Sin asociacion'

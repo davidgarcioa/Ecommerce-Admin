@@ -149,13 +149,14 @@ export class ImportValidationService {
         normalizedValue &&
         !this.isAllowedStatus(String(normalizedValue))
       ) {
+        const statusValue = String(rawValue ?? normalizedValue).trim();
         errors.push(
           this.issue(
             row.rowIndex,
             definition.key,
             mapping?.sourceColumnName,
             'status',
-            'Estado no permitido.',
+            `Estado no permitido: ${statusValue || 'sin valor'}.`,
             rawValue,
           ),
         );
@@ -213,8 +214,10 @@ export class ImportValidationService {
   }
 
   private isAllowedStatus(value: string): boolean {
-    const normalizedValue = normalizeText(value);
-    return ALLOWED_ORDER_STATUSES.some((status) => normalizeText(status) === normalizedValue);
+    const normalizedValue = normalizeStatusValue(value);
+    return ALLOWED_ORDER_STATUSES.some(
+      (status) => normalizeStatusValue(status) === normalizedValue,
+    );
   }
 
   private issue(
@@ -241,4 +244,8 @@ export class ImportValidationService {
       excluded: false,
     };
   }
+}
+
+function normalizeStatusValue(value: unknown): string {
+  return normalizeText(value).replace(/[_-]+/g, ' ');
 }

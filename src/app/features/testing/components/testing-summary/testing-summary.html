@@ -1,8 +1,53 @@
 <section class="testing-summary" aria-label="Resumen de testeos">
-  <article><span>Total</span><strong>{{ total() }}</strong></article>
-  <article><span>Activos</span><strong>{{ active() }}</strong></article>
-  <article><span>Finalizados</span><strong>{{ completed() }}</strong></article>
-  <article><span>Borradores</span><strong>{{ draft() }}</strong></article>
-  <article><span>Pausados</span><strong>{{ paused() }}</strong></article>
-  <article><span>Archivados</span><strong>{{ archived() }}</strong></article>
+  <article class="testing-summary__card testing-summary__card--blue">
+    <span class="testing-summary__icon material-symbols-rounded" aria-hidden="true">science</span>
+    <span class="testing-summary__dot" aria-hidden="true"></span>
+    <p>Total</p>
+    <strong>{{ total() }}</strong>
+    <small>Testeos registrados</small>
+  </article>
+
+  <article class="testing-summary__card testing-summary__card--green">
+    <span class="testing-summary__icon material-symbols-rounded" aria-hidden="true"
+      >play_circle</span
+    >
+    <span class="testing-summary__dot" aria-hidden="true"></span>
+    <p>Activos</p>
+    <strong>{{ active() }}</strong>
+    <small>Validaciones en curso</small>
+  </article>
+
+  <article class="testing-summary__card testing-summary__card--cyan">
+    <span class="testing-summary__icon material-symbols-rounded" aria-hidden="true">task_alt</span>
+    <span class="testing-summary__dot" aria-hidden="true"></span>
+    <p>Finalizados</p>
+    <strong>{{ completed() }}</strong>
+    <small>Con resultado cerrado</small>
+  </article>
+
+  <article class="testing-summary__card testing-summary__card--violet">
+    <span class="testing-summary__icon material-symbols-rounded" aria-hidden="true">edit_note</span>
+    <span class="testing-summary__dot" aria-hidden="true"></span>
+    <p>Borradores</p>
+    <strong>{{ draft() }}</strong>
+    <small>Pendientes por activar</small>
+  </article>
+
+  <article class="testing-summary__card testing-summary__card--amber">
+    <span class="testing-summary__icon material-symbols-rounded" aria-hidden="true"
+      >pause_circle</span
+    >
+    <span class="testing-summary__dot" aria-hidden="true"></span>
+    <p>Pausados</p>
+    <strong>{{ paused() }}</strong>
+    <small>En espera de decision</small>
+  </article>
+
+  <article class="testing-summary__card testing-summary__card--red">
+    <span class="testing-summary__icon material-symbols-rounded" aria-hidden="true">archive</span>
+    <span class="testing-summary__dot" aria-hidden="true"></span>
+    <p>Archivados</p>
+    <strong>{{ archived() }}</strong>
+    <small>Fuera del flujo actual</small>
+  </article>
 </section>

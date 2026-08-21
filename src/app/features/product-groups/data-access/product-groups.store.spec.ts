@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { PermissionsService } from '../../../core/services/permissions.service';
 import { ProductGroupsApiService } from './product-groups-api.service';
@@ -62,9 +62,27 @@ const profitability: ProductGroupProfitability = {
 
 describe('ProductGroupsStore', () => {
   let store: ProductGroupsStore;
+  let apiStub: {
+    listGroups: ReturnType<typeof vi.fn>;
+    getGroup: ReturnType<typeof vi.fn>;
+    groupProducts: ReturnType<typeof vi.fn>;
+    profitability: ReturnType<typeof vi.fn>;
+    history: ReturnType<typeof vi.fn>;
+    availableProducts: ReturnType<typeof vi.fn>;
+    createGroup: ReturnType<typeof vi.fn>;
+    updateGroup: ReturnType<typeof vi.fn>;
+    archiveGroup: ReturnType<typeof vi.fn>;
+    restoreGroup: ReturnType<typeof vi.fn>;
+    deleteGroup: ReturnType<typeof vi.fn>;
+    addProducts: ReturnType<typeof vi.fn>;
+    removeProduct: ReturnType<typeof vi.fn>;
+    reorderProducts: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
-    const apiStub = {
+    globalThis.localStorage?.clear();
+
+    apiStub = {
       listGroups: vi.fn(() => of([group])),
       getGroup: vi.fn(() => of(group)),
       groupProducts: vi.fn(() => of([product])),
@@ -91,6 +109,10 @@ describe('ProductGroupsStore', () => {
     store = TestBed.inject(ProductGroupsStore);
   });
 
+  afterEach(() => {
+    globalThis.localStorage?.clear();
+  });
+
   it('loads groups and computes summary', () => {
     store.loadGroups();
 
@@ -98,6 +120,15 @@ describe('ProductGroupsStore', () => {
     expect(store.totalGroups()).toBe(1);
     expect(store.activeGroups()).toBe(1);
     expect(store.estimatedProfit()).toBe(30000);
+  });
+
+  it('keeps a clean empty state when the API does not respond and no local groups exist', () => {
+    apiStub.listGroups.mockReturnValueOnce(throwError(() => new Error('API unavailable')));
+
+    store.loadGroups();
+
+    expect(store.groups().length).toBe(0);
+    expect(store.error()).toBeNull();
   });
 
   it('filters by search and clears filters', () => {

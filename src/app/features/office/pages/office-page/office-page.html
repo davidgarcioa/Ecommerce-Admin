@@ -2,8 +2,11 @@
   <app-office-header
     [loading]="loading()"
     [lastUpdated]="lastUpdated()"
+    [filtersOpen]="filtersOpen()"
+    [activeFilterCount]="activeFilterCount()"
     (refresh)="refresh()"
     (openPending)="openPending()"
+    (toggleFilters)="toggleFilters()"
   />
 
   <app-office-summary
@@ -17,13 +20,16 @@
     [pendingValue]="statistics().pendingValue"
   />
 
-  <app-office-filters
-    [search]="search()"
-    [filters]="filters()"
-    (searchChange)="applySearch($event)"
-    (filtersChange)="applyFilters($event)"
-    (clear)="clearFilters()"
-  />
+  @if (filtersOpen()) {
+    <div class="office-page__filters">
+      <app-office-filters
+        [search]="search()"
+        [filters]="filters()"
+        (apply)="applyFilterState($event)"
+        (clear)="clearFilters()"
+      />
+    </div>
+  }
 
   @if (error(); as message) {
     <section class="office-page__error" role="alert">

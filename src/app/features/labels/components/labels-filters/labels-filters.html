@@ -1,22 +1,176 @@
-<form class="labels-filters" [formGroup]="form" (ngSubmit)="onApply()" aria-label="Filtros de etiquetas">
-  <label>
-    Estado
-    <select formControlName="status">
-      @for (option of statusOptions; track option.value) {
-        <option [value]="option.value">{{ option.label }}</option>
-      }
-    </select>
-  </label>
+<form class="labels-filters" (ngSubmit)="onApply()" aria-label="Filtros de etiquetas">
+  <header class="labels-filters__header">
+    <div class="labels-filters__title">
+      <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+      <div>
+        <strong>Filtros</strong>
+        <p>
+          {{
+            activeFiltersCount() === 1
+              ? '1 ajuste activo'
+              : activeFiltersCount() + ' ajustes activos'
+          }}
+        </p>
+      </div>
+    </div>
+  </header>
 
-  <label>
-    Uso
-    <select formControlName="usage">
-      @for (option of usageOptions; track option.value) {
-        <option [value]="option.value">{{ option.label }}</option>
-      }
-    </select>
-  </label>
+  <div class="labels-filters__grid">
+    <label class="labels-filters__field labels-filters__field--search">
+      <span>Buscar</span>
+      <div class="labels-filters__search">
+        <span class="material-symbols-rounded" aria-hidden="true">search</span>
+        <input
+          type="search"
+          placeholder="Nombre, codigo o descripcion"
+          [value]="current().searchTerm"
+          (focus)="closeSelects()"
+          (input)="onSearchChange($event)"
+        />
+      </div>
+    </label>
 
-  <button type="submit">Aplicar</button>
-  <button type="button" (click)="onClear()">Limpiar</button>
+    <label class="labels-filters__field">
+      <span>Estado</span>
+      <div
+        class="labels-filters__select"
+        [class.labels-filters__select--open]="isSelectOpen('status')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="labels-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('status')"
+          (click)="toggleSelect('status')"
+        >
+          <span>{{ selectedStatusLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+
+        @if (isSelectOpen('status')) {
+          <div class="labels-filters__select-menu" role="listbox">
+            @for (option of statusOptions; track option.value) {
+              <button
+                type="button"
+                role="option"
+                [class.labels-filters__select-option--selected]="current().status === option.value"
+                [attr.aria-selected]="current().status === option.value"
+                (click)="selectStatus(option.value)"
+              >
+                <span>{{ option.label }}</span>
+                @if (current().status === option.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
+
+    <label class="labels-filters__field">
+      <span>Uso</span>
+      <div
+        class="labels-filters__select"
+        [class.labels-filters__select--open]="isSelectOpen('usage')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="labels-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('usage')"
+          (click)="toggleSelect('usage')"
+        >
+          <span>{{ selectedUsageLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+
+        @if (isSelectOpen('usage')) {
+          <div class="labels-filters__select-menu" role="listbox">
+            @for (option of usageOptions; track option.value) {
+              <button
+                type="button"
+                role="option"
+                [class.labels-filters__select-option--selected]="current().usage === option.value"
+                [attr.aria-selected]="current().usage === option.value"
+                (click)="selectUsage(option.value)"
+              >
+                <span>{{ option.label }}</span>
+                @if (current().usage === option.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
+
+    <label class="labels-filters__field">
+      <span>Color</span>
+      <div
+        class="labels-filters__select"
+        [class.labels-filters__select--open]="isSelectOpen('color')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="labels-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('color')"
+          (click)="toggleSelect('color')"
+        >
+          <span class="labels-filters__select-value">
+            @if (selectedColorValue(); as color) {
+              <span
+                class="labels-filters__color-dot"
+                [style.background]="color"
+                aria-hidden="true"
+              ></span>
+            }
+            <span>{{ selectedColorLabel() }}</span>
+          </span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+
+        @if (isSelectOpen('color')) {
+          <div class="labels-filters__select-menu" role="listbox">
+            @for (option of colorOptions; track option.value) {
+              <button
+                type="button"
+                role="option"
+                [class.labels-filters__select-option--selected]="current().color === option.value"
+                [attr.aria-selected]="current().color === option.value"
+                (click)="selectColor(option.value)"
+              >
+                <span class="labels-filters__option-label">
+                  @if (option.color) {
+                    <span
+                      class="labels-filters__color-dot"
+                      [style.background]="option.color"
+                      aria-hidden="true"
+                    ></span>
+                  }
+                  <span>{{ option.label }}</span>
+                </span>
+                @if (current().color === option.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
+
+    <div class="labels-filters__actions">
+      <button type="submit" class="labels-filters__button labels-filters__button--primary">
+        <span class="material-symbols-rounded" aria-hidden="true">check</span>
+        Aplicar
+      </button>
+      <button type="button" class="labels-filters__button" (click)="onClear()">
+        <span class="material-symbols-rounded" aria-hidden="true">restart_alt</span>
+        Limpiar
+      </button>
+    </div>
+  </div>
 </form>

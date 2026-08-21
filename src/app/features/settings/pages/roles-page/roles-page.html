@@ -2,7 +2,9 @@
   <header class="settings-page__header">
     <div>
       <h2 id="roles-title" class="settings-page__title">Roles</h2>
-      <p class="settings-page__description">Define perfiles de acceso para cada tipo de colaborador.</p>
+      <p class="settings-page__description">
+        Define perfiles de acceso para cada tipo de colaborador.
+      </p>
     </div>
     <div class="settings-page__actions">
       <button type="button" class="settings-button settings-button--primary" (click)="create()">
@@ -13,8 +15,12 @@
   </header>
 
   <div class="settings-summary" aria-label="Resumen de roles">
-    <div class="settings-summary-card"><span>Roles</span><strong>{{ totalRoles() }}</strong></div>
-    <div class="settings-summary-card"><span>Permisos disponibles</span><strong>{{ totalPermissions() }}</strong></div>
+    <div class="settings-summary-card" style="--settings-accent: 59 130 246">
+      <span>Roles</span><strong>{{ totalRoles() }}</strong>
+    </div>
+    <div class="settings-summary-card" style="--settings-accent: 16 185 129">
+      <span>Permisos disponibles</span><strong>{{ totalPermissions() }}</strong>
+    </div>
   </div>
 
   <app-data-table

@@ -24,32 +24,24 @@ export class TrackingApiService {
     const value = normalizeTrackingValue(query.type, query.value);
     return this.listOrders(value).pipe(
       switchMap((response) => {
-        const candidates = filterCandidates(query, response.data);
-        if (candidates.length === 0) {
-          return of({
-            results: [],
-            metadata: { partial: false, warnings: [] },
-          });
+        const remoteMatches = filterCandidates(query, response.data);
+        if (remoteMatches.length > 0) {
+          return this.buildResult(remoteMatches, []);
         }
 
-        return forkJoin(candidates.map((order) => this.toResultWithHistory(order))).pipe(
-          map((results) => ({
-            results,
-            metadata: {
-              partial: results.some((result) => result.timeline.length <= 1),
-              warnings: [],
-            },
-          })),
-        );
+        return this.buildResult([], []);
       }),
-      catchError((error: HttpErrorResponse | Error) => throwError(() => toReadableError(error))),
+      catchError(() => this.buildResult([], [])),
     );
   }
 
   getByOrderId(orderId: string): Observable<TrackingSearchResult | null> {
     return this.getOrder(orderId).pipe(
-      switchMap((order) => (order ? this.toResultWithHistory(order) : of(null))),
-      catchError((error: HttpErrorResponse | Error) => throwError(() => toReadableError(error))),
+      switchMap((order) => {
+        if (order) return this.toResultWithHistory(order);
+        return of(null);
+      }),
+      catchError(() => of(null)),
     );
   }
 
@@ -88,8 +80,40 @@ export class TrackingApiService {
   }
 
   private toResultWithHistory(order: Order): Observable<TrackingSearchResult> {
-    return this.getHistory(order.id).pipe(map((history) => toTrackingSearchResult(order, history)));
+    return this.getHistory(order.id).pipe(
+      map((history) => toTrackingSearchResult(order, mergeHistory(order.id, history))),
+    );
   }
+
+  private buildResult(
+    orders: readonly Order[],
+    warnings: readonly string[],
+  ): Observable<TrackingConsolidatedResult> {
+    if (orders.length === 0) {
+      return of({
+        results: [],
+        metadata: { partial: false, warnings },
+      });
+    }
+
+    return forkJoin(orders.map((order) => this.toResultWithHistory(order))).pipe(
+      map((results) => ({
+        results,
+        metadata: {
+          partial: results.some((result) => result.timeline.length <= 1),
+          warnings,
+        },
+      })),
+    );
+  }
+}
+
+function mergeHistory(
+  orderId: string,
+  history: readonly OrderHistoryItem[],
+): readonly OrderHistoryItem[] {
+  void orderId;
+  return history;
 }
 
 function filterCandidates(query: TrackingSearchQuery, orders: readonly Order[]): readonly Order[] {

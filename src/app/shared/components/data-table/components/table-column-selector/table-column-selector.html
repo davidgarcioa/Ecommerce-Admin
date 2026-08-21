@@ -8,7 +8,10 @@
 
   <div class="column-selector__grid">
     @for (column of columns(); track column.key) {
-      <label class="column-selector__option" [class.column-selector__option--active]="isColumnVisible(column.key)">
+      <label
+        class="column-selector__option"
+        [class.column-selector__option--active]="isColumnVisible(column.key)"
+      >
         <input
           type="checkbox"
           [checked]="isColumnVisible(column.key)"

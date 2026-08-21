@@ -1,28 +1,29 @@
 <section class="settings-shell" aria-labelledby="settings-title">
   <header class="settings-shell__header">
-    <div>
-      <p>Administración</p>
+    <div class="settings-shell__content">
+      <p class="settings-shell__eyebrow">Administración</p>
       <h1 id="settings-title">Configuración</h1>
-      <span>Gestiona usuarios, roles y permisos reales del sistema.</span>
+      <span>Consulta la información principal de tu perfil.</span>
     </div>
-    <button type="button" (click)="refresh()" [disabled]="loading()">
+
+    <button
+      type="button"
+      class="settings-shell__refresh"
+      (click)="refresh()"
+      [disabled]="loading()"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">sync</span>
       Actualizar
     </button>
   </header>
 
-  <nav class="settings-shell__tabs" aria-label="Secciones de configuracion">
-    @for (tab of tabs; track tab.route) {
-      <a [routerLink]="tab.route" routerLinkActive="settings-shell__tab--active" class="settings-shell__tab">
-        {{ tab.label }}
-      </a>
-    }
-  </nav>
-
   @if (error()) {
     <div class="settings-shell__error" role="alert">
-      <span class="material-symbols-rounded" aria-hidden="true">error</span>
-      {{ error() }}
+      <span class="material-symbols-rounded" aria-hidden="true">info</span>
+      <div>
+        <strong>No se pudo sincronizar</strong>
+        <p>{{ error() }}</p>
+      </div>
     </div>
   }
 

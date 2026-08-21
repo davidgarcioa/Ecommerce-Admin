@@ -1,37 +1,53 @@
-<div class="expenses-page">
+<section class="expenses-page" aria-labelledby="expenses-title">
   <app-expenses-header
     [loading]="loading()"
     [lastUpdated]="lastUpdated()"
+    [filtersVisible]="filtersVisible()"
+    [activeFiltersCount]="activeFiltersCount()"
     (create)="create()"
     (refresh)="refresh()"
+    (toggleFilters)="toggleFilters()"
   />
+
+  @if (filtersVisible()) {
+    <div class="expenses-page__filters">
+      <app-expenses-filters
+        [search]="search()"
+        [filters]="filters()"
+        [sort]="sort()"
+        (searchChange)="applySearch($event)"
+        (filtersChange)="applyFilters($event)"
+        (sortChange)="setSort($event)"
+        (clear)="clearFilters()"
+      />
+    </div>
+  }
 
   <app-expenses-summary
     [totalAmount]="totalAmount()"
     [paidAmount]="paidAmount()"
     [pendingAmount]="pendingAmount()"
+    [projectedIncome]="projectedIncome()"
+    [netCashFlow]="netCashFlow()"
+    [budgetAmount]="budgetAmount()"
+    [budgetUsedPercentage]="budgetUsedPercentage()"
+    [paidRatio]="paidRatio()"
+    [pendingCount]="pendingCount()"
+    [overdueAmount]="overdueAmount()"
+    [dueSoonAmount]="dueSoonAmount()"
     [expenseCount]="totalExpenses()"
     [averageExpense]="averageExpense()"
     [topCategory]="topCategoryLabel()"
     [withoutReceipt]="withoutReceiptCount()"
+    [categoryBreakdown]="categoryBreakdown()"
     [loading]="loading()"
-  />
-
-  <app-expenses-filters
-    [search]="search()"
-    [filters]="filters()"
-    [sort]="sort()"
-    (searchChange)="applySearch($event)"
-    (filtersChange)="applyFilters($event)"
-    (sortChange)="setSort($event)"
-    (clear)="clearFilters()"
   />
 
   @if (error(); as message) {
     <section class="expenses-page__error" role="alert">
       <span class="material-symbols-rounded" aria-hidden="true">error</span>
       <div>
-        <strong>No fue posible cargar gastos</strong>
+        <strong>No fue posible cargar la app financiera</strong>
         <p>{{ message }}</p>
       </div>
       <button type="button" (click)="refresh()">Intentar nuevamente</button>
@@ -44,6 +60,7 @@
     [loading]="loading()"
     [error]="null"
     rowIdKey="id"
+    [searchable]="false"
     [selectable]="true"
     [multiSelect]="true"
     [sortable]="true"
@@ -51,8 +68,8 @@
     [pageSize]="20"
     [stickyHeader]="true"
     [compact]="true"
-    emptyTitle="Sin gastos"
-    emptyDescription="Registra un gasto para controlar los egresos operativos."
+    emptyTitle="Sin movimientos financieros"
+    emptyDescription="Registra un gasto para controlar caja, presupuesto y soportes."
     [exportEnabled]="true"
     [columnSelectorEnabled]="true"
     [rowActions]="rowActions()"
@@ -61,4 +78,4 @@
     (actionClick)="onAction($event)"
     (retry)="refresh()"
   />
-</div>
+</section>

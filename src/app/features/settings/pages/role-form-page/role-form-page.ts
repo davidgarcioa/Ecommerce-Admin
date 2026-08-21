@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
@@ -29,7 +37,7 @@ export class RoleFormPageComponent {
   readonly mode = computed(() => (this.id() ? 'edit' : 'create'));
   readonly role = computed(() => {
     const id = this.id();
-    return id ? this.store.roles().find((role) => role.id === id) ?? null : null;
+    return id ? (this.store.roles().find((role) => role.id === id) ?? null) : null;
   });
 
   readonly form = this.formBuilder.group({

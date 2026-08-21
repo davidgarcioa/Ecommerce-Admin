@@ -3,9 +3,12 @@
     [loading]="loading()"
     [lastUpdated]="lastUpdated()"
     [incidentCount]="ordersWithIncidents()"
+    [filtersOpen]="filtersOpen()"
+    [activeFilterCount]="activeFilterCount()"
     (refresh)="refresh()"
     (openPending)="openPending()"
     (openIncidents)="openIncidents()"
+    (toggleFilters)="toggleFilters()"
   />
 
   <app-logistics-summary
@@ -19,17 +22,20 @@
     [returned]="returnedOrders()"
   />
 
-  <app-logistics-filters
-    [search]="search()"
-    [filters]="filters()"
-    (searchChange)="applySearch($event)"
-    (filtersChange)="applyFilters($event)"
-    (clear)="clearFilters()"
-  />
+  @if (filtersOpen()) {
+    <div class="logistics-page__filters">
+      <app-logistics-filters
+        [search]="search()"
+        [filters]="filters()"
+        (apply)="applyFilterState($event)"
+        (clear)="clearFilters()"
+      />
+    </div>
+  }
 
   @if (error(); as message) {
     <section class="logistics-page__state" role="alert">
-      <strong>No fue posible cargar Torre Logística</strong>
+      <strong>No fue posible cargar Torre Logistica</strong>
       <p>{{ message }}</p>
       <button type="button" (click)="refresh()">Intentar nuevamente</button>
     </section>

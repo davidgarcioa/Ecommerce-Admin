@@ -1,23 +1,28 @@
-<form class="expense-form" [formGroup]="form" (ngSubmit)="submit()">
+<form
+  class="expense-form"
+  [formGroup]="form"
+  (ngSubmit)="submit()"
+  aria-label="Formulario financiero"
+>
   <div class="expense-form__grid">
-    <label>
-      Concepto
-      <input type="text" formControlName="concept" />
+    <label class="expense-form__field expense-form__wide">
+      <span>Concepto</span>
+      <input type="text" formControlName="concept" placeholder="Pauta Meta Ads" />
       @if (conceptError(); as message) {
-        <span>{{ message }}</span>
+        <small>{{ message }}</small>
       }
     </label>
 
-    <label>
-      Valor
-      <input type="number" min="1" step="1" formControlName="amount" />
+    <label class="expense-form__field">
+      <span>Valor</span>
+      <input type="number" min="1" step="1" inputmode="numeric" formControlName="amount" />
       @if (amountError(); as message) {
-        <span>{{ message }}</span>
+        <small>{{ message }}</small>
       }
     </label>
 
-    <label>
-      Estado
+    <label class="expense-form__field">
+      <span>Estado</span>
       <select formControlName="status">
         @for (status of statuses; track status.value) {
           <option [value]="status.value">{{ status.label }}</option>
@@ -25,8 +30,8 @@
       </select>
     </label>
 
-    <label>
-      Categoría
+    <label class="expense-form__field">
+      <span>Categoría</span>
       <select formControlName="category">
         @for (category of categories; track category.value) {
           <option [value]="category.value">{{ category.label }}</option>
@@ -34,8 +39,8 @@
       </select>
     </label>
 
-    <label>
-      Método de pago
+    <label class="expense-form__field">
+      <span>Método de pago</span>
       <select formControlName="paymentMethod">
         @for (method of paymentMethods; track method.value) {
           <option [value]="method.value">{{ method.label }}</option>
@@ -43,60 +48,71 @@
       </select>
     </label>
 
-    <label>
-      Responsable
-      <input type="text" formControlName="responsible" />
+    <label class="expense-form__field">
+      <span>Responsable</span>
+      <input type="text" formControlName="responsible" placeholder="Nombre del responsable" />
     </label>
 
-    <label>
-      Proveedor
-      <input type="text" formControlName="supplier" />
+    <label class="expense-form__field">
+      <span>Proveedor</span>
+      <input type="text" formControlName="supplier" placeholder="Proveedor o aliado" />
     </label>
 
-    <label>
-      Fecha
+    <label class="expense-form__field">
+      <span>Fecha</span>
       <input type="date" formControlName="expenseDate" />
     </label>
 
-    <label>
-      Vencimiento
+    <label class="expense-form__field">
+      <span>Vencimiento</span>
       <input type="date" formControlName="dueDate" />
     </label>
 
-    <label>
-      Pago
+    <label class="expense-form__field">
+      <span>Pago</span>
       <input type="date" formControlName="paymentDate" />
     </label>
 
-    <label>
-      Referencia
-      <input type="text" formControlName="reference" />
+    <label class="expense-form__field">
+      <span>Referencia</span>
+      <input type="text" formControlName="reference" placeholder="TRX, factura o consecutivo" />
     </label>
 
-    <label>
-      URL comprobante
-      <input type="url" formControlName="receiptUrl" />
+    <label class="expense-form__field">
+      <span>URL soporte</span>
+      <input type="url" formControlName="receiptUrl" placeholder="https://..." />
+    </label>
+
+    <label class="expense-form__field expense-form__wide">
+      <span>Descripción</span>
+      <textarea formControlName="description" rows="3"></textarea>
+    </label>
+
+    <label class="expense-form__field expense-form__wide">
+      <span>Notas internas</span>
+      <textarea formControlName="notes" rows="3"></textarea>
     </label>
   </div>
-
-  <label>
-    Descripción
-    <textarea formControlName="description" rows="3"></textarea>
-  </label>
-
-  <label>
-    Notas
-    <textarea formControlName="notes" rows="3"></textarea>
-  </label>
 
   @if (error(); as message) {
-    <p class="expense-form__error" role="alert">{{ message }}</p>
+    <p class="expense-form__error" role="alert">
+      <span class="material-symbols-rounded" aria-hidden="true">warning</span>
+      {{ message }}
+    </p>
   }
 
-  <div class="expense-form__actions">
-    <button type="button" (click)="cancel.emit()">Cancelar</button>
-    <button type="submit" [disabled]="saving()">
-      {{ saving() ? 'Guardando' : mode() === 'create' ? 'Crear gasto' : 'Guardar cambios' }}
+  <footer class="expense-form__actions">
+    <button type="button" class="expense-form__button" (click)="cancel.emit()">
+      <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      Cancelar
     </button>
-  </div>
+    <button
+      type="submit"
+      class="expense-form__button expense-form__button--primary"
+      [disabled]="saving()"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">check</span>
+      {{ saving() ? 'Guardando...' : mode() === 'create' ? 'Crear movimiento' : 'Guardar cambios' }}
+    </button>
+  </footer>
 </form>

@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { Router } from '@angular/router';
 
 import { DataTableComponent } from '../../../../shared/components/data-table/data-table.component';
@@ -57,6 +64,18 @@ export class ProductGroupsPageComponent implements OnInit {
   readonly estimatedProfit = this.store.estimatedProfit;
   readonly averageMargin = this.store.averageMargin;
   readonly preferencesKey = PRODUCT_GROUPS_TABLE_PREFERENCES_KEY;
+  readonly filtersVisible = signal(false);
+  readonly activeFiltersCount = computed(() => {
+    const filters = this.filters();
+
+    return (
+      Number(this.search().trim().length > 0) +
+      Number(filters.status !== 'all') +
+      Number(filters.featured !== 'all') +
+      Number(filters.rentability !== 'all') +
+      Number(this.sort() !== 'sortOrder')
+    );
+  });
 
   readonly columns = computed<readonly TableColumn<ProductGroupListItem>[]>(() => [
     {
@@ -71,7 +90,7 @@ export class ProductGroupsPageComponent implements OnInit {
     },
     {
       key: 'code',
-      label: 'Código',
+      label: 'Codigo',
       type: 'text',
       sortable: true,
       searchable: true,
@@ -101,7 +120,7 @@ export class ProductGroupsPageComponent implements OnInit {
     },
     {
       key: 'campaignCount',
-      label: 'Campañas',
+      label: 'Campanas',
       type: 'number',
       sortable: true,
       searchable: false,
@@ -164,7 +183,7 @@ export class ProductGroupsPageComponent implements OnInit {
     },
     {
       key: 'updatedAt',
-      label: 'Actualización',
+      label: 'Actualizacion',
       type: 'date',
       sortable: true,
       searchable: false,
@@ -203,7 +222,7 @@ export class ProductGroupsPageComponent implements OnInit {
       variant: 'danger',
       hidden: (row) => row.status === 'archived' || !this.store.canArchive(),
       confirmationRequired: true,
-      confirmationMessage: '¿Archivar este conjunto?',
+      confirmationMessage: 'Archivar este conjunto?',
     },
     {
       id: 'restore',
@@ -224,6 +243,10 @@ export class ProductGroupsPageComponent implements OnInit {
 
   refresh(): void {
     this.store.loadGroups();
+  }
+
+  toggleFilters(): void {
+    this.filtersVisible.update((visible) => !visible);
   }
 
   applySearch(search: string): void {

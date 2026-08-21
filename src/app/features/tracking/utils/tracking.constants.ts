@@ -13,14 +13,14 @@ export const TRACKING_SEARCH_TYPES: readonly {
   {
     id: 'order',
     label: 'Pedido',
-    placeholder: 'ORD-2026-0001',
-    example: 'Ejemplo: ORD-2026-0001',
+    placeholder: 'LK-0001',
+    example: 'Ejemplo: LK-0001',
   },
   {
     id: 'tracking',
     label: 'Guía',
-    placeholder: 'COORD-123456',
-    example: 'Ejemplo: ABC-123456',
+    placeholder: 'GUIA890001',
+    example: 'Ejemplo: GUIA890001',
   },
   {
     id: 'phone',

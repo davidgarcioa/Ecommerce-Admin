@@ -144,7 +144,9 @@ export class GuideStatusDonutComponent implements OnDestroy {
 
   readonly statusSegments = computed<readonly GuideStatusSegment[]>(() => {
     const selectedIds = this.effectiveSelectedGuideStatusIds();
-    const selectedStatuses = this.guideStatusOptions().filter((status) => selectedIds.includes(status.id));
+    const selectedStatuses = this.guideStatusOptions().filter((status) =>
+      selectedIds.includes(status.id),
+    );
     const total = selectedStatuses.reduce((sum, status) => sum + status.count, 0);
 
     return selectedStatuses.map((status) => {
@@ -265,7 +267,10 @@ export class GuideStatusDonutComponent implements OnDestroy {
   }
 
   isGuideStatusDisabled(statusId: string): boolean {
-    return !this.isGuideStatusSelected(statusId) && this.effectiveSelectedGuideStatusIds().length >= MAX_VISIBLE_GUIDE_STATUSES;
+    return (
+      !this.isGuideStatusSelected(statusId) &&
+      this.effectiveSelectedGuideStatusIds().length >= MAX_VISIBLE_GUIDE_STATUSES
+    );
   }
 
   guideStatusColor(statusId: string): string {
@@ -291,7 +296,9 @@ export class GuideStatusDonutComponent implements OnDestroy {
 
   availableGuideColors(statusId: string): readonly string[] {
     return GUIDE_COLOR_PALETTE.filter(
-      (color) => this.guideStatusColor(statusId) === color || !this.isColorUsedBySelectedStatus(color, statusId),
+      (color) =>
+        this.guideStatusColor(statusId) === color ||
+        !this.isColorUsedBySelectedStatus(color, statusId),
     );
   }
 
@@ -442,7 +449,9 @@ function normalizeSelectedStatusIds(value: unknown): readonly string[] {
 
   const validIds = new Set(GUIDE_STATUS_OPTIONS.map((option) => option.id));
   const selectedIds = value
-    .filter((statusId): statusId is string => typeof statusId === 'string' && validIds.has(statusId))
+    .filter(
+      (statusId): statusId is string => typeof statusId === 'string' && validIds.has(statusId),
+    )
     .filter((statusId, index, statusIds) => statusIds.indexOf(statusId) === index)
     .slice(0, MAX_VISIBLE_GUIDE_STATUSES);
 

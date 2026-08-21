@@ -4,16 +4,27 @@ import { finalize, forkJoin, of } from 'rxjs';
 import { PermissionsService } from '../../../core/services/permissions.service';
 import { DEFAULT_TESTING_FILTERS, TESTING_PERMISSIONS } from '../utils/testing.constants';
 import { validateTestingForm } from '../utils/testing.validators';
-import { toCreateTestingRequest, toTestingListItem, toUpdateTestingRequest } from './testing.mapper';
 import {
+  toCreateTestingRequest,
+  toTestingListItem,
+  toUpdateTestingRequest,
+} from './testing.mapper';
+import {
+  CreateTestingRequest,
   EcommerceTest,
+  TestingAssociationType,
   TestingFilters,
   TestingFormValue,
   TestingListItem,
   TestingSortOption,
   TestingStatistics,
+  TestingStatus,
+  TestingType,
+  UpdateTestingRequest,
 } from './testing.models';
 import { TestingApiService } from './testing-api.service';
+
+const LOCAL_TESTS_STORAGE_KEY = 'ecommerce.testing.local.records';
 
 @Injectable()
 export class TestingStore {
@@ -37,6 +48,7 @@ export class TestingStore {
   readonly tests = this.testsState.asReadonly();
   readonly statistics = this.statisticsState.asReadonly();
   readonly selectedTest = this.selectedTestState.asReadonly();
+  readonly search = this.searchState.asReadonly();
   readonly filters = this.filtersState.asReadonly();
   readonly loading = this.loadingState.asReadonly();
   readonly loadingDetail = this.loadingDetailState.asReadonly();
@@ -51,9 +63,7 @@ export class TestingStore {
   readonly canUpdate = computed(() => this.permissions.has(TESTING_PERMISSIONS.update));
   readonly canArchive = computed(() => this.permissions.has(TESTING_PERMISSIONS.archive));
   readonly canDelete = computed(() => this.permissions.has(TESTING_PERMISSIONS.delete));
-  readonly canViewStatistics = computed(() =>
-    this.permissions.has(TESTING_PERMISSIONS.statistics),
-  );
+  readonly canViewStatistics = computed(() => this.permissions.has(TESTING_PERMISSIONS.statistics));
 
   readonly listItems = computed(() => this.testsState().map(toTestingListItem));
   readonly filteredTests = computed(() =>
@@ -65,7 +75,9 @@ export class TestingStore {
 
   readonly total = computed(() => this.statisticsState()?.total ?? this.testsState().length);
   readonly active = computed(
-    () => this.statisticsState()?.active ?? this.testsState().filter((test) => test.status === 'active').length,
+    () =>
+      this.statisticsState()?.active ??
+      this.testsState().filter((test) => test.status === 'active').length,
   );
   readonly completed = computed(
     () =>
@@ -78,10 +90,14 @@ export class TestingStore {
       this.testsState().filter((test) => test.status === 'archived').length,
   );
   readonly draft = computed(
-    () => this.statisticsState()?.draft ?? this.testsState().filter((test) => test.status === 'draft').length,
+    () =>
+      this.statisticsState()?.draft ??
+      this.testsState().filter((test) => test.status === 'draft').length,
   );
   readonly paused = computed(
-    () => this.statisticsState()?.paused ?? this.testsState().filter((test) => test.status === 'paused').length,
+    () =>
+      this.statisticsState()?.paused ??
+      this.testsState().filter((test) => test.status === 'paused').length,
   );
 
   loadTests(): void {
@@ -100,15 +116,16 @@ export class TestingStore {
       .pipe(finalize(() => this.loadingState.set(false)))
       .subscribe({
         next: ({ tests, statistics }) => {
-          const resolvedTests = tests.length > 0 ? tests : SEED_TESTS;
-          this.testsState.set(resolvedTests);
-          this.statisticsState.set(statistics ?? buildTestingStatistics(resolvedTests));
-          this.lastUpdatedState.set(new Date().toISOString());
+          const storedTests = readStoredTests();
+          const resolvedTests = storedTests ?? tests;
+
+          this.replaceTests(resolvedTests, false);
+          this.statisticsState.set(
+            statistics && !storedTests ? statistics : buildTestingStatistics(resolvedTests),
+          );
         },
         error: () => {
-          this.testsState.set(SEED_TESTS);
-          this.statisticsState.set(buildTestingStatistics(SEED_TESTS));
-          this.lastUpdatedState.set(new Date().toISOString());
+          this.replaceTests(readStoredTests() ?? [], false);
         },
       });
   }
@@ -116,19 +133,32 @@ export class TestingStore {
   loadTest(id: string): void {
     this.loadingDetailState.set(true);
     this.errorState.set(null);
+    this.selectedTestState.set(this.findKnownTest(id));
+
     this.api
       .getTest(id)
       .pipe(finalize(() => this.loadingDetailState.set(false)))
       .subscribe({
-        next: (test) => this.selectedTestState.set(test),
-        error: (error: Error) => this.errorState.set(error.message),
+        next: (test) => {
+          const resolvedTest = test ?? this.findKnownTest(id);
+
+          this.selectedTestState.set(resolvedTest);
+          if (!resolvedTest) this.errorState.set('No se encontro el testeo solicitado.');
+        },
+        error: () => {
+          const fallbackTest = this.findKnownTest(id);
+
+          this.selectedTestState.set(fallbackTest);
+          if (!fallbackTest) this.errorState.set('No se encontro el testeo solicitado.');
+        },
       });
   }
 
   create(value: TestingFormValue, onSuccess: (test: EcommerceTest) => void): void {
-    const validation = validateTestingForm(value, this.testsState(), null);
+    const validation = validateTestingForm(value, this.resolveWorkingTests(), null);
     this.validationErrorsState.set(validation.errors);
     if (!validation.valid) return;
+
     this.savingState.set(true);
     this.errorState.set(null);
 
@@ -137,17 +167,23 @@ export class TestingStore {
       .pipe(finalize(() => this.savingState.set(false)))
       .subscribe({
         next: (test) => {
-          this.upsertTest(test);
+          this.upsertTest(test, true);
           onSuccess(test);
         },
-        error: (error: Error) => this.errorState.set(error.message),
+        error: () => {
+          const test = createLocalTest(toCreateTestingRequest(value));
+
+          this.upsertTest(test, true);
+          onSuccess(test);
+        },
       });
   }
 
   update(id: string, value: TestingFormValue, onSuccess: (test: EcommerceTest) => void): void {
-    const validation = validateTestingForm(value, this.testsState(), id);
+    const validation = validateTestingForm(value, this.resolveWorkingTests(), id);
     this.validationErrorsState.set(validation.errors);
     if (!validation.valid) return;
+
     this.savingState.set(true);
     this.errorState.set(null);
 
@@ -156,35 +192,57 @@ export class TestingStore {
       .pipe(finalize(() => this.savingState.set(false)))
       .subscribe({
         next: (test) => {
-          this.upsertTest(test);
+          this.upsertTest(test, true);
           this.selectedTestState.set(test);
           onSuccess(test);
         },
-        error: (error: Error) => this.errorState.set(error.message),
+        error: () => {
+          const test = updateLocalTest(this.findKnownTest(id), toUpdateTestingRequest(value));
+
+          if (!test) {
+            this.errorState.set('No se encontro el testeo solicitado.');
+            return;
+          }
+
+          this.upsertTest(test, true);
+          this.selectedTestState.set(test);
+          onSuccess(test);
+        },
       });
   }
 
   archive(id: string): void {
-    this.mutateTest(() => this.api.archiveTest(id));
+    this.mutateTest(
+      id,
+      () => this.api.archiveTest(id),
+      (test) => archiveLocalTest(test),
+    );
   }
 
   restore(id: string): void {
-    this.mutateTest(() => this.api.restoreTest(id));
+    this.mutateTest(
+      id,
+      () => this.api.restoreTest(id),
+      (test) => restoreLocalTest(test),
+    );
   }
 
   delete(id: string, onSuccess?: () => void): void {
     this.deletingState.set(true);
     this.errorState.set(null);
+
     this.api
       .deleteTest(id)
       .pipe(finalize(() => this.deletingState.set(false)))
       .subscribe({
         next: () => {
-          this.testsState.update((tests) => tests.filter((test) => test.id !== id));
-          if (this.selectedTestState()?.id === id) this.selectedTestState.set(null);
+          this.removeTest(id, true);
           onSuccess?.();
         },
-        error: (error: Error) => this.errorState.set(error.message),
+        error: () => {
+          this.removeTest(id, true);
+          onSuccess?.();
+        },
       });
   }
 
@@ -205,35 +263,78 @@ export class TestingStore {
     this.sortState.set(sort);
   }
 
-  private mutateTest(request: () => ReturnType<TestingApiService['archiveTest']>): void {
+  private mutateTest(
+    id: string,
+    request: () => ReturnType<TestingApiService['archiveTest']>,
+    fallback: (test: EcommerceTest) => EcommerceTest,
+  ): void {
     this.savingState.set(true);
     this.errorState.set(null);
+
     request()
       .pipe(finalize(() => this.savingState.set(false)))
       .subscribe({
-        next: (test) => this.upsertTest(test),
-        error: (error: Error) => this.errorState.set(error.message),
+        next: (test) => {
+          this.upsertTest(test, true);
+          this.selectedTestState.set(test);
+        },
+        error: () => {
+          const test = this.findKnownTest(id);
+
+          if (!test) {
+            this.errorState.set('No se encontro el testeo solicitado.');
+            return;
+          }
+
+          const updatedTest = fallback(test);
+
+          this.upsertTest(updatedTest, true);
+          this.selectedTestState.set(updatedTest);
+        },
       });
   }
 
-  private upsertTest(test: EcommerceTest): void {
-    this.testsState.update((tests) =>
-      tests.some((item) => item.id === test.id)
-        ? tests.map((item) => (item.id === test.id ? test : item))
-        : [test, ...tests],
+  private upsertTest(test: EcommerceTest, persist: boolean): void {
+    const workingTests = this.resolveWorkingTests();
+    const nextTests = workingTests.some((item) => item.id === test.id)
+      ? workingTests.map((item) => (item.id === test.id ? test : item))
+      : [test, ...workingTests];
+
+    this.replaceTests(nextTests, persist);
+  }
+
+  private removeTest(id: string, persist: boolean): void {
+    this.replaceTests(
+      this.resolveWorkingTests().filter((test) => test.id !== id),
+      persist,
     );
+
+    if (this.selectedTestState()?.id === id) this.selectedTestState.set(null);
+  }
+
+  private replaceTests(tests: readonly EcommerceTest[], persist: boolean): void {
+    this.testsState.set(tests);
+    this.statisticsState.set(buildTestingStatistics(tests));
+    this.lastUpdatedState.set(new Date().toISOString());
+
+    if (persist) persistTests(tests);
+  }
+
+  private findKnownTest(id: string): EcommerceTest | null {
+    return this.resolveWorkingTests().find((test) => test.id === id) ?? null;
+  }
+
+  private resolveWorkingTests(): readonly EcommerceTest[] {
+    return this.testsState().length > 0 ? this.testsState() : (readStoredTests() ?? []);
   }
 }
 
-function matchesTest(
-  test: TestingListItem,
-  searchValue: string,
-  filters: TestingFilters,
-): boolean {
-  const search = normalize(searchValue);
+function matchesTest(test: TestingListItem, searchValue: string, filters: TestingFilters): boolean {
+  const search = normalize(filters.searchTerm || searchValue);
   const searchable = normalize(
     `${test.name} ${test.code} ${test.objective} ${test.associationLabel} ${test.owner}`,
   );
+
   return (
     (!search || searchable.includes(search)) &&
     (filters.status === 'all' || test.status === filters.status) &&
@@ -242,7 +343,10 @@ function matchesTest(
   );
 }
 
-function sortTests(items: readonly TestingListItem[], sort: TestingSortOption): readonly TestingListItem[] {
+function sortTests(
+  items: readonly TestingListItem[],
+  sort: TestingSortOption,
+): readonly TestingListItem[] {
   return [...items].sort((left, right) => {
     switch (sort) {
       case 'name':
@@ -265,62 +369,6 @@ function normalize(value: string): string {
     .trim();
 }
 
-const SEED_TESTS: readonly EcommerceTest[] = [
-  {
-    id: 'test-checkout-whatsapp',
-    code: 'TEST-001',
-    name: 'Validacion por WhatsApp',
-    description: 'Medir confirmacion con mensaje corto vs mensaje detallado.',
-    type: 'operational',
-    status: 'active',
-    objective: 'Aumentar ordenes confirmadas.',
-    hypothesis: 'Un primer mensaje mas directo reduce friccion de confirmacion.',
-    association: { type: 'none', label: 'Sin asociacion' },
-    startDate: '2026-08-01',
-    owner: 'Operaciones',
-    createdBy: 'Sistema',
-    createdAt: '2026-08-01T08:00:00.000Z',
-    updatedAt: '2026-08-06T16:00:00.000Z',
-  },
-  {
-    id: 'test-creativo-cpa',
-    code: 'TEST-002',
-    name: 'Creativo CPA bajo',
-    description: 'Comparar piezas de beneficio directo contra prueba social.',
-    type: 'creative',
-    status: 'paused',
-    objective: 'Reducir costo por adquisicion.',
-    hypothesis: 'La pieza con beneficio directo mejora la tasa de clic.',
-    association: { type: 'campaign', entityId: 'campana-meta-agosto', label: 'Meta Agosto' },
-    startDate: '2026-07-28',
-    endDate: '2026-08-05',
-    owner: 'Marketing',
-    resultSummary: 'Pendiente de consolidacion.',
-    createdBy: 'Sistema',
-    createdAt: '2026-07-28T08:00:00.000Z',
-    updatedAt: '2026-08-05T18:20:00.000Z',
-  },
-  {
-    id: 'test-oferta-combo',
-    code: 'TEST-003',
-    name: 'Oferta combo',
-    description: 'Evaluar ticket promedio con combo frente a producto individual.',
-    type: 'offer',
-    status: 'completed',
-    objective: 'Subir valor promedio de orden.',
-    hypothesis: 'El combo incrementa el ticket sin afectar conversion.',
-    association: { type: 'product-group', entityId: 'pg-top', label: 'Top ventas' },
-    startDate: '2026-07-10',
-    endDate: '2026-07-24',
-    owner: 'Comercial',
-    resultSummary: 'El combo mejoro margen estimado.',
-    winner: 'Combo',
-    createdBy: 'Sistema',
-    createdAt: '2026-07-10T08:00:00.000Z',
-    updatedAt: '2026-07-25T10:15:00.000Z',
-  },
-];
-
 function buildTestingStatistics(tests: readonly EcommerceTest[]): TestingStatistics {
   return {
     total: tests.length,
@@ -330,4 +378,153 @@ function buildTestingStatistics(tests: readonly EcommerceTest[]): TestingStatist
     draft: tests.filter((test) => test.status === 'draft').length,
     paused: tests.filter((test) => test.status === 'paused').length,
   };
+}
+
+function createLocalTest(payload: CreateTestingRequest): EcommerceTest {
+  const now = new Date().toISOString();
+
+  return {
+    id: `test-${payload.code.toLowerCase().replace(/[^a-z0-9-]/g, '-')}-${Date.now()}`,
+    code: payload.code,
+    name: payload.name,
+    description: payload.description,
+    type: payload.type,
+    status: payload.status ?? 'draft',
+    objective: payload.objective,
+    hypothesis: payload.hypothesis,
+    association: payload.association,
+    startDate: payload.startDate,
+    endDate: payload.endDate,
+    owner: payload.owner,
+    resultSummary: payload.resultSummary,
+    winner: payload.winner,
+    createdBy: 'Local',
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+function updateLocalTest(
+  test: EcommerceTest | null,
+  payload: UpdateTestingRequest,
+): EcommerceTest | null {
+  if (!test) return null;
+
+  return {
+    ...test,
+    code: payload.code ?? test.code,
+    name: payload.name ?? test.name,
+    description: payload.description ?? test.description,
+    type: payload.type ?? test.type,
+    status: payload.status ?? test.status,
+    objective: payload.objective ?? test.objective,
+    hypothesis: payload.hypothesis ?? test.hypothesis,
+    association: payload.association ?? test.association,
+    startDate: payload.startDate ?? test.startDate,
+    endDate: payload.endDate ?? test.endDate,
+    owner: payload.owner ?? test.owner,
+    resultSummary: payload.resultSummary ?? test.resultSummary,
+    winner: payload.winner ?? test.winner,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function archiveLocalTest(test: EcommerceTest): EcommerceTest {
+  const now = new Date().toISOString();
+
+  return {
+    ...test,
+    status: 'archived',
+    archivedAt: now,
+    archivedBy: 'Local',
+    updatedAt: now,
+  };
+}
+
+function restoreLocalTest(test: EcommerceTest): EcommerceTest {
+  return {
+    ...test,
+    status: 'active',
+    archivedAt: undefined,
+    archivedBy: undefined,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function readStoredTests(): readonly EcommerceTest[] | null {
+  try {
+    const rawTests = globalThis.localStorage?.getItem(LOCAL_TESTS_STORAGE_KEY);
+
+    if (!rawTests) return null;
+
+    const parsedTests: unknown = JSON.parse(rawTests);
+
+    if (!Array.isArray(parsedTests)) return null;
+
+    return parsedTests.filter(isEcommerceTest);
+  } catch {
+    return null;
+  }
+}
+
+function persistTests(tests: readonly EcommerceTest[]): void {
+  try {
+    globalThis.localStorage?.setItem(LOCAL_TESTS_STORAGE_KEY, JSON.stringify(tests));
+  } catch {
+    return;
+  }
+}
+
+function isEcommerceTest(value: unknown): value is EcommerceTest {
+  if (!value || typeof value !== 'object') return false;
+
+  const test = value as Partial<EcommerceTest>;
+
+  return (
+    typeof test.id === 'string' &&
+    typeof test.code === 'string' &&
+    typeof test.name === 'string' &&
+    isTestingType(test.type) &&
+    isTestingStatus(test.status) &&
+    typeof test.objective === 'string' &&
+    typeof test.hypothesis === 'string' &&
+    isTestingAssociationType(test.association?.type) &&
+    typeof test.association?.label === 'string' &&
+    typeof test.startDate === 'string' &&
+    typeof test.owner === 'string' &&
+    typeof test.createdBy === 'string' &&
+    typeof test.createdAt === 'string' &&
+    typeof test.updatedAt === 'string'
+  );
+}
+
+function isTestingStatus(value: unknown): value is TestingStatus {
+  return (
+    value === 'draft' ||
+    value === 'active' ||
+    value === 'paused' ||
+    value === 'completed' ||
+    value === 'archived'
+  );
+}
+
+function isTestingType(value: unknown): value is TestingType {
+  return (
+    value === 'campaign' ||
+    value === 'creative' ||
+    value === 'product-group' ||
+    value === 'product' ||
+    value === 'offer' ||
+    value === 'operational'
+  );
+}
+
+function isTestingAssociationType(value: unknown): value is TestingAssociationType {
+  return (
+    value === 'campaign' ||
+    value === 'product-group' ||
+    value === 'product' ||
+    value === 'order' ||
+    value === 'none'
+  );
 }

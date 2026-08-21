@@ -18,8 +18,9 @@ export function toUserListItem(user: AdminUser): UserListItem {
     name: `${user.firstName} ${user.lastName}`.trim(),
     email: user.email,
     username: user.username,
-    roleId: pendingApproval && user.permissions.length === 0 ? 'Pendiente por asignar' : user.roleId,
-    statusLabel: user.active ? 'Aprobado' : 'Pendiente',
+    roleId:
+      pendingApproval && user.permissions.length === 0 ? 'Pendiente por asignar' : user.roleId,
+    statusLabel: user.active ? 'Activo' : 'Pendiente',
     verificationLabel: user.emailVerified ? 'Correo verificado' : 'Correo pendiente',
     permissionsCount: user.permissions.length,
     lastLogin: formatSettingsDate(user.lastLogin),

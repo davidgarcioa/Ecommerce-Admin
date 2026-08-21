@@ -12,13 +12,12 @@ describe('APP_NAVIGATION_ITEMS', () => {
       'Conjuntos',
       'Gastos',
       'Archivos',
-      'Integraciones',
       'Oficina',
       'Torre Logística',
       'Rastreo',
       'Configuración',
     ]);
-    expect(APP_NAVIGATION_ITEMS).toHaveLength(13);
+    expect(APP_NAVIGATION_ITEMS).toHaveLength(12);
   });
 
   it('does not expose internal concepts as main navigation items', () => {
@@ -43,7 +42,6 @@ describe('APP_NAVIGATION_ITEMS', () => {
       '/conjuntos',
       '/gastos',
       '/archivos/importar',
-      '/integraciones',
       '/oficina',
       '/torre-logistica',
       '/rastreo',
@@ -69,7 +67,7 @@ describe('legacy route redirects', () => {
   });
 
   it('redirects root to inicio inside the admin layout', () => {
-    const adminRoute = routes[0];
+    const adminRoute = routes.find((route) => route.path === '');
     const rootChild = adminRoute?.children?.find((route) => route.path === '');
 
     expect(rootChild).toMatchObject({

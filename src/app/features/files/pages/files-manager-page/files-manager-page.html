@@ -1,13 +1,14 @@
 <div class="files-manager">
   <section class="files-manager__header">
     <div>
+      <span class="files-manager__eyebrow">Biblioteca operativa</span>
       <h1>Archivos</h1>
       <p>Gestiona documentos, imágenes, soportes y exportaciones del sistema.</p>
-      <span>
+      <span class="files-manager__meta">
         @if (lastUpdated(); as date) {
           Actualizado {{ formatDateTime(date) }} · Almacenamiento privado
         } @else {
-          Almacenamiento privado en Firebase Storage
+          Almacenamiento privado
         }
       </span>
     </div>
@@ -21,6 +22,18 @@
         <span class="material-symbols-rounded" aria-hidden="true">table_view</span>
         Importar
       </button>
+      <button
+        class="button"
+        type="button"
+        [class.button--active]="filtersOpen()"
+        (click)="toggleFilters()"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+        Filtros
+        @if (activeFilterCount() > 0) {
+          <span class="button__badge">{{ activeFilterCount() }}</span>
+        }
+      </button>
       <button class="button" type="button" (click)="exportMetadata()">
         <span class="material-symbols-rounded" aria-hidden="true">download</span>
         Exportar
@@ -33,66 +46,100 @@
   </section>
 
   <section class="files-manager__summary" aria-label="Resumen de archivos">
-    <article>
+    <article class="files-manager__summary-card files-manager__summary-card--blue">
+      <i class="material-symbols-rounded" aria-hidden="true">folder</i>
+      <b aria-hidden="true"></b>
       <span>Total</span>
       <strong>{{ formatNumber(totalFiles()) }}</strong>
     </article>
-    <article>
+    <article class="files-manager__summary-card files-manager__summary-card--green">
+      <i class="material-symbols-rounded" aria-hidden="true">task_alt</i>
+      <b aria-hidden="true"></b>
       <span>Activos</span>
       <strong>{{ formatNumber(activeFiles()) }}</strong>
     </article>
-    <article>
+    <article class="files-manager__summary-card files-manager__summary-card--amber">
+      <i class="material-symbols-rounded" aria-hidden="true">inventory_2</i>
+      <b aria-hidden="true"></b>
       <span>Archivados</span>
       <strong>{{ formatNumber(archivedFiles()) }}</strong>
     </article>
-    <article>
+    <article class="files-manager__summary-card files-manager__summary-card--cyan">
+      <i class="material-symbols-rounded" aria-hidden="true">image</i>
+      <b aria-hidden="true"></b>
       <span>Imágenes</span>
       <strong>{{ formatNumber(images()) }}</strong>
     </article>
-    <article>
+    <article class="files-manager__summary-card files-manager__summary-card--violet">
+      <i class="material-symbols-rounded" aria-hidden="true">description</i>
+      <b aria-hidden="true"></b>
       <span>Documentos</span>
       <strong>{{ formatNumber(documents()) }}</strong>
     </article>
-    <article>
+    <article class="files-manager__summary-card files-manager__summary-card--red">
+      <i class="material-symbols-rounded" aria-hidden="true">database</i>
+      <b aria-hidden="true"></b>
       <span>Espacio usado</span>
       <strong>{{ formatFileSize(totalSize()) }}</strong>
     </article>
   </section>
 
-  <section class="files-manager__filters" aria-label="Filtros de archivos">
-    <label>
-      Estado
-      <select [value]="filters().status" (change)="updateFilter('status', $event)">
-        <option value="all">Todos</option>
-        <option value="active">Activos</option>
-        <option value="archived">Archivados</option>
-      </select>
-    </label>
+  @if (filtersOpen()) {
+    <section class="files-manager__filters" aria-label="Filtros de archivos">
+      <div class="files-manager__filters-title">
+        <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+        <div>
+          <strong>Filtros</strong>
+          <small>{{ activeFilterCount() }} ajustes activos</small>
+        </div>
+      </div>
 
-    <label>
-      Categoría
-      <select [value]="filters().category" (change)="updateFilter('category', $event)">
-        <option value="all">Todas</option>
-        <option value="document">Documento</option>
-        <option value="image">Imagen</option>
-        <option value="receipt">Recibo</option>
-        <option value="evidence">Evidencia</option>
-        <option value="spreadsheet">Hoja de cálculo</option>
-        <option value="other">Otro</option>
-      </select>
-    </label>
+      <label>
+        <span>Estado</span>
+        <span class="files-manager__select">
+          <select [value]="filters().status" (change)="updateFilter('status', $event)">
+            <option value="all">Todos</option>
+            <option value="active">Activos</option>
+            <option value="archived">Archivados</option>
+          </select>
+          <span class="material-symbols-rounded" aria-hidden="true">keyboard_arrow_down</span>
+        </span>
+      </label>
 
-    <label>
-      Visibilidad
-      <select [value]="filters().visibility" (change)="updateFilter('visibility', $event)">
-        <option value="all">Todas</option>
-        <option value="internal">Interno</option>
-        <option value="restricted">Restringido</option>
-      </select>
-    </label>
+      <label>
+        <span>Categoría</span>
+        <span class="files-manager__select">
+          <select [value]="filters().category" (change)="updateFilter('category', $event)">
+            <option value="all">Todas</option>
+            <option value="document">Documento</option>
+            <option value="image">Imagen</option>
+            <option value="receipt">Recibo</option>
+            <option value="evidence">Evidencia</option>
+            <option value="spreadsheet">Hoja de cálculo</option>
+            <option value="other">Otro</option>
+          </select>
+          <span class="material-symbols-rounded" aria-hidden="true">keyboard_arrow_down</span>
+        </span>
+      </label>
 
-    <button type="button" (click)="clearFilters()">Limpiar</button>
-  </section>
+      <label>
+        <span>Visibilidad</span>
+        <span class="files-manager__select">
+          <select [value]="filters().visibility" (change)="updateFilter('visibility', $event)">
+            <option value="all">Todas</option>
+            <option value="internal">Interno</option>
+            <option value="restricted">Restringido</option>
+          </select>
+          <span class="material-symbols-rounded" aria-hidden="true">keyboard_arrow_down</span>
+        </span>
+      </label>
+
+      <button class="button" type="button" (click)="clearFilters()">
+        <span class="material-symbols-rounded" aria-hidden="true">restart_alt</span>
+        Limpiar
+      </button>
+    </section>
+  }
 
   @if (error(); as message) {
     <section class="files-manager__error" role="alert">

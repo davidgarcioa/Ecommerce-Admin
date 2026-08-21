@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
-import { formatCurrency, formatNumber } from '../../utils/office.formatters';
+import { formatCompactCurrency, formatNumber } from '../../utils/office.formatters';
 
 @Component({
   selector: 'app-office-summary',
@@ -19,5 +19,5 @@ export class OfficeSummaryComponent {
   readonly pendingValue = input(0);
 
   protected readonly formatNumber = formatNumber;
-  protected readonly formatCurrency = formatCurrency;
+  protected readonly formatCompactCurrency = formatCompactCurrency;
 }

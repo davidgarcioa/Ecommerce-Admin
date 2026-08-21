@@ -21,10 +21,46 @@ export class PermissionsPageComponent {
   readonly totalPermissions = this.store.totalPermissions;
 
   readonly columns = computed<readonly TableColumn<PermissionListItem>[]>(() => [
-    { key: 'code', label: 'Código', type: 'text', sortable: true, searchable: true, visible: true, minWidth: '14rem', align: 'left' },
-    { key: 'group', label: 'Grupo', type: 'text', sortable: true, searchable: true, visible: true, minWidth: '10rem', align: 'left' },
-    { key: 'name', label: 'Nombre', type: 'text', sortable: true, searchable: true, visible: true, minWidth: '14rem', align: 'left' },
-    { key: 'source', label: 'Origen', type: 'status', sortable: true, searchable: true, visible: true, minWidth: '8rem', align: 'left' },
+    {
+      key: 'code',
+      label: 'Código',
+      type: 'text',
+      sortable: true,
+      searchable: true,
+      visible: true,
+      minWidth: '14rem',
+      align: 'left',
+    },
+    {
+      key: 'group',
+      label: 'Grupo',
+      type: 'text',
+      sortable: true,
+      searchable: true,
+      visible: true,
+      minWidth: '10rem',
+      align: 'left',
+    },
+    {
+      key: 'name',
+      label: 'Nombre',
+      type: 'text',
+      sortable: true,
+      searchable: true,
+      visible: true,
+      minWidth: '14rem',
+      align: 'left',
+    },
+    {
+      key: 'source',
+      label: 'Origen',
+      type: 'status',
+      sortable: true,
+      searchable: true,
+      visible: true,
+      minWidth: '8rem',
+      align: 'left',
+    },
   ]);
 
   refresh(): void {

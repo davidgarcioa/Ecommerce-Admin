@@ -1,75 +1,221 @@
 <section class="office-filters" aria-label="Filtros de pedidos">
-  <label>
-    Buscar
-    <input
-      #searchInput
-      type="search"
-      placeholder="Pedido, cliente o teléfono"
-      [value]="search()"
-      (input)="searchChange.emit(searchInput.value)"
-    />
-  </label>
+  <header class="office-filters__header">
+    <div class="office-filters__title">
+      <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+      <div>
+        <strong>Filtros</strong>
+        <p>
+          {{
+            activeFilterCount() === 1 ? '1 ajuste activo' : activeFilterCount() + ' ajustes activos'
+          }}
+        </p>
+      </div>
+    </div>
+  </header>
 
-  <label>
-    Estado
-    <select
-      #orderSelect
-      [value]="filters().orderStatus"
-      (change)="setOrderStatus(orderSelect.value)"
+  <div class="office-filters__grid">
+    <label class="office-filters__search">
+      <span>Buscar</span>
+      <div class="office-filters__search-box">
+        <span class="material-symbols-rounded" aria-hidden="true">search</span>
+        <input
+          type="search"
+          placeholder="Pedido, cliente o teléfono"
+          [value]="currentSearch()"
+          (focus)="closeSelects()"
+          (input)="onSearchChange($event)"
+        />
+      </div>
+    </label>
+
+    <label class="office-filters__field">
+      <span>Estado</span>
+      <div
+        class="office-filters__select"
+        [class.office-filters__select--open]="isSelectOpen('orderStatus')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="office-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('orderStatus')"
+          (click)="toggleSelect('orderStatus')"
+        >
+          <span>{{ selectedOrderStatusLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+
+        @if (isSelectOpen('orderStatus')) {
+          <div class="office-filters__select-menu" role="listbox">
+            @for (option of orderStatusOptions; track option.value) {
+              <button
+                type="button"
+                role="option"
+                [class.office-filters__select-option--selected]="
+                  currentFilters().orderStatus === option.value
+                "
+                [attr.aria-selected]="currentFilters().orderStatus === option.value"
+                (click)="selectOrderStatus(option.value)"
+              >
+                <span>{{ option.label }}</span>
+                @if (currentFilters().orderStatus === option.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
+
+    <label class="office-filters__field">
+      <span>Pago</span>
+      <div
+        class="office-filters__select"
+        [class.office-filters__select--open]="isSelectOpen('paymentStatus')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="office-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('paymentStatus')"
+          (click)="toggleSelect('paymentStatus')"
+        >
+          <span>{{ selectedPaymentStatusLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+
+        @if (isSelectOpen('paymentStatus')) {
+          <div class="office-filters__select-menu" role="listbox">
+            @for (option of paymentStatusOptions; track option.value) {
+              <button
+                type="button"
+                role="option"
+                [class.office-filters__select-option--selected]="
+                  currentFilters().paymentStatus === option.value
+                "
+                [attr.aria-selected]="currentFilters().paymentStatus === option.value"
+                (click)="selectPaymentStatus(option.value)"
+              >
+                <span>{{ option.label }}</span>
+                @if (currentFilters().paymentStatus === option.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
+
+    <label class="office-filters__field">
+      <span>Entrega</span>
+      <div
+        class="office-filters__select"
+        [class.office-filters__select--open]="isSelectOpen('deliveryStatus')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="office-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('deliveryStatus')"
+          (click)="toggleSelect('deliveryStatus')"
+        >
+          <span>{{ selectedDeliveryStatusLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+
+        @if (isSelectOpen('deliveryStatus')) {
+          <div class="office-filters__select-menu" role="listbox">
+            @for (option of deliveryStatusOptions; track option.value) {
+              <button
+                type="button"
+                role="option"
+                [class.office-filters__select-option--selected]="
+                  currentFilters().deliveryStatus === option.value
+                "
+                [attr.aria-selected]="currentFilters().deliveryStatus === option.value"
+                (click)="selectDeliveryStatus(option.value)"
+              >
+                <span>{{ option.label }}</span>
+                @if (currentFilters().deliveryStatus === option.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
+
+    <label class="office-filters__field">
+      <span>Prioridad</span>
+      <div
+        class="office-filters__select"
+        [class.office-filters__select--open]="isSelectOpen('urgent')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="office-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('urgent')"
+          (click)="toggleSelect('urgent')"
+        >
+          <span>{{ selectedUrgencyLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+
+        @if (isSelectOpen('urgent')) {
+          <div class="office-filters__select-menu" role="listbox">
+            @for (option of urgencyOptions; track option.value) {
+              <button
+                type="button"
+                role="option"
+                [class.office-filters__select-option--selected]="
+                  currentFilters().urgent === option.value
+                "
+                [attr.aria-selected]="currentFilters().urgent === option.value"
+                (click)="selectUrgency(option.value)"
+              >
+                <span>{{ option.label }}</span>
+                @if (currentFilters().urgent === option.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
+
+    <label class="office-filters__check">
+      <input
+        type="checkbox"
+        [checked]="currentFilters().pendingConfirmation"
+        (change)="setPendingConfirmation($event)"
+      />
+      <span class="office-filters__check-box" aria-hidden="true">
+        <span class="material-symbols-rounded">check</span>
+      </span>
+      <span>
+        <strong>Pendientes</strong>
+        <small>Sin confirmar</small>
+      </span>
+    </label>
+  </div>
+
+  <footer class="office-filters__actions">
+    <button
+      type="button"
+      class="office-filters__button office-filters__button--primary"
+      (click)="onApply()"
     >
-      <option value="all">Todos</option>
-      @for (status of orderStatuses; track status) {
-        <option [value]="status">{{ status }}</option>
-      }
-    </select>
-  </label>
-
-  <label>
-    Pago
-    <select
-      #paymentSelect
-      [value]="filters().paymentStatus"
-      (change)="setPaymentStatus(paymentSelect.value)"
-    >
-      <option value="all">Todos</option>
-      @for (status of paymentStatuses; track status) {
-        <option [value]="status">{{ status }}</option>
-      }
-    </select>
-  </label>
-
-  <label>
-    Entrega
-    <select
-      #deliverySelect
-      [value]="filters().deliveryStatus"
-      (change)="setDeliveryStatus(deliverySelect.value)"
-    >
-      <option value="all">Todos</option>
-      @for (status of deliveryStatuses; track status) {
-        <option [value]="status">{{ status }}</option>
-      }
-    </select>
-  </label>
-
-  <label>
-    Prioridad
-    <select #urgentSelect [value]="filters().urgent" (change)="setUrgent(urgentSelect.value)">
-      <option value="all">Todas</option>
-      <option value="urgent">Urgentes</option>
-      <option value="standard">Normal</option>
-    </select>
-  </label>
-
-  <label class="office-filters__check">
-    <input
-      #pendingConfirmationInput
-      type="checkbox"
-      [checked]="filters().pendingConfirmation"
-      (change)="setPendingConfirmation(pendingConfirmationInput.checked)"
-    />
-    Pendientes de confirmación
-  </label>
-
-  <button type="button" (click)="clear.emit()">Limpiar</button>
+      <span class="material-symbols-rounded" aria-hidden="true">check</span>
+      Aplicar
+    </button>
+    <button type="button" class="office-filters__button" (click)="onClear()">
+      <span class="material-symbols-rounded" aria-hidden="true">restart_alt</span>
+      Limpiar
+    </button>
+  </footer>
 </section>

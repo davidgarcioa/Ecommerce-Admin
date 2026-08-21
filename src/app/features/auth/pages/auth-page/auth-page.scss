@@ -32,7 +32,9 @@
   gap: $space-3;
   min-height: 13rem;
   opacity: 1;
-  transition: opacity 180ms ease, transform 180ms ease;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
 
   h1 {
     font-size: clamp(2.625rem, 4vw, 3.5rem);
@@ -164,7 +166,9 @@
   display: grid;
   min-height: 13.5rem;
   opacity: 1;
-  transition: opacity 180ms ease, transform 180ms ease;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
 }
 
 .auth-card__content--switching {
@@ -254,7 +258,9 @@
   justify-content: center;
   margin-top: $space-1;
   min-height: 2.75rem;
-  transition: opacity $transition-base, transform $transition-base;
+  transition:
+    opacity $transition-base,
+    transform $transition-base;
   width: 100%;
 
   &:disabled {
@@ -287,12 +293,20 @@ input:focus-visible {
 }
 
 @keyframes auth-enter {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes auth-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 880px) {

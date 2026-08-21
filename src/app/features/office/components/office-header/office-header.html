@@ -1,19 +1,46 @@
 <header class="office-header">
-  <div>
+  <div class="office-header__content">
     <p class="office-header__eyebrow">Servicio al cliente</p>
     <h1>Oficina</h1>
-    <p>Gestión administrativa de pedidos, clientes, pagos y novedades.</p>
+    <p>Estado de pedidos, pagos, entregas y novedades del negocio.</p>
     @if (lastUpdated(); as date) {
-      <span>Actualizado {{ date | date: 'dd/MM/yyyy HH:mm' }}</span>
+      <span class="office-header__updated">
+        Actualizado {{ date | date: 'dd/MM/yyyy HH:mm' }}
+      </span>
     }
   </div>
 
   <div class="office-header__actions">
-    <button type="button" [disabled]="loading()" (click)="openPending.emit()">
+    <button
+      type="button"
+      class="office-header__button"
+      [disabled]="loading()"
+      (click)="openPending.emit()"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">pending_actions</span>
       Pendientes
     </button>
-    <button type="button" [disabled]="loading()" (click)="refresh.emit()">
+
+    <button
+      type="button"
+      class="office-header__button"
+      [class.office-header__button--active]="filtersOpen()"
+      [attr.aria-pressed]="filtersOpen()"
+      (click)="toggleFilters.emit()"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+      Filtros
+      @if (activeFilterCount() > 0) {
+        <strong>{{ activeFilterCount() }}</strong>
+      }
+    </button>
+
+    <button
+      type="button"
+      class="office-header__button"
+      [disabled]="loading()"
+      (click)="refresh.emit()"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
       Actualizar
     </button>

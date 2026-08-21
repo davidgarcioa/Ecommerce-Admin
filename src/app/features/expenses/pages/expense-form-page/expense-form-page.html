@@ -1,7 +1,14 @@
 <section class="expense-form-page">
   <header>
-    <p>Gastos</p>
-    <h2>{{ mode === 'create' ? 'Nuevo gasto' : 'Editar gasto' }}</h2>
+    <button type="button" (click)="cancel()">
+      <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+      Volver
+    </button>
+    <div>
+      <p>FINANZAS DEL NEGOCIO</p>
+      <h1>{{ mode === 'create' ? 'Nuevo movimiento' : 'Editar movimiento' }}</h1>
+      <span>Registra egresos, pagos pendientes, soportes y responsables.</span>
+    </div>
   </header>
 
   <app-expense-form

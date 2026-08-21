@@ -20,12 +20,7 @@ import {
   PaymentMethod as BackendPaymentMethod,
 } from '../../office/data-access/office.models';
 import { OfficeApiService } from '../../office/data-access/office-api.service';
-import {
-  CARRIERS,
-  CITIES,
-  DEFAULT_DAILY_REPORT_FILTER,
-  PRODUCT_GROUP_OPTIONS,
-} from '../constants/daily-report.constants';
+import { DEFAULT_DAILY_REPORT_FILTER } from '../constants/daily-report.constants';
 import { DailyMetric } from '../models/daily-metric.model';
 import { DailyOrder, OrderStatus, PaymentMethod } from '../models/daily-order.model';
 import { DailyReport, ReportExportOptions } from '../models/daily-report.model';
@@ -41,8 +36,7 @@ import { ImportedOrdersStoreService } from './imported-orders-store.service';
 export class DailyReportService {
   private readonly importedOrdersStore = inject(ImportedOrdersStoreService);
   private readonly ordersApi = inject(OfficeApiService);
-  private readonly seedOrders = buildSeedOrders();
-  private readonly ordersState = signal<readonly DailyOrder[]>(this.seedOrders);
+  private readonly ordersState = signal<readonly DailyOrder[]>([]);
   private readonly filtersState = signal<DailyReportFilter>(DEFAULT_DAILY_REPORT_FILTER);
   private readonly loadingState = signal(false);
   private readonly errorState = signal<string | null>(null);
@@ -90,8 +84,7 @@ export class DailyReportService {
           const mappedOrders = normalizeDailyOrders(
             orders.map((order) => mapBackendOrderToDailyOrder(order)),
           );
-          const fallbackOrders = this.resolveFallbackOrders();
-          this.ordersState.set(mappedOrders.length > 0 ? mappedOrders : fallbackOrders);
+          this.ordersState.set(mappedOrders);
           this.generatedAtState.set(new Date().toISOString());
         },
         error: () => {
@@ -145,7 +138,7 @@ export class DailyReportService {
   private resolveFallbackOrders(): readonly DailyOrder[] {
     const importedOrders = normalizeDailyOrders(this.importedOrdersStore.orders());
 
-    return importedOrders.length > 0 ? importedOrders : this.seedOrders;
+    return importedOrders;
   }
 
   private ensureVisibleReportData(): void {
@@ -193,8 +186,8 @@ export class DailyReportService {
   }
 
   updateOrderStatus(orderId: string, status: OrderStatus): void {
-    this.ordersState.update((orders) =>
-      normalizeDailyOrders(orders).map((order) =>
+    this.ordersState.set(
+      this.resolveSourceOrders().map((order) =>
         order.id === orderId ? { ...order, status, lastUpdated: new Date().toISOString() } : order,
       ),
     );
@@ -202,8 +195,8 @@ export class DailyReportService {
   }
 
   toggleUrgent(orderId: string): void {
-    this.ordersState.update((orders) =>
-      normalizeDailyOrders(orders).map((order) =>
+    this.ordersState.set(
+      this.resolveSourceOrders().map((order) =>
         order.id === orderId
           ? { ...order, urgent: !order.urgent, lastUpdated: new Date().toISOString() }
           : order,
@@ -315,7 +308,10 @@ export class DailyReportService {
     const adSpend = safeOrders.reduce((total, order) => total + order.advertisingCost, 0);
     const operationalCosts = safeOrders.reduce(
       (total, order) =>
-        total + (order.shippingCost ?? 0) + (order.returnShippingCost ?? 0) + (order.commission ?? 0),
+        total +
+        (order.shippingCost ?? 0) +
+        (order.returnShippingCost ?? 0) +
+        (order.commission ?? 0),
       0,
     );
     const acquisitionCostBase = adSpend > 0 ? adSpend : operationalCosts;
@@ -388,7 +384,15 @@ export class DailyReportService {
         'campaign',
         'currency',
       ),
-      metric('roas', 'ROAS', roas, adSpend > 0 ? 'Recaudo / pauta' : 'Ventas / costos', 'query_stats', 'multiplier', 'positive'),
+      metric(
+        'roas',
+        'ROAS',
+        roas,
+        adSpend > 0 ? 'Recaudo / pauta' : 'Ventas / costos',
+        'query_stats',
+        'multiplier',
+        'positive',
+      ),
       metric('cpa', 'CPA', cpa, 'Costo por adquisición', 'ads_click', 'currency', 'critical'),
       metric(
         'returns',
@@ -568,7 +572,9 @@ function normalizeDailyOrder(value: unknown, index: number): DailyOrder | null {
 
   const createdAt = readRequiredText(value, 'createdAt') || new Date().toISOString();
   const productGroupName =
-    readRequiredText(value, 'productGroupName') || readRequiredText(value, 'productGroupId') || 'General';
+    readRequiredText(value, 'productGroupName') ||
+    readRequiredText(value, 'productGroupId') ||
+    'General';
   const productGroupId =
     readRequiredText(value, 'productGroupId') || normalizeId(productGroupName || productName);
   const orderValue = readFiniteNumber(value, 'orderValue', 0);
@@ -664,7 +670,8 @@ function readFiniteNumber(record: Record<string, unknown>, key: string, fallback
 
 function readOptionalNumber(record: Record<string, unknown>, key: string): number | undefined {
   const value = record[key];
-  const numberValue = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN;
+  const numberValue =
+    typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN;
   return Number.isFinite(numberValue) ? numberValue : undefined;
 }
 
@@ -687,15 +694,19 @@ function readOptionalBoolean(record: Record<string, unknown>, key: string): bool
 function toOrderStatus(value: unknown): OrderStatus {
   if (typeof value === 'string') {
     const normalizedValue = normalizeText(value).replace(/\s+/g, ' ').trim();
-    const matchedStatus = ORDER_STATUS_VALUES.find((status) => normalizeText(status) === normalizedValue);
+    const matchedStatus = ORDER_STATUS_VALUES.find(
+      (status) => normalizeText(status) === normalizedValue,
+    );
     if (matchedStatus) return matchedStatus;
 
     if (normalizedValue.includes('entreg')) return 'Entregada';
     if (normalizedValue.includes('devol')) return 'Devuelta';
     if (normalizedValue.includes('cancel')) return 'Cancelada';
-    if (normalizedValue.includes('transito') || normalizedValue.includes('ruta')) return 'En tránsito';
+    if (normalizedValue.includes('transito') || normalizedValue.includes('ruta'))
+      return 'En tránsito';
     if (normalizedValue.includes('despach')) return 'Despachada';
-    if (normalizedValue.includes('prepar') || normalizedValue.includes('bodega')) return 'En preparación';
+    if (normalizedValue.includes('prepar') || normalizedValue.includes('bodega'))
+      return 'En preparación';
     if (normalizedValue.includes('confirm')) return 'Confirmada';
   }
 
@@ -705,7 +716,9 @@ function toOrderStatus(value: unknown): OrderStatus {
 function toPaymentMethod(value: unknown): PaymentMethod {
   if (typeof value === 'string') {
     const normalizedValue = normalizeText(value);
-    const matchedMethod = PAYMENT_METHOD_VALUES.find((method) => normalizeText(method) === normalizedValue);
+    const matchedMethod = PAYMENT_METHOD_VALUES.find(
+      (method) => normalizeText(method) === normalizedValue,
+    );
     if (matchedMethod) return matchedMethod;
 
     if (normalizedValue.includes('contra')) return 'Contraentrega';
@@ -738,96 +751,6 @@ function buildOrdersQuery(page: number): OrderQuery {
   };
 }
 
-function buildSeedOrders(): readonly DailyOrder[] {
-  const productGroups = PRODUCT_GROUP_OPTIONS.filter((group) => group.id !== 'all');
-  const productNames = [
-    'Kit Skin Care Premium',
-    'Organizador Modular',
-    'Audifonos Pro',
-    'Set Cocina Practica',
-    'Corrector Postural',
-    'Lampara LED Smart',
-    'Bolso Ejecutivo',
-    'Mini Licuadora',
-  ];
-  const departments = ['Cundinamarca', 'Antioquia', 'Valle del Cauca', 'Atlantico', 'Santander'];
-  const statuses: readonly OrderStatus[] = [
-    'Pendiente',
-    'Confirmada',
-    'En preparación',
-    'Despachada',
-    'En tránsito',
-    'Entregada',
-    'Devuelta',
-    'Cancelada',
-  ];
-  const today = new Date();
-
-  return Array.from({ length: 64 }, (_, index) => {
-    const group = productGroups[index % productGroups.length];
-    const status = statuses[index % statuses.length];
-    const createdAt = new Date(today);
-    createdAt.setHours(8 + (index % 10), (index * 7) % 60, 0, 0);
-    createdAt.setDate(today.getDate() - (index % 5));
-
-    const orderValue = 86_000 + (index % 9) * 18_500;
-    const shippingCost = 10_000 + (index % 4) * 2_500;
-    const commission = Math.round(orderValue * 0.03);
-    const providerCostTotal = 32_000 + (index % 6) * 7_000;
-    const advertisingCost = 9_000 + (index % 5) * 4_500;
-    const estimatedProfit = Math.max(
-      orderValue - shippingCost - commission - providerCostTotal - advertisingCost,
-      0,
-    );
-
-    return {
-      id: `seed-order-${index + 1}`,
-      orderNumber: `LK-${String(index + 1).padStart(4, '0')}`,
-      createdAt: createdAt.toISOString(),
-      reportDate: createdAt.toISOString().slice(0, 10),
-      orderHour: new Intl.DateTimeFormat('es-CO', {
-        hour: '2-digit',
-        minute: '2-digit',
-      }).format(createdAt),
-      customerName: `Cliente ${index + 1}`,
-      customerPhone: `300${String(1000000 + index).slice(0, 7)}`,
-      customerEmail: `cliente${index + 1}@example.com`,
-      productName: productNames[index % productNames.length],
-      productGroupId: group.id,
-      productGroupName: group.name,
-      guideNumber: `GUIA${String(890000 + index)}`,
-      guideStatus: status,
-      shippingType: index % 3 === 0 ? 'Contraentrega' : 'Pago anticipado',
-      department: departments[index % departments.length],
-      city: CITIES[index % CITIES.length],
-      address: `Calle ${20 + index} # ${10 + (index % 40)}-${index % 99}`,
-      notes: index % 11 === 0 ? 'Cliente solicita confirmacion antes del envio.' : undefined,
-      carrier: CARRIERS[index % CARRIERS.length],
-      status,
-      orderValue,
-      advertisingCost,
-      estimatedProfit,
-      shippingCost,
-      returnShippingCost: status === 'Devuelta' ? shippingCost : 0,
-      commission,
-      commissionPercentage: 3,
-      providerCost: providerCostTotal,
-      providerCostTotal,
-      productId: `product-${(index % productNames.length) + 1}`,
-      sku: `SKU-${group.id.toUpperCase()}-${index + 1}`,
-      quantity: 1 + (index % 3),
-      novelty: index % 13 === 0 ? 'Novedad en direccion' : undefined,
-      noveltySolved: index % 13 === 0 ? index % 2 === 0 : undefined,
-      lastMovement: status === 'Entregada' ? 'Entrega confirmada' : 'Actualizacion operativa',
-      lastMovementLocation: CITIES[index % CITIES.length],
-      operationDays: index % 8,
-      urgent: index % 10 === 0,
-      paymentMethod: index % 4 === 0 ? 'Transferencia' : index % 4 === 1 ? 'Tarjeta' : 'Contraentrega',
-      lastUpdated: new Date().toISOString(),
-    };
-  });
-}
-
 function mapBackendOrderToDailyOrder(order: Order): DailyOrder {
   const metadata = order.metadata;
   const rawGuideStatus =
@@ -852,7 +775,8 @@ function mapBackendOrderToDailyOrder(order: Order): DailyOrder {
     customerPhone: order.customerPhone || 'Sin teléfono',
     customerEmail: order.customerEmail,
     productName: order.productName || 'Producto sin nombre',
-    productGroupId: order.productGroupId || normalizeId(order.productGroupName || order.productName || 'dropi'),
+    productGroupId:
+      order.productGroupId || normalizeId(order.productGroupName || order.productName || 'dropi'),
     productGroupName: order.productGroupName || order.productName || 'Dropi',
     guideNumber: order.trackingNumber,
     guideStatus: normalizeDisplayText(rawGuideStatus),
@@ -890,7 +814,11 @@ function mapBackendStatus(
 
   if (orderStatus === 'Cancelled') return 'Cancelada';
   if (orderStatus === 'Returned' || orderStatus === 'Refunded') return 'Devuelta';
-  if (orderStatus === 'Delivered' || deliveryStatus === 'Delivered' || normalizedGuide.includes('entreg')) {
+  if (
+    orderStatus === 'Delivered' ||
+    deliveryStatus === 'Delivered' ||
+    normalizedGuide.includes('entreg')
+  ) {
     return 'Entregada';
   }
   if (
@@ -927,12 +855,18 @@ function mapPaymentMethod(method: BackendPaymentMethod): PaymentMethod {
   return labels[method];
 }
 
-function readString(metadata: Record<string, unknown> | undefined, key: string): string | undefined {
+function readString(
+  metadata: Record<string, unknown> | undefined,
+  key: string,
+): string | undefined {
   const value = metadata?.[key];
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
 }
 
-function readNumber(metadata: Record<string, unknown> | undefined, key: string): number | undefined {
+function readNumber(
+  metadata: Record<string, unknown> | undefined,
+  key: string,
+): number | undefined {
   const value = metadata?.[key];
 
   if (typeof value === 'number' && Number.isFinite(value)) {
@@ -1003,8 +937,3 @@ function normalizeText(value: string): string {
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
 }
-
-
-
-
-

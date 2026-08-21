@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, input, OnChanges, output, SimpleChanges } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  input,
+  OnChanges,
+  output,
+  SimpleChanges,
+} from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { EcommerceTest, TestingFormValue } from '../../data-access/testing.models';
@@ -41,7 +48,9 @@ export class TestingFormComponent implements OnChanges {
   readonly cancel = output<void>();
   readonly typeOptions = TESTING_TYPE_OPTIONS.filter((option) => option.value !== 'all');
   readonly statusOptions = TESTING_STATUS_OPTIONS.filter((option) => option.value !== 'all');
-  readonly associationOptions = TESTING_ASSOCIATION_OPTIONS.filter((option) => option.value !== 'all');
+  readonly associationOptions = TESTING_ASSOCIATION_OPTIONS.filter(
+    (option) => option.value !== 'all',
+  );
 
   readonly form = new FormGroup<TestingFormControls>({
     code: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -56,7 +65,10 @@ export class TestingFormComponent implements OnChanges {
     associationLabel: new FormControl('Sin asociacion', { nonNullable: true }),
     startDate: new FormControl(new Date().toISOString().slice(0, 10), { nonNullable: true }),
     endDate: new FormControl('', { nonNullable: true }),
-    owner: new FormControl('Administrador', { nonNullable: true, validators: [Validators.required] }),
+    owner: new FormControl('Administrador', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
     resultSummary: new FormControl('', { nonNullable: true }),
     winner: new FormControl('', { nonNullable: true }),
   });

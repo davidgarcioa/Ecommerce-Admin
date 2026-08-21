@@ -4,7 +4,7 @@
     <h2>Campañas publicitarias</h2>
     <p>Seguimiento de pauta, conjuntos, anuncios y productos vendidos.</p>
 
-    <div class="campaigns-header__meta" aria-label="Estado de sincronización">
+    <div class="campaigns-header__meta" aria-label="Estado de importación">
       <span>
         <span class="material-symbols-rounded" aria-hidden="true">storefront</span>
         {{ adAccountName() }}
@@ -14,7 +14,7 @@
         {{ periodLabel() }}
       </span>
       <span>
-        <span class="material-symbols-rounded" aria-hidden="true">sync</span>
+        <span class="material-symbols-rounded" aria-hidden="true">upload_file</span>
         {{ formatLastSync(lastSynchronization()) }}
       </span>
     </div>
@@ -27,8 +27,8 @@
       [disabled]="loading()"
       (click)="synchronize.emit()"
     >
-      <span class="material-symbols-rounded" aria-hidden="true">sync</span>
-      Sincronizar
+      <span class="material-symbols-rounded" aria-hidden="true">upload_file</span>
+      Importar Meta
     </button>
 
     <button type="button" class="campaigns-header__action" (click)="createCampaign.emit()">

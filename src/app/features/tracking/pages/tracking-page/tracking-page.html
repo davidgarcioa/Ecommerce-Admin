@@ -14,9 +14,21 @@
   />
 
   @if (loading()) {
-    <section class="tracking-page__state" aria-live="polite">Buscando rastreo...</section>
+    <section class="tracking-page__state" aria-live="polite">
+      <span class="material-symbols-rounded" aria-hidden="true">sync</span>
+      <div>
+        <strong>Buscando rastreo</strong>
+        <p>Consultando la información del envío.</p>
+      </div>
+    </section>
   } @else if (error(); as message) {
-    <section class="tracking-page__state" role="alert">{{ message }}</section>
+    <section class="tracking-page__state tracking-page__state--error" role="alert">
+      <span class="material-symbols-rounded" aria-hidden="true">info</span>
+      <div>
+        <strong>Sin coincidencias</strong>
+        <p>{{ message }}</p>
+      </div>
+    </section>
   } @else if (selected(); as item) {
     <app-tracking-result-summary
       [result]="item"
@@ -32,8 +44,12 @@
   } @else if (hasMultipleResults()) {
     <app-tracking-multiple-results [results]="results()" (selectResult)="selectResult($event)" />
   } @else {
-    <section class="tracking-page__state">
-      Ingresa un criterio de búsqueda para consultar el estado de un envío.
+    <section class="tracking-page__state tracking-page__state--empty">
+      <span class="material-symbols-rounded" aria-hidden="true">location_searching</span>
+      <div>
+        <strong>Listo para consultar</strong>
+        <p>Busca por pedido, guía, teléfono, correo o nombre.</p>
+      </div>
     </section>
   }
 </div>

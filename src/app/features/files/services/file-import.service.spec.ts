@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
+import { CAMPAIGN_STORAGE_KEY } from '../../campaigns/constants/campaigns.constants';
 import { IMPORT_TYPES } from '../constants/files.constants';
 import { ColumnMappingService } from './column-mapping.service';
 import { FileImportService } from './file-import.service';
@@ -47,6 +48,49 @@ describe('FileImportService', () => {
 
     expect(service.importResult()?.importedRows).toBe(1);
     expect(service.importHistory().length).toBe(initialHistory + 1);
+  });
+
+  it('should import Meta Ads files into local campaign data', async () => {
+    const csv = [
+      [
+        'Campaign name',
+        'Campaign ID',
+        'Amount spent',
+        'Purchase conversion value',
+        'Impressions',
+        'Reach',
+        'Link clicks',
+        'Purchases',
+        'Date start',
+        'Date stop',
+      ].join(','),
+      'Meta Agosto,120001,250000,1200000,20000,12000,700,18,2026-08-01,2026-08-21',
+    ].join('\n');
+    const file = new File([csv], 'meta.csv', { type: 'text/csv' });
+    const metaType = IMPORT_TYPES.find((type) => type.id === 'campaigns');
+
+    expect(metaType).toBeTruthy();
+
+    service.selectImportType(metaType!);
+    service.setFile(file);
+    await service.readFile();
+    service.validateRows();
+    service.setConfirmationAccepted(true);
+    service.confirmImport();
+
+    const campaigns = JSON.parse(localStorage.getItem(CAMPAIGN_STORAGE_KEY) ?? '[]') as readonly {
+      readonly name: string;
+      readonly amountSpent: number;
+      readonly purchases: number;
+    }[];
+
+    expect(service.importResult()?.importedRows).toBe(1);
+    expect(campaigns).toHaveLength(1);
+    expect(campaigns[0]).toMatchObject({
+      name: 'Meta Agosto',
+      amountSpent: 250000,
+      purchases: 18,
+    });
   });
 });
 
@@ -111,6 +155,93 @@ describe('file import helper services', () => {
     );
 
     expect(result.duplicateRows).toBe(1);
+  });
+
+  it('should show the rejected status value in validation messages', () => {
+    const validator = new ImportValidationService();
+    const result = validator.validateRows(
+      [
+        { rowIndex: 1, values: ['ESTATUS'], empty: false },
+        { rowIndex: 2, values: ['ESTADO INVENTADO'], empty: false },
+      ],
+      1,
+      ['ESTATUS'],
+      [
+        {
+          key: 'status',
+          label: 'Estado',
+          description: '',
+          required: true,
+          dataType: 'status',
+          acceptedAliases: ['estatus'],
+          example: '',
+          unique: false,
+          nullable: false,
+          validatorIds: ['status'],
+        },
+      ],
+      [
+        {
+          systemColumnKey: 'status',
+          sourceColumnName: 'ESTATUS',
+          confidence: 100,
+          manuallySelected: false,
+          status: 'mapped',
+        },
+      ],
+    );
+
+    expect(result.issues[0]?.message).toBe('Estado no permitido: ESTADO INVENTADO.');
+  });
+
+  it('should accept Dropi logistics status values', () => {
+    const validator = new ImportValidationService();
+    const statuses = [
+      'GUIA_GENERADA',
+      'RECOGIDO POR DROPI',
+      'PREPARADO PARA TRANSPORTADORA',
+      'EN REPARTO',
+      'EN PROCESAMIENTO',
+      'EN BODEGA TRANSPORTADORA',
+    ];
+    const result = validator.validateRows(
+      [
+        { rowIndex: 1, values: ['ESTATUS'], empty: false },
+        ...statuses.map((status, index) => ({
+          rowIndex: index + 2,
+          values: [status],
+          empty: false,
+        })),
+      ],
+      1,
+      ['ESTATUS'],
+      [
+        {
+          key: 'status',
+          label: 'Estado',
+          description: '',
+          required: true,
+          dataType: 'status',
+          acceptedAliases: ['estatus'],
+          example: '',
+          unique: false,
+          nullable: false,
+          validatorIds: ['status'],
+        },
+      ],
+      [
+        {
+          systemColumnKey: 'status',
+          sourceColumnName: 'ESTATUS',
+          confidence: 100,
+          manuallySelected: false,
+          status: 'mapped',
+        },
+      ],
+    );
+
+    expect(result.issues).toEqual([]);
+    expect(result.validRows).toBe(statuses.length);
   });
 
   it('should generate templates', () => {

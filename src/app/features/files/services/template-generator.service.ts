@@ -35,7 +35,7 @@ export class TemplateGeneratorService {
     const instructionsSheet = XLSX.utils.aoa_to_sheet([
       ['Plantilla', template.name],
       ['Descripción', template.description],
-      ['Procesamiento', 'Validar antes de guardar en la base de datos.'],
+      ['Procesamiento', 'Validar antes de alimentar la app.'],
     ]);
     XLSX.utils.book_append_sheet(workbook, dataSheet, 'Datos');
     XLSX.utils.book_append_sheet(workbook, instructionsSheet, 'Instrucciones');
@@ -45,4 +45,3 @@ export class TemplateGeneratorService {
     });
   }
 }
-

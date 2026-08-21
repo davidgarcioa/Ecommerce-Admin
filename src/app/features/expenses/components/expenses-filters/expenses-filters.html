@@ -1,65 +1,284 @@
-<section class="expenses-filters" aria-label="Filtros de gastos">
-  <label>
-    Buscar
-    <input
-      type="search"
-      [ngModel]="search()"
-      (ngModelChange)="searchChange.emit($event)"
-      placeholder="Concepto, proveedor o referencia"
-    />
-  </label>
+<form class="expenses-filters" (ngSubmit)="onApply()" aria-label="Filtros financieros">
+  <header class="expenses-filters__header">
+    <div class="expenses-filters__title">
+      <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+      <div>
+        <strong>Filtros</strong>
+        <p>
+          {{
+            activeFiltersCount() === 1
+              ? '1 ajuste activo'
+              : activeFiltersCount() + ' ajustes activos'
+          }}
+        </p>
+      </div>
+    </div>
+  </header>
 
-  <label>
-    Estado
-    <select [ngModel]="filters().status" (ngModelChange)="updateFilter('status', $event)">
-      <option value="all">Todos</option>
-      @for (status of statuses; track status.value) {
-        <option [value]="status.value">{{ status.label }}</option>
-      }
-    </select>
-  </label>
+  <div class="expenses-filters__grid">
+    <label class="expenses-filters__field expenses-filters__field--search">
+      <span>Buscar</span>
+      <div class="expenses-filters__search">
+        <span class="material-symbols-rounded" aria-hidden="true">search</span>
+        <input
+          type="search"
+          placeholder="Concepto, proveedor o referencia"
+          [value]="currentSearch()"
+          (focus)="closeSelects()"
+          (input)="onSearchChange($event)"
+        />
+      </div>
+    </label>
 
-  <label>
-    Categoría
-    <select [ngModel]="filters().category" (ngModelChange)="updateFilter('category', $event)">
-      <option value="all">Todas</option>
-      @for (category of categories; track category.value) {
-        <option [value]="category.value">{{ category.label }}</option>
-      }
-    </select>
-  </label>
+    <label class="expenses-filters__field">
+      <span>Estado</span>
+      <div
+        class="expenses-filters__select"
+        [class.expenses-filters__select--open]="isSelectOpen('status')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="expenses-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('status')"
+          (click)="toggleSelect('status')"
+        >
+          <span>{{ selectedStatusLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
 
-  <label>
-    Método
-    <select
-      [ngModel]="filters().paymentMethod"
-      (ngModelChange)="updateFilter('paymentMethod', $event)"
-    >
-      <option value="all">Todos</option>
-      @for (method of paymentMethods; track method.value) {
-        <option [value]="method.value">{{ method.label }}</option>
-      }
-    </select>
-  </label>
+        @if (isSelectOpen('status')) {
+          <div class="expenses-filters__select-menu" role="listbox">
+            @for (option of statusOptions; track option.value) {
+              <button
+                type="button"
+                role="option"
+                [class.expenses-filters__select-option--selected]="
+                  currentFilters().status === option.value
+                "
+                [attr.aria-selected]="currentFilters().status === option.value"
+                (click)="selectStatus(option.value)"
+              >
+                <span>{{ option.label }}</span>
+                @if (currentFilters().status === option.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
 
-  <label>
-    Comprobante
-    <select [ngModel]="filters().receipt" (ngModelChange)="updateFilter('receipt', $event)">
-      <option value="all">Todos</option>
-      <option value="with-receipt">Con comprobante</option>
-      <option value="without-receipt">Sin comprobante</option>
-    </select>
-  </label>
+    <label class="expenses-filters__field">
+      <span>Categoría</span>
+      <div
+        class="expenses-filters__select"
+        [class.expenses-filters__select--open]="isSelectOpen('category')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="expenses-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('category')"
+          (click)="toggleSelect('category')"
+        >
+          <span>{{ selectedCategoryLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
 
-  <label>
-    Orden
-    <select [ngModel]="sort()" (ngModelChange)="sortChange.emit($event)">
-      <option value="expenseDate">Fecha</option>
-      <option value="amount">Valor</option>
-      <option value="name">Concepto</option>
-      <option value="updatedAt">Actualización</option>
-    </select>
-  </label>
+        @if (isSelectOpen('category')) {
+          <div class="expenses-filters__select-menu" role="listbox">
+            @for (option of categoryOptions; track option.value) {
+              <button
+                type="button"
+                role="option"
+                [class.expenses-filters__select-option--selected]="
+                  currentFilters().category === option.value
+                "
+                [attr.aria-selected]="currentFilters().category === option.value"
+                (click)="selectCategory(option.value)"
+              >
+                <span>{{ option.label }}</span>
+                @if (currentFilters().category === option.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
 
-  <button type="button" (click)="clear.emit()">Limpiar</button>
-</section>
+    <label class="expenses-filters__field">
+      <span>Método</span>
+      <div
+        class="expenses-filters__select"
+        [class.expenses-filters__select--open]="isSelectOpen('paymentMethod')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="expenses-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('paymentMethod')"
+          (click)="toggleSelect('paymentMethod')"
+        >
+          <span>{{ selectedPaymentMethodLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+
+        @if (isSelectOpen('paymentMethod')) {
+          <div class="expenses-filters__select-menu" role="listbox">
+            @for (option of paymentMethodOptions; track option.value) {
+              <button
+                type="button"
+                role="option"
+                [class.expenses-filters__select-option--selected]="
+                  currentFilters().paymentMethod === option.value
+                "
+                [attr.aria-selected]="currentFilters().paymentMethod === option.value"
+                (click)="selectPaymentMethod(option.value)"
+              >
+                <span>{{ option.label }}</span>
+                @if (currentFilters().paymentMethod === option.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
+
+    <label class="expenses-filters__field">
+      <span>Soporte</span>
+      <div
+        class="expenses-filters__select"
+        [class.expenses-filters__select--open]="isSelectOpen('receipt')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="expenses-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('receipt')"
+          (click)="toggleSelect('receipt')"
+        >
+          <span>{{ selectedReceiptLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+
+        @if (isSelectOpen('receipt')) {
+          <div class="expenses-filters__select-menu" role="listbox">
+            @for (option of receiptOptions; track option.value) {
+              <button
+                type="button"
+                role="option"
+                [class.expenses-filters__select-option--selected]="
+                  currentFilters().receipt === option.value
+                "
+                [attr.aria-selected]="currentFilters().receipt === option.value"
+                (click)="selectReceipt(option.value)"
+              >
+                <span>{{ option.label }}</span>
+                @if (currentFilters().receipt === option.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
+
+    <label class="expenses-filters__field">
+      <span>Desde</span>
+      <input
+        type="date"
+        [value]="currentFilters().dateFrom"
+        (input)="onDateChange('dateFrom', $event)"
+      />
+    </label>
+
+    <label class="expenses-filters__field">
+      <span>Hasta</span>
+      <input
+        type="date"
+        [value]="currentFilters().dateTo"
+        (input)="onDateChange('dateTo', $event)"
+      />
+    </label>
+
+    <label class="expenses-filters__field">
+      <span>Mínimo</span>
+      <input
+        type="number"
+        min="0"
+        inputmode="numeric"
+        placeholder="0"
+        [value]="currentFilters().minAmount ?? ''"
+        (input)="onAmountChange('minAmount', $event)"
+      />
+    </label>
+
+    <label class="expenses-filters__field">
+      <span>Máximo</span>
+      <input
+        type="number"
+        min="0"
+        inputmode="numeric"
+        placeholder="0"
+        [value]="currentFilters().maxAmount ?? ''"
+        (input)="onAmountChange('maxAmount', $event)"
+      />
+    </label>
+
+    <label class="expenses-filters__field">
+      <span>Orden</span>
+      <div
+        class="expenses-filters__select"
+        [class.expenses-filters__select--open]="isSelectOpen('sort')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="expenses-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('sort')"
+          (click)="toggleSelect('sort')"
+        >
+          <span>{{ selectedSortLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+
+        @if (isSelectOpen('sort')) {
+          <div class="expenses-filters__select-menu" role="listbox">
+            @for (option of sortOptions; track option.value) {
+              <button
+                type="button"
+                role="option"
+                [class.expenses-filters__select-option--selected]="currentSort() === option.value"
+                [attr.aria-selected]="currentSort() === option.value"
+                (click)="selectSort(option.value)"
+              >
+                <span>{{ option.label }}</span>
+                @if (currentSort() === option.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
+
+    <div class="expenses-filters__actions">
+      <button type="submit" class="expenses-filters__button expenses-filters__button--primary">
+        <span class="material-symbols-rounded" aria-hidden="true">check</span>
+        Aplicar
+      </button>
+      <button type="button" class="expenses-filters__button" (click)="onClear()">
+        <span class="material-symbols-rounded" aria-hidden="true">restart_alt</span>
+        Limpiar
+      </button>
+    </div>
+  </div>
+</form>

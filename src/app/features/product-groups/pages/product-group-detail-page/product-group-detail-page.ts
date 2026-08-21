@@ -50,7 +50,7 @@ export class ProductGroupDetailPageComponent implements OnInit {
   }
 
   archive(): void {
-    if (confirm('¿Archivar este conjunto?')) {
+    if (confirm('Archivar este conjunto?')) {
       this.store.archive(this.id());
     }
   }

@@ -1,58 +1,197 @@
 @use '../../../../styles/abstracts/variables' as *;
 
 .label-form {
-  background: var(--color-surface);
+  background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: $radius-lg;
   display: grid;
   gap: $space-4;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
   padding: $space-5;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+
+  &:hover {
+    background:
+      radial-gradient(circle at 92% 0%, rgb(59 130 246 / 8%), transparent 28%),
+      var(--color-card-elevated);
+    border-color: rgb(59 130 246 / 34%);
+    box-shadow: 0 0 1.25rem rgb(59 130 246 / 9%);
+    transform: translateY(-0.0625rem);
+  }
 
   label {
     color: var(--color-text-secondary);
     display: grid;
-    font-size: $font-size-sm;
-    gap: $space-2;
+    font-size: $font-size-xs;
+    gap: 0.45rem;
+    min-width: 0;
+
+    > span {
+      font-weight: $font-weight-bold;
+    }
   }
 
   input,
-  textarea,
-  button {
-    background: var(--color-surface-elevated);
+  textarea {
+    background: rgb(0 0 0 / 28%);
     border: 1px solid var(--color-border);
     border-radius: $radius-md;
     color: var(--color-text-primary);
     font: inherit;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
     min-height: 2.75rem;
+    min-width: 0;
     padding: 0 $space-3;
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      box-shadow 180ms ease;
+    width: 100%;
+
+    &:hover {
+      background: rgb(59 130 246 / 5%);
+      border-color: rgb(59 130 246 / 30%);
+    }
+
+    &:focus {
+      border-color: rgb(59 130 246 / 62%);
+      box-shadow: 0 0 1rem rgb(59 130 246 / 10%);
+      outline: 2px solid rgb(59 130 246 / 14%);
+      outline-offset: 1px;
+    }
   }
 
   textarea {
+    min-height: 7.5rem;
     padding: $space-3;
     resize: vertical;
   }
 
+  &__preview,
   &__wide,
   &__error,
+  &__swatches,
   &__actions {
     grid-column: 1 / -1;
   }
 
+  &__preview {
+    --label-color: #a1a1a1;
+
+    align-items: center;
+    background: rgb(255 255 255 / 2.5%);
+    border: 1px solid color-mix(in srgb, var(--label-color) 34%, var(--color-border));
+    border-radius: $radius-md;
+    display: flex;
+    gap: $space-3;
+    min-width: 0;
+    padding: $space-4;
+
+    strong,
+    p {
+      margin: 0;
+    }
+
+    strong {
+      color: var(--color-text-primary);
+      display: block;
+      font-size: $font-size-lg;
+      line-height: 1.15;
+      min-width: 0;
+    }
+
+    p {
+      color: var(--color-text-secondary);
+      font-size: $font-size-xs;
+      font-weight: $font-weight-bold;
+      margin-top: $space-1;
+      text-transform: uppercase;
+    }
+  }
+
+  &__preview-swatch,
+  &__color-preview {
+    background: var(--label-color);
+    border: 1px solid rgb(255 255 255 / 18%);
+    border-radius: $radius-sm;
+    flex: 0 0 auto;
+  }
+
+  &__preview-swatch {
+    box-shadow: 0 0 1rem color-mix(in srgb, var(--label-color) 24%, transparent);
+    height: 2.7rem;
+    width: 2.7rem;
+  }
+
+  &__color-row {
+    align-items: center;
+    display: grid;
+    gap: $space-2;
+    grid-template-columns: auto minmax(0, 1fr);
+    min-width: 0;
+  }
+
+  &__color-preview {
+    height: 2.5rem;
+    width: 2.5rem;
+  }
+
+  &__swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+
+    button {
+      border: 1px solid rgb(255 255 255 / 16%);
+      border-radius: 999px;
+      cursor: pointer;
+      height: 1.6rem;
+      padding: 0;
+      transition:
+        box-shadow 160ms ease,
+        transform 160ms ease;
+      width: 1.6rem;
+
+      &:hover,
+      &:focus-visible,
+      &.label-form__swatch--selected {
+        box-shadow: 0 0 0 0.2rem rgb(59 130 246 / 18%);
+        outline: none;
+        transform: translateY(-0.0625rem);
+      }
+    }
+  }
+
   &__check {
     align-items: center;
+    background: rgb(255 255 255 / 2%);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
     display: flex !important;
+    gap: $space-2;
+    min-height: 2.75rem;
+    padding: 0 $space-3;
 
     input {
+      accent-color: rgb(59 130 246);
       min-height: auto;
       width: auto;
     }
   }
 
   &__error {
-    border: 1px solid var(--color-error);
+    background: rgb(239 68 68 / 7%);
+    border: 1px solid rgb(239 68 68 / 34%);
     border-radius: $radius-md;
     color: var(--color-text-primary);
+    display: grid;
+    gap: $space-1;
     padding: $space-3;
 
     p {
@@ -62,24 +201,71 @@
 
   &__actions {
     display: flex;
+    flex-wrap: wrap;
     gap: $space-2;
     justify-content: flex-end;
   }
 
   button {
+    align-items: center;
+    background: rgb(255 255 255 / 2.5%);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    color: var(--color-text-primary);
     cursor: pointer;
-    font-weight: 700;
+    display: inline-flex;
+    font: inherit;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-bold;
+    gap: $space-2;
+    justify-content: center;
+    min-height: 2.5rem;
     min-width: 8rem;
+    padding: 0 $space-4;
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      transform 180ms ease;
+
+    .material-symbols-rounded {
+      font-size: 1rem;
+    }
+
+    &:hover,
+    &:focus-visible {
+      background: rgb(59 130 246 / 8%);
+      border-color: rgb(59 130 246 / 42%);
+      outline: none;
+      transform: translateY(-0.0625rem);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+      transform: none;
+    }
   }
 
   &__primary {
-    background: var(--color-primary) !important;
-    color: var(--color-bg) !important;
+    background: rgb(59 130 246 / 12%) !important;
+    border-color: rgb(59 130 246 / 50%) !important;
+
+    .material-symbols-rounded {
+      color: rgb(59 130 246);
+    }
   }
 }
 
 @media (max-width: 760px) {
   .label-form {
     grid-template-columns: 1fr;
+
+    &__actions {
+      display: grid;
+    }
+
+    button {
+      width: 100%;
+    }
   }
 }

@@ -5,11 +5,18 @@
   @include fade-in;
 
   display: grid;
-  gap: $space-8;
+  gap: $space-6;
   min-width: 0;
 
+  &__filters {
+    animation: office-page-filters-in 180ms ease both;
+    margin-top: -$space-2;
+    min-width: 0;
+  }
+
   &__error {
-    background: var(--color-card);
+    background:
+      radial-gradient(circle at 92% 0%, rgb(239 68 68 / 8%), transparent 28%), var(--color-card);
     border: 1px solid rgb(139 87 87 / 55%);
     border-radius: $radius-lg;
     padding: $space-5;
@@ -19,13 +26,26 @@
     }
 
     button {
-      background: var(--color-card-elevated);
-      border: 1px solid var(--color-border);
+      background: rgb(255 255 255 / 3%);
+      border: 1px solid rgb(239 68 68 / 28%);
       border-radius: $radius-md;
       color: var(--color-text-primary);
       cursor: pointer;
+      font-weight: $font-weight-bold;
       min-height: 2.5rem;
       padding: 0 $space-4;
     }
+  }
+}
+
+@keyframes office-page-filters-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.35rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

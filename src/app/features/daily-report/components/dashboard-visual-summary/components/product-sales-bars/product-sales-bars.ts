@@ -50,7 +50,9 @@ export class ProductSalesBarsComponent {
     const selectedIds = this.selectedProductGroupIds();
     const selectedGroups = sortedGroups.filter((group) => selectedIds.includes(group.id));
 
-    return selectedGroups.length > 0 ? selectedGroups : sortedGroups.slice(0, MAX_VISIBLE_PRODUCT_GROUPS);
+    return selectedGroups.length > 0
+      ? selectedGroups
+      : sortedGroups.slice(0, MAX_VISIBLE_PRODUCT_GROUPS);
   });
 
   readonly productShares = computed<readonly ProductShare[]>(() => {
@@ -87,7 +89,9 @@ export class ProductSalesBarsComponent {
   isProductGroupSelected(groupId: string): boolean {
     const selectedIds = this.selectedProductGroupIds();
     return selectedIds.length === 0
-      ? this.productGroupOptions().slice(0, MAX_VISIBLE_PRODUCT_GROUPS).some((group) => group.id === groupId)
+      ? this.productGroupOptions()
+          .slice(0, MAX_VISIBLE_PRODUCT_GROUPS)
+          .some((group) => group.id === groupId)
       : selectedIds.includes(groupId);
   }
 
@@ -98,9 +102,12 @@ export class ProductSalesBarsComponent {
 
   toggleProductGroup(groupId: string): void {
     this.selectedProductGroupIds.update((selectedIds) => {
-      const effectiveSelectedIds = selectedIds.length === 0
-        ? this.productGroupOptions().slice(0, MAX_VISIBLE_PRODUCT_GROUPS).map((group) => group.id)
-        : selectedIds;
+      const effectiveSelectedIds =
+        selectedIds.length === 0
+          ? this.productGroupOptions()
+              .slice(0, MAX_VISIBLE_PRODUCT_GROUPS)
+              .map((group) => group.id)
+          : selectedIds;
 
       if (effectiveSelectedIds.includes(groupId)) {
         return effectiveSelectedIds.length === 1

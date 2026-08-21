@@ -18,17 +18,19 @@
   }
 
   <div class="table-toolbar__actions">
-    <button
-      type="button"
-      [attr.aria-expanded]="filterPanelVisible()"
-      (click)="toggleFilters.emit()"
-    >
-      <span class="material-symbols-rounded" aria-hidden="true">filter_list</span>
-      Filtros
-      @if (activeFilterCount() > 0) {
-        <span>{{ activeFilterCount() }}</span>
-      }
-    </button>
+    @if (filterEnabled()) {
+      <button
+        type="button"
+        [attr.aria-expanded]="filterPanelVisible()"
+        (click)="toggleFilters.emit()"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">filter_list</span>
+        Filtros
+        @if (activeFilterCount() > 0) {
+          <span>{{ activeFilterCount() }}</span>
+        }
+      </button>
+    }
 
     @if (columnSelectorEnabled()) {
       <button type="button" (click)="toggleColumnSelector.emit()">

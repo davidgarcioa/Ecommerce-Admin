@@ -11,14 +11,14 @@ export function carrierLabel(carrier?: string): string {
 }
 
 export function trackingLabel(trackingNumber?: string): string {
-  return trackingNumber?.trim() ? trackingNumber : 'Sin guía';
+  return trackingNumber?.trim() ? trackingNumber : 'Sin guia';
 }
 
 export function dispatchStateLabel(order: LogisticsOrder): string {
   if (order.deliveryStatus === 'Delivered') return 'Entregado';
-  if (order.deliveryStatus === 'In Transit') return 'En tránsito';
-  if (order.trackingNumber) return 'Con guía';
-  if (order.carrier) return 'Transportadora asignada';
+  if (order.deliveryStatus === 'In Transit') return 'En transito';
+  if (order.trackingNumber?.trim()) return 'Con guia';
+  if (order.carrier?.trim()) return 'Transportadora asignada';
   if (order.orderStatus === 'Confirmed' || order.orderStatus === 'Processing') return 'Pendiente';
   return 'No disponible';
 }

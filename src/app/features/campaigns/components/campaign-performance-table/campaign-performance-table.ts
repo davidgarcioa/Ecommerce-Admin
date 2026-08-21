@@ -132,4 +132,3 @@ export class CampaignPerformanceTableComponent {
     return { ...this.column(key, label, 'date'), searchable: false };
   }
 }
-

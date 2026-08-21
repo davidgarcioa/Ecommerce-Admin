@@ -36,7 +36,11 @@
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: $radius-lg;
-  transition: background $transition-base, border-color $transition-base, box-shadow $transition-base, transform $transition-base;
+  transition:
+    background $transition-base,
+    border-color $transition-base,
+    box-shadow $transition-base,
+    transform $transition-base;
 }
 
 .summary-section,
@@ -107,7 +111,10 @@
     &__segment {
       outline: none;
       pointer-events: stroke;
-      transition: filter $transition-fast, opacity $transition-fast, stroke-width $transition-fast;
+      transition:
+        filter $transition-fast,
+        opacity $transition-fast,
+        stroke-width $transition-fast;
     }
 
     &__segment:hover,
@@ -198,7 +205,9 @@
       max-width: 0;
       opacity: 0;
       overflow: hidden;
-      transition: max-width $transition-base, opacity $transition-base;
+      transition:
+        max-width $transition-base,
+        opacity $transition-base;
       white-space: nowrap;
     }
 
@@ -230,7 +239,12 @@
   gap: $space-2;
   justify-content: center;
   min-height: 2.5rem;
-  transition: background $transition-fast, border-color $transition-fast, box-shadow $transition-fast, color $transition-fast, transform $transition-fast;
+  transition:
+    background $transition-fast,
+    border-color $transition-fast,
+    box-shadow $transition-fast,
+    color $transition-fast,
+    transform $transition-fast;
 }
 
 .icon-button {
@@ -409,7 +423,11 @@ button:disabled {
       grid-template-columns: minmax(0, 1fr) auto;
       min-height: 3rem;
       padding: $space-3;
-      transition: background $transition-fast, border-color $transition-fast, color $transition-fast, opacity $transition-fast;
+      transition:
+        background $transition-fast,
+        border-color $transition-fast,
+        color $transition-fast,
+        opacity $transition-fast;
     }
 
     .guide-editor__status.is-active {
@@ -472,7 +490,9 @@ button:disabled {
       display: block;
       height: 1.45rem;
       position: relative;
-      transition: background $transition-fast, border-color $transition-fast;
+      transition:
+        background $transition-fast,
+        border-color $transition-fast;
       width: 2.65rem;
 
       &::after {
@@ -483,7 +503,9 @@ button:disabled {
         left: 0.22rem;
         position: absolute;
         top: 0.22rem;
-        transition: background $transition-fast, transform $transition-fast;
+        transition:
+          background $transition-fast,
+          transform $transition-fast;
         width: 0.9rem;
       }
     }
@@ -582,7 +604,11 @@ button:disabled {
   border: 1px solid var(--color-border);
   border-radius: $radius-md;
   min-width: 0;
-  transition: background $transition-base, border-color $transition-base, box-shadow $transition-base, transform $transition-base;
+  transition:
+    background $transition-base,
+    border-color $transition-base,
+    box-shadow $transition-base,
+    transform $transition-base;
 }
 
 .metric-card {
@@ -829,15 +855,19 @@ button:disabled {
   &__filters {
     align-items: end;
     background:
-      linear-gradient(135deg, rgb(59 130 246 / 8%), rgb(20 184 166 / 4%)),
-      rgb(255 255 255 / 2.5%);
+      linear-gradient(135deg, rgb(59 130 246 / 8%), rgb(20 184 166 / 4%)), rgb(255 255 255 / 2.5%);
     border: 1px solid rgb(59 130 246 / 18%);
     border-radius: $radius-md;
     display: grid;
     gap: $space-4;
-    grid-template-columns: minmax(18rem, 1.35fr) minmax(16rem, 0.95fr) repeat(2, minmax(10rem, 0.75fr));
+    grid-template-columns: minmax(18rem, 1.35fr) minmax(16rem, 0.95fr) repeat(
+        2,
+        minmax(10rem, 0.75fr)
+      );
     padding: $space-5;
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 5%), 0 0 1.4rem rgb(59 130 246 / 8%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 5%),
+      0 0 1.4rem rgb(59 130 246 / 8%);
   }
 
   &__clear {
@@ -874,7 +904,10 @@ button:disabled {
     min-height: 2.75rem;
     min-width: 0;
     padding: 0 $space-3;
-    transition: background $transition-fast, border-color $transition-fast, box-shadow $transition-fast;
+    transition:
+      background $transition-fast,
+      border-color $transition-fast,
+      box-shadow $transition-fast;
     width: 100%;
   }
 }
@@ -888,7 +921,10 @@ button:disabled {
   gap: $space-2;
   min-height: 2.75rem;
   padding: 0 $space-3;
-  transition: background $transition-fast, border-color $transition-fast, box-shadow $transition-fast;
+  transition:
+    background $transition-fast,
+    border-color $transition-fast,
+    box-shadow $transition-fast;
 
   .material-symbols-rounded {
     color: var(--color-text-secondary);
@@ -923,7 +959,9 @@ button:disabled {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     min-height: 2.75rem;
     padding: 0.22rem;
-    transition: border-color $transition-fast, box-shadow $transition-fast;
+    transition:
+      border-color $transition-fast,
+      box-shadow $transition-fast;
   }
 
   button {
@@ -935,7 +973,10 @@ button:disabled {
     font-weight: $font-weight-semibold;
     min-height: 2.18rem;
     padding: 0 $space-1;
-    transition: background $transition-fast, box-shadow $transition-fast, color $transition-fast;
+    transition:
+      background $transition-fast,
+      box-shadow $transition-fast,
+      color $transition-fast;
   }
 }
 
@@ -968,7 +1009,9 @@ button:disabled {
   }
 
   tbody tr {
-    transition: background $transition-fast, box-shadow $transition-fast;
+    transition:
+      background $transition-fast,
+      box-shadow $transition-fast;
   }
 }
 
@@ -1023,8 +1066,13 @@ button:disabled {
   .orders-section__header button:hover,
   .guide-editor__status:hover {
     background: rgb(255 255 255 / 6%);
-    border-color: color-mix(in srgb, var(--color-border) 44%, var(--accent, var(--color-interaction)));
-    box-shadow: 0 0 1rem color-mix(in srgb, var(--accent, var(--color-interaction)) 18%, transparent);
+    border-color: color-mix(
+      in srgb,
+      var(--color-border) 44%,
+      var(--accent, var(--color-interaction))
+    );
+    box-shadow: 0 0 1rem
+      color-mix(in srgb, var(--accent, var(--color-interaction)) 18%, transparent);
     color: var(--color-text-primary);
   }
 
@@ -1158,7 +1206,6 @@ button:disabled {
   .date-presets {
     grid-column: auto;
   }
-
 }
 
 @media (max-width: 560px) {

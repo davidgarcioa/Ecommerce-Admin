@@ -17,6 +17,6 @@ export interface ImportHistoryRecord {
   readonly warningCount: number;
   readonly status: ImportHistoryStatus;
   readonly durationMs: number;
-  readonly source: 'Firestore';
+  readonly source: 'Archivo local';
   readonly mappedColumns: number;
 }

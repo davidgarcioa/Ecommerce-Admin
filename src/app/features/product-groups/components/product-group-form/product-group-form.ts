@@ -80,6 +80,7 @@ export class ProductGroupFormComponent {
     effect(() => {
       const group = this.group();
       if (!group) {
+        this.form.controls.code.enable();
         return;
       }
 
@@ -119,10 +120,10 @@ export class ProductGroupFormComponent {
     }
 
     if (control.hasError('required')) {
-      return 'El código es obligatorio.';
+      return 'El codigo es obligatorio.';
     }
 
-    return 'Usa 2 a 30 caracteres en mayúsculas, números o guiones.';
+    return 'Usa 2 a 30 caracteres en mayusculas, numeros o guiones.';
   }
 
   protected nameError(): string | null {

@@ -72,7 +72,7 @@
     }
 
     &:focus-visible {
-      border-color: #3B82F6;
+      border-color: #3b82f6;
       outline: 2px solid rgba(59, 130, 246, 0.25);
       outline-offset: 2px;
     }
@@ -136,19 +136,19 @@
     }
 
     &--info::before {
-      background: #3B82F6;
+      background: #3b82f6;
     }
 
     &--positive::before {
-      background: #10B981;
+      background: #10b981;
     }
 
     &--warning::before {
-      background: #F59E0B;
+      background: #f59e0b;
     }
 
     &--danger::before {
-      background: #EF4444;
+      background: #ef4444;
     }
   }
 }

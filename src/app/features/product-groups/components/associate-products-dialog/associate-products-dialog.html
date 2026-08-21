@@ -14,16 +14,17 @@
   <section class="associate-products-dialog__panel">
     <header>
       <div>
+        <p>PRODUCTOS DISPONIBLES</p>
         <h2 id="associate-title">Asociar productos</h2>
-        <p>Selecciona productos disponibles del catálogo real.</p>
+        <span>Selecciona productos disponibles del catalogo real.</span>
       </div>
-      <button type="button" aria-label="Cerrar diálogo" (click)="close.emit()">
+      <button type="button" aria-label="Cerrar dialogo" (click)="close.emit()">
         <span class="material-symbols-rounded" aria-hidden="true">close</span>
       </button>
     </header>
 
     <label>
-      Buscar productos
+      <span>Buscar productos</span>
       <input
         #searchInput
         type="search"

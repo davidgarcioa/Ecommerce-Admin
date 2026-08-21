@@ -25,5 +25,8 @@ describe('expense calculations', () => {
     expect(summary.paidAmount).toBe(120000);
     expect(summary.pendingAmount).toBe(80000);
     expect(summary.withoutReceiptCount).toBe(1);
+    expect(summary.netCashFlow).toBeGreaterThan(0);
+    expect(summary.budgetUsedPercentage).toBeGreaterThan(0);
+    expect(summary.categoryBreakdown.length).toBeGreaterThan(0);
   });
 });

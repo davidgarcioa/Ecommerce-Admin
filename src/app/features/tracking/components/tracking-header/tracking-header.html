@@ -1,8 +1,15 @@
 <header class="tracking-header">
-  <p>Consulta interna</p>
-  <h1>Rastreo</h1>
-  <span>Busca rápidamente un pedido, guía o cliente para consultar su trazabilidad.</span>
-  @if (lastSearchLabel(); as label) {
-    <small>Última búsqueda: {{ label }}</small>
-  }
+  <div class="tracking-header__content">
+    <p class="tracking-header__eyebrow">Consulta interna</p>
+    <h1>Rastreo</h1>
+    <span>Ubica pedidos, guías y clientes desde una sola búsqueda.</span>
+    @if (lastSearchLabel(); as label) {
+      <small>Última búsqueda: {{ label }}</small>
+    }
+  </div>
+
+  <div class="tracking-header__badge">
+    <span class="material-symbols-rounded" aria-hidden="true">location_searching</span>
+    <strong>Seguimiento</strong>
+  </div>
 </header>

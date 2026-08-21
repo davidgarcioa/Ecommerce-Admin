@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 
-import { TRACKING_SEARCH_TYPES } from '../../utils/tracking.constants';
 import { TrackingRecentSearch, TrackingSearchType } from '../../data-access/tracking.models';
+import { TRACKING_SEARCH_TYPES } from '../../utils/tracking.constants';
 
 @Component({
   selector: 'app-tracking-search',
@@ -22,11 +22,24 @@ export class TrackingSearchComponent {
   readonly recentSelected = output<TrackingRecentSearch>();
 
   protected readonly types = TRACKING_SEARCH_TYPES;
+  protected readonly typeMenuOpen = signal(false);
   protected readonly currentType = computed(
     () => this.types.find((type) => type.id === this.type()) ?? this.types[0],
   );
 
-  setType(value: string): void {
-    this.typeChange.emit(value as TrackingSearchType);
+  toggleTypeMenu(): void {
+    this.typeMenuOpen.update((open) => !open);
+  }
+
+  closeTypeMenuOnBlur(event: FocusEvent): void {
+    const nextTarget = event.relatedTarget as Node | null;
+    const currentTarget = event.currentTarget as Node | null;
+    if (currentTarget && nextTarget && currentTarget.contains(nextTarget)) return;
+    this.typeMenuOpen.set(false);
+  }
+
+  setType(value: TrackingSearchType): void {
+    this.typeChange.emit(value);
+    this.typeMenuOpen.set(false);
   }
 }

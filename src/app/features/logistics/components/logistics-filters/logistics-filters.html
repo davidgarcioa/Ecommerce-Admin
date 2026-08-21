@@ -1,101 +1,235 @@
 <section class="logistics-filters" aria-label="Filtros logísticos">
-  <label>
-    Buscar
-    <input
-      #searchInput
-      type="search"
-      placeholder="Pedido, cliente, guía o teléfono"
-      [value]="search()"
-      (input)="searchChange.emit(searchInput.value)"
-    />
-  </label>
+  <header class="logistics-filters__header">
+    <div class="logistics-filters__title">
+      <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+      <div>
+        <strong>Filtros</strong>
+        <p>
+          {{
+            activeFilterCount() === 1 ? '1 ajuste activo' : activeFilterCount() + ' ajustes activos'
+          }}
+        </p>
+      </div>
+    </div>
+  </header>
 
-  <label>
-    Estado pedido
-    <select
-      #orderSelect
-      [value]="filters().orderStatus"
-      (change)="setOrderStatus(orderSelect.value)"
+  <div class="logistics-filters__grid">
+    <label class="logistics-filters__search">
+      <span>Buscar</span>
+      <div class="logistics-filters__search-box">
+        <span class="material-symbols-rounded" aria-hidden="true">search</span>
+        <input
+          type="search"
+          placeholder="Pedido, cliente, guía o teléfono"
+          [value]="currentSearch()"
+          (focus)="closeSelects()"
+          (input)="onSearchChange($event)"
+        />
+      </div>
+    </label>
+
+    <label class="logistics-filters__field">
+      <span>Estado pedido</span>
+      <div
+        class="logistics-filters__select"
+        [class.logistics-filters__select--open]="isSelectOpen('orderStatus')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="logistics-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('orderStatus')"
+          (click)="toggleSelect('orderStatus')"
+        >
+          <span>{{ selectedOrderStatusLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+
+        @if (isSelectOpen('orderStatus')) {
+          <div class="logistics-filters__select-menu" role="listbox">
+            @for (option of orderStatusOptions; track option.value) {
+              <button
+                type="button"
+                role="option"
+                [class.logistics-filters__select-option--selected]="
+                  currentFilters().orderStatus === option.value
+                "
+                [attr.aria-selected]="currentFilters().orderStatus === option.value"
+                (click)="selectOrderStatus(option.value)"
+              >
+                <span>{{ option.label }}</span>
+                @if (currentFilters().orderStatus === option.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
+
+    <label class="logistics-filters__field">
+      <span>Entrega</span>
+      <div
+        class="logistics-filters__select"
+        [class.logistics-filters__select--open]="isSelectOpen('deliveryStatus')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="logistics-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('deliveryStatus')"
+          (click)="toggleSelect('deliveryStatus')"
+        >
+          <span>{{ selectedDeliveryStatusLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+
+        @if (isSelectOpen('deliveryStatus')) {
+          <div class="logistics-filters__select-menu" role="listbox">
+            @for (option of deliveryStatusOptions; track option.value) {
+              <button
+                type="button"
+                role="option"
+                [class.logistics-filters__select-option--selected]="
+                  currentFilters().deliveryStatus === option.value
+                "
+                [attr.aria-selected]="currentFilters().deliveryStatus === option.value"
+                (click)="selectDeliveryStatus(option.value)"
+              >
+                <span>{{ option.label }}</span>
+                @if (currentFilters().deliveryStatus === option.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
+
+    <label class="logistics-filters__field">
+      <span>Pago</span>
+      <div
+        class="logistics-filters__select"
+        [class.logistics-filters__select--open]="isSelectOpen('paymentStatus')"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="logistics-filters__select-trigger"
+          [attr.aria-expanded]="isSelectOpen('paymentStatus')"
+          (click)="toggleSelect('paymentStatus')"
+        >
+          <span>{{ selectedPaymentStatusLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+
+        @if (isSelectOpen('paymentStatus')) {
+          <div class="logistics-filters__select-menu" role="listbox">
+            @for (option of paymentStatusOptions; track option.value) {
+              <button
+                type="button"
+                role="option"
+                [class.logistics-filters__select-option--selected]="
+                  currentFilters().paymentStatus === option.value
+                "
+                [attr.aria-selected]="currentFilters().paymentStatus === option.value"
+                (click)="selectPaymentStatus(option.value)"
+              >
+                <span>{{ option.label }}</span>
+                @if (currentFilters().paymentStatus === option.value) {
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
+
+    <label class="logistics-filters__text-field">
+      <span>Transportadora</span>
+      <input
+        type="text"
+        placeholder="Todas"
+        [value]="currentFilters().carrier"
+        (focus)="closeSelects()"
+        (input)="setCarrier($event)"
+      />
+    </label>
+
+    <label class="logistics-filters__text-field">
+      <span>Ciudad</span>
+      <input
+        type="text"
+        placeholder="Todas"
+        [value]="currentFilters().city"
+        (focus)="closeSelects()"
+        (input)="setCity($event)"
+      />
+    </label>
+  </div>
+
+  <div class="logistics-filters__checks">
+    <label class="logistics-filters__check">
+      <input
+        type="checkbox"
+        [checked]="currentFilters().withoutTracking"
+        (change)="setWithoutTracking($event)"
+      />
+      <span class="logistics-filters__check-box" aria-hidden="true">
+        <span class="material-symbols-rounded">check</span>
+      </span>
+      <span>
+        <strong>Sin guía</strong>
+        <small>Falta generar guía</small>
+      </span>
+    </label>
+
+    <label class="logistics-filters__check">
+      <input
+        type="checkbox"
+        [checked]="currentFilters().withIncident"
+        (change)="setWithIncident($event)"
+      />
+      <span class="logistics-filters__check-box" aria-hidden="true">
+        <span class="material-symbols-rounded">check</span>
+      </span>
+      <span>
+        <strong>Con incidencia</strong>
+        <small>Novedades activas</small>
+      </span>
+    </label>
+
+    <label class="logistics-filters__check">
+      <input
+        type="checkbox"
+        [checked]="currentFilters().withReturn"
+        (change)="setWithReturn($event)"
+      />
+      <span class="logistics-filters__check-box" aria-hidden="true">
+        <span class="material-symbols-rounded">check</span>
+      </span>
+      <span>
+        <strong>Con devolución</strong>
+        <small>Pedidos retornando</small>
+      </span>
+    </label>
+  </div>
+
+  <footer class="logistics-filters__actions">
+    <button
+      type="button"
+      class="logistics-filters__button logistics-filters__button--primary"
+      (click)="onApply()"
     >
-      <option value="all">Todos</option>
-      @for (status of orderStatuses; track status) {
-        <option [value]="status">{{ status }}</option>
-      }
-    </select>
-  </label>
-
-  <label>
-    Entrega
-    <select
-      #deliverySelect
-      [value]="filters().deliveryStatus"
-      (change)="setDeliveryStatus(deliverySelect.value)"
-    >
-      <option value="all">Todas</option>
-      @for (status of deliveryStatuses; track status) {
-        <option [value]="status">{{ status }}</option>
-      }
-    </select>
-  </label>
-
-  <label>
-    Pago
-    <select
-      #paymentSelect
-      [value]="filters().paymentStatus"
-      (change)="setPaymentStatus(paymentSelect.value)"
-    >
-      <option value="all">Todos</option>
-      @for (status of paymentStatuses; track status) {
-        <option [value]="status">{{ status }}</option>
-      }
-    </select>
-  </label>
-
-  <label>
-    Transportadora
-    <input
-      #carrierInput
-      type="text"
-      [value]="filters().carrier"
-      (input)="setCarrier(carrierInput.value)"
-    />
-  </label>
-
-  <label>
-    Ciudad
-    <input #cityInput type="text" [value]="filters().city" (input)="setCity(cityInput.value)" />
-  </label>
-
-  <label class="logistics-filters__check">
-    <input
-      #withoutTrackingInput
-      type="checkbox"
-      [checked]="filters().withoutTracking"
-      (change)="setWithoutTracking(withoutTrackingInput.checked)"
-    />
-    Sin guía
-  </label>
-
-  <label class="logistics-filters__check">
-    <input
-      #incidentInput
-      type="checkbox"
-      [checked]="filters().withIncident"
-      (change)="setWithIncident(incidentInput.checked)"
-    />
-    Con incidencia
-  </label>
-
-  <label class="logistics-filters__check">
-    <input
-      #returnInput
-      type="checkbox"
-      [checked]="filters().withReturn"
-      (change)="setWithReturn(returnInput.checked)"
-    />
-    Con devolución
-  </label>
-
-  <button type="button" (click)="clear.emit()">Limpiar</button>
+      <span class="material-symbols-rounded" aria-hidden="true">check</span>
+      Aplicar
+    </button>
+    <button type="button" class="logistics-filters__button" (click)="onClear()">
+      <span class="material-symbols-rounded" aria-hidden="true">restart_alt</span>
+      Limpiar
+    </button>
+  </footer>
 </section>

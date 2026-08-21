@@ -16,7 +16,11 @@
   @if (items().length > 0) {
     <nav class="quick-access__grid" aria-label="Accesos principales autorizados">
       @for (item of items(); track item.id) {
-        <a [routerLink]="item.route" class="quick-access__card" [attr.aria-label]="'Abrir ' + item.title">
+        <a
+          [routerLink]="item.route"
+          class="quick-access__card"
+          [attr.aria-label]="'Abrir ' + item.title"
+        >
           <span class="material-symbols-rounded" aria-hidden="true">{{ item.icon }}</span>
           <strong>{{ item.title }}</strong>
           <p>{{ item.description }}</p>

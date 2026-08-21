@@ -2,33 +2,92 @@
 
 .expenses-header {
   align-items: flex-start;
+  background: linear-gradient(145deg, rgb(255 255 255 / 3%), transparent 42%), var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: $radius-lg;
   display: flex;
   gap: $space-6;
   justify-content: space-between;
   min-width: 0;
+  overflow: visible;
+  padding: $space-6;
+  position: relative;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
 
-  h2,
+  &::after {
+    background: rgb(59 130 246);
+    border-radius: 999px;
+    bottom: $space-5;
+    content: '';
+    height: 0.18rem;
+    position: absolute;
+    right: $space-6;
+    width: 5.5rem;
+  }
+
+  &:hover {
+    background:
+      radial-gradient(circle at 8% 0%, rgb(59 130 246 / 8%), transparent 30%),
+      var(--color-card-elevated);
+    border-color: rgb(59 130 246 / 34%);
+    box-shadow: 0 0 1.25rem rgb(59 130 246 / 9%);
+    transform: translateY(-0.0625rem);
+  }
+
+  h1,
   p {
     margin: 0;
   }
 
-  h2 {
-    font-size: 1.75rem;
-  }
-
-  span {
-    color: var(--color-text-secondary);
-    display: block;
-    font-size: $font-size-sm;
+  h1 {
+    font-size: clamp(2.6rem, 5vw, 4rem);
+    line-height: 1;
     margin-top: $space-2;
   }
 
+  > div:first-child > span {
+    color: var(--color-text-secondary);
+    display: block;
+    font-size: $font-size-lg;
+    margin-top: $space-3;
+  }
+
   &__eyebrow {
-    color: var(--color-text-muted);
+    color: rgb(59 130 246);
     font-size: $font-size-xs;
-    font-weight: 700;
+    font-weight: $font-weight-bold;
     letter-spacing: 0;
-    text-transform: uppercase;
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+    margin-top: $space-5;
+
+    span {
+      align-items: center;
+      background: rgb(255 255 255 / 3%);
+      border: 1px solid var(--color-border);
+      border-radius: 999px;
+      color: var(--color-text-secondary);
+      display: inline-flex;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-bold;
+      gap: $space-2;
+      min-height: 2.5rem;
+      padding: 0 $space-3;
+    }
+
+    i {
+      color: rgb(59 130 246);
+      font-size: 1rem;
+      line-height: 1;
+    }
   }
 
   &__actions {
@@ -40,52 +99,72 @@
 
   button {
     align-items: center;
-    background: transparent;
+    background: rgb(255 255 255 / 2.5%);
     border: 1px solid var(--color-border);
     border-radius: $radius-md;
-    color: var(--color-text-secondary);
+    color: var(--color-text-primary);
     cursor: pointer;
     display: inline-flex;
     font: inherit;
     font-size: $font-size-sm;
-    font-weight: 600;
-    gap: $space-1;
-    min-height: 2rem;
-    padding: 0 $space-3;
+    font-weight: $font-weight-bold;
+    gap: $space-2;
+    justify-content: center;
+    min-height: 3rem;
+    padding: 0 $space-4;
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      transform 180ms ease;
 
     .material-symbols-rounded {
-      align-items: center;
-      display: inline-flex;
+      color: rgb(59 130 246);
       font-size: 1rem;
-      height: 1rem;
-      justify-content: center;
       line-height: 1;
-      width: 1rem;
+    }
+
+    b {
+      align-items: center;
+      background: rgb(59 130 246 / 18%);
+      border-radius: 999px;
+      display: inline-flex;
+      font-size: $font-size-xs;
+      height: 1.35rem;
+      justify-content: center;
+      min-width: 1.35rem;
+      padding: 0 0.35rem;
+    }
+
+    &:hover,
+    &:focus-visible {
+      background: rgb(59 130 246 / 8%);
+      border-color: rgb(59 130 246 / 42%);
+      outline: none;
+      transform: translateY(-0.0625rem);
     }
 
     &:disabled {
+      color: var(--color-text-disabled);
       cursor: not-allowed;
       opacity: 0.55;
+      transform: none;
     }
   }
 
+  &__filter--active,
   &__primary {
-    background: var(--color-primary) !important;
-    color: var(--color-bg) !important;
+    background: rgb(59 130 246 / 12%) !important;
+    border-color: rgb(59 130 246 / 52%) !important;
   }
 }
 
 @media (max-width: 760px) {
   .expenses-header {
-    flex-direction: column;
+    display: grid;
 
     &__actions,
     button {
       width: 100%;
-    }
-
-    button {
-      justify-content: center;
     }
   }
 }

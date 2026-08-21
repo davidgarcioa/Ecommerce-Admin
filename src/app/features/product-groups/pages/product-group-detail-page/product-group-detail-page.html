@@ -13,27 +13,39 @@
       <div>
         <p>{{ item.code }}</p>
         <h1>{{ item.name }}</h1>
-        <span>{{ item.description || 'Sin descripción registrada.' }}</span>
+        <span>{{ item.description || 'Sin descripcion registrada.' }}</span>
       </div>
       <div class="product-group-detail-page__actions">
         @if (canManageProducts()) {
-          <button type="button" (click)="productsPage()">Productos</button>
+          <button type="button" (click)="productsPage()">
+            <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
+            Productos
+          </button>
         }
         @if (canEdit()) {
-          <button type="button" (click)="edit()">Editar</button>
+          <button type="button" (click)="edit()">
+            <span class="material-symbols-rounded" aria-hidden="true">edit</span>
+            Editar
+          </button>
         }
         @if (canArchive() && !item.archivedAt) {
-          <button type="button" (click)="archive()">Archivar</button>
+          <button type="button" (click)="archive()">
+            <span class="material-symbols-rounded" aria-hidden="true">archive</span>
+            Archivar
+          </button>
         }
         @if (canArchive() && item.archivedAt) {
-          <button type="button" (click)="restore()">Restaurar</button>
+          <button type="button" (click)="restore()">
+            <span class="material-symbols-rounded" aria-hidden="true">unarchive</span>
+            Restaurar
+          </button>
         }
       </div>
     </header>
 
     <section class="product-group-detail-page__meta">
       <span>Estado: {{ item.archivedAt ? 'Archivado' : item.active ? 'Activo' : 'Inactivo' }}</span>
-      <span>Destacado: {{ item.featured ? 'Sí' : 'No' }}</span>
+      <span>Destacado: {{ item.featured ? 'Si' : 'No' }}</span>
       <span>Orden: {{ item.sortOrder }}</span>
       <span>Creado: {{ formatDate(item.createdAt) }}</span>
       <span>Actualizado: {{ formatDate(item.updatedAt) }}</span>

@@ -1,10 +1,27 @@
 @use '../../../../styles/abstracts/variables' as *;
 
 .testing-detail {
-  background: var(--color-surface);
+  background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: $radius-lg;
+  display: grid;
+  gap: $space-5;
+  min-width: 0;
   padding: $space-5;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+
+  &:hover {
+    background:
+      radial-gradient(circle at 6% 0%, rgb(59 130 246 / 8%), transparent 30%),
+      var(--color-card-elevated);
+    border-color: rgb(59 130 246 / 34%);
+    box-shadow: 0 0 1.25rem rgb(59 130 246 / 9%);
+    transform: translateY(-0.0625rem);
+  }
 
   h2,
   p,
@@ -12,23 +29,73 @@
     margin: 0;
   }
 
-  p,
-  span,
-  dt {
-    color: var(--color-text-secondary);
-    font-size: $font-size-sm;
+  &__header {
+    align-items: start;
+    display: flex;
+    gap: $space-4;
+    justify-content: space-between;
+    min-width: 0;
+
+    h2 {
+      color: var(--color-text-primary);
+      font-size: clamp(1.8rem, 2.4vw, 2.4rem);
+      line-height: 1;
+      margin-top: $space-1;
+    }
+
+    span {
+      color: var(--color-text-secondary);
+      display: block;
+      font-size: $font-size-sm;
+      margin-top: $space-2;
+    }
   }
 
-  dl {
+  &__eyebrow {
+    color: rgb(59 130 246);
+    font-size: $font-size-xs;
+    font-weight: $font-weight-bold;
+    text-transform: uppercase;
+  }
+
+  &__status {
+    align-items: center;
+    background: rgb(59 130 246 / 10%);
+    border: 1px solid rgb(59 130 246 / 38%);
+    border-radius: 999px;
+    color: var(--color-text-primary) !important;
+    display: inline-flex !important;
+    flex: 0 0 auto;
+    font-size: $font-size-xs !important;
+    font-weight: $font-weight-bold;
+    min-height: 2rem;
+    padding: 0 $space-3;
+  }
+
+  &__grid {
     display: grid;
-    gap: $space-4;
+    gap: $space-3;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin: $space-6 0 0;
+    margin: 0;
+  }
+
+  dt {
+    color: var(--color-text-muted);
+    font-size: $font-size-xs;
+    font-weight: $font-weight-bold;
+    text-transform: uppercase;
   }
 
   dd {
+    background: rgb(255 255 255 / 2.5%);
+    border: 1px solid rgb(255 255 255 / 7%);
+    border-radius: $radius-md;
     color: var(--color-text-primary);
-    margin-top: $space-1;
+    font-size: $font-size-sm;
+    line-height: 1.45;
+    margin-top: $space-2;
+    min-height: 2.75rem;
+    padding: $space-3;
   }
 
   &__actions {
@@ -36,28 +103,71 @@
     flex-wrap: wrap;
     gap: $space-2;
     justify-content: flex-end;
-    margin-top: $space-6;
   }
 
   button {
-    background: var(--color-surface-elevated);
+    align-items: center;
+    background: rgb(255 255 255 / 2.5%);
     border: 1px solid var(--color-border);
     border-radius: $radius-md;
     color: var(--color-text-primary);
     cursor: pointer;
+    display: inline-flex;
     font: inherit;
-    font-weight: 700;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-bold;
+    gap: $space-2;
     min-height: 2.5rem;
     padding: 0 $space-4;
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      transform 180ms ease;
+
+    .material-symbols-rounded {
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    &:hover:not(:disabled) {
+      background: rgb(59 130 246 / 8%);
+      border-color: rgb(59 130 246 / 42%);
+      transform: translateY(-0.0625rem);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
   }
 
   &__danger {
-    border-color: var(--color-error) !important;
+    border-color: rgb(239 68 68 / 48%) !important;
+
+    &:hover:not(:disabled) {
+      background: rgb(239 68 68 / 8%) !important;
+      border-color: rgb(239 68 68 / 58%) !important;
+    }
   }
 }
 
 @media (max-width: 720px) {
-  .testing-detail dl {
-    grid-template-columns: 1fr;
+  .testing-detail {
+    &__header {
+      flex-direction: column;
+    }
+
+    &__grid {
+      grid-template-columns: 1fr;
+    }
+
+    &__actions,
+    button {
+      width: 100%;
+    }
+
+    button {
+      justify-content: center;
+    }
   }
 }

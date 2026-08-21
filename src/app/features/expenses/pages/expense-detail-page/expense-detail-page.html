@@ -1,6 +1,11 @@
 <section class="expense-detail-page">
+  <button type="button" class="expense-detail-page__back" routerLink="/gastos">
+    <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+    Volver
+  </button>
+
   @if (loading()) {
-    <p>Cargando gasto...</p>
+    <p>Cargando movimiento financiero...</p>
   } @else if (error(); as message) {
     <p role="alert">{{ message }}</p>
   } @else if (expense(); as currentExpense) {
@@ -10,6 +15,6 @@
       (delete)="delete($event)"
     />
   } @else {
-    <p>No encontramos el gasto solicitado.</p>
+    <p>No encontramos el movimiento solicitado.</p>
   }
 </section>

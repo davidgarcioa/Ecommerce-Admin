@@ -26,7 +26,9 @@ export class DailySummaryGridComponent {
     })),
   );
 
-  private getVisualProgress(metric: DailyMetric): Pick<VisualDailyMetric, 'visualWeight' | 'visualLabel'> {
+  private getVisualProgress(
+    metric: DailyMetric,
+  ): Pick<VisualDailyMetric, 'visualWeight' | 'visualLabel'> {
     const orders = this.findMetricValue('orders');
     const confirmed = this.findMetricValue('confirmed');
     const sales = this.findMetricValue('sales');
@@ -40,7 +42,10 @@ export class DailySummaryGridComponent {
       case 'confirmed':
         return progress(ratio(metric.value, orders), `${metric.value} de ${orders} órdenes`);
       case 'deliveries':
-        return progress(ratio(metric.value, confirmed), `${metric.value} de ${confirmed} confirmadas`);
+        return progress(
+          ratio(metric.value, confirmed),
+          `${metric.value} de ${confirmed} confirmadas`,
+        );
       case 'delivery-rate':
         return progress(metric.value, 'Tasa real de entrega');
       case 'profit':
@@ -73,7 +78,10 @@ function ratio(value: number, base: number): number {
   return (value / base) * 100;
 }
 
-function progress(value: number, visualLabel: string): Pick<VisualDailyMetric, 'visualWeight' | 'visualLabel'> {
+function progress(
+  value: number,
+  visualLabel: string,
+): Pick<VisualDailyMetric, 'visualWeight' | 'visualLabel'> {
   return {
     visualWeight: clamp(value),
     visualLabel,

@@ -1,21 +1,14 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
 
 import {
   AD_ACCOUNTS,
-  CAMPAIGN_STORAGE_KEY,
   DEFAULT_CAMPAIGN_FILTER,
   PRODUCTS,
   PRODUCT_GROUPS,
 } from '../constants/campaigns.constants';
 import { AdSet } from '../models/ad-set.model';
-import { Advertisement, AdvertisementFormat } from '../models/advertisement.model';
-import {
-  AdvertisingPlatform,
-  Campaign,
-  CampaignFormData,
-  CampaignObjective,
-  CampaignStatus,
-} from '../models/campaign.model';
+import { Advertisement } from '../models/advertisement.model';
+import { Campaign, CampaignFormData, CampaignStatus } from '../models/campaign.model';
 import { CampaignFilter } from '../models/campaign-filter.model';
 import { CampaignMetric } from '../models/campaign-metric.model';
 import { MetricStatus } from '../../dashboard/models/dashboard-metric.model';
@@ -37,9 +30,11 @@ import {
   escapeCsv,
   formatCampaignValue,
 } from '../utils/campaigns.utils';
+import { ImportedCampaignsStoreService } from './imported-campaigns-store.service';
 
 @Injectable({ providedIn: 'root' })
 export class CampaignsService {
+  private readonly importedCampaignsStore = inject(ImportedCampaignsStoreService);
   private readonly reportState = signal<CampaignsReport>(this.buildInitialReport());
   private readonly campaignsState = signal<readonly Campaign[]>(this.reportState().campaigns);
   private readonly adSetsState = signal<readonly AdSet[]>(this.reportState().adSets);
@@ -91,6 +86,28 @@ export class CampaignsService {
   readonly synchronizationHistory = this.synchronizationHistoryState.asReadonly();
   readonly lastSynchronization = this.lastSynchronizationState.asReadonly();
   readonly toastMessage = this.toastMessageState.asReadonly();
+
+  constructor() {
+    effect(() => {
+      const campaigns = this.importedCampaignsStore.campaigns();
+      const productPerformance = buildProductPerformance(campaigns, this.advertisementsState());
+      const generatedAt = getLatestCampaignTimestamp(campaigns);
+      const synchronizationHistory = buildCampaignImportHistory(campaigns, generatedAt);
+
+      this.campaignsState.set(campaigns);
+      this.productPerformanceState.set(productPerformance);
+      this.synchronizationHistoryState.set(synchronizationHistory);
+      this.lastSynchronizationState.set(generatedAt);
+      this.reportState.update((report) => ({
+        ...report,
+        generatedAt,
+        campaigns,
+        summaryMetrics: buildSummaryMetrics(campaigns),
+        productPerformance,
+        synchronizationHistory,
+      }));
+    });
+  }
 
   loadCampaigns(): void {
     this.errorState.set(null);
@@ -211,6 +228,7 @@ export class CampaignsService {
           : campaign,
       ),
     );
+    this.persistLocalCampaigns();
   }
 
   pauseCampaign(id: string): void {
@@ -227,6 +245,7 @@ export class CampaignsService {
 
   deleteCampaign(id: string): void {
     this.campaignsState.update((campaigns) => campaigns.filter((campaign) => campaign.id !== id));
+    this.persistLocalCampaigns();
     this.closeCampaignDetail();
     this.toastMessageState.set('Campaña eliminada localmente.');
   }
@@ -248,16 +267,13 @@ export class CampaignsService {
   }
 
   private buildInitialReport(): CampaignsReport {
-    const seedCampaigns = buildSeedCampaigns();
-    const localCampaigns = this.readLocalCampaigns();
-    const campaigns = [
-      ...localCampaigns,
-      ...seedCampaigns.filter((seed) => !localCampaigns.some((local) => local.id === seed.id)),
-    ];
-    const adSets = buildSeedAdSets(campaigns);
-    const advertisements = buildSeedAdvertisements(campaigns, adSets);
+    const localCampaigns = this.importedCampaignsStore.campaigns();
+    const campaigns = [...localCampaigns];
+    const adSets: readonly AdSet[] = [];
+    const advertisements: readonly Advertisement[] = [];
     const productPerformance = buildProductPerformance(campaigns, advertisements);
-    const generatedAt = new Date().toISOString();
+    const generatedAt = getLatestCampaignTimestamp(campaigns);
+    const synchronizationHistory = buildCampaignImportHistory(campaigns, generatedAt);
 
     return {
       generatedAt,
@@ -269,18 +285,7 @@ export class CampaignsService {
       advertisements,
       productPerformance,
       comparison: [],
-      synchronizationHistory: [
-        buildSynchronizationRecord(
-          'sync-initial',
-          generatedAt,
-          'Inicial',
-          'Exitosa',
-          campaigns.length,
-          adSets.length,
-          advertisements.length,
-          'Datos publicitarios base cargados.',
-        ),
-      ],
+      synchronizationHistory,
     };
   }
 
@@ -492,637 +497,9 @@ export class CampaignsService {
     return ['\uFEFF' + header.map(escapeCsv).join(','), ...body].join('\n');
   }
 
-  private readLocalCampaigns(): readonly Campaign[] {
-    try {
-      const raw = localStorage.getItem(CAMPAIGN_STORAGE_KEY);
-      if (!raw) {
-        return [];
-      }
-
-      const parsed = JSON.parse(raw) as readonly Campaign[];
-      return parsed;
-    } catch {
-      return [];
-    }
-  }
-
   private persistLocalCampaigns(): void {
-    try {
-      const localCampaigns = this.campaignsState().filter((campaign) =>
-        campaign.id.startsWith('campaign-local-'),
-      );
-      localStorage.setItem(CAMPAIGN_STORAGE_KEY, JSON.stringify(localCampaigns));
-    } catch {
-      return;
-    }
+    this.importedCampaignsStore.replaceCampaigns(this.campaignsState());
   }
-}
-
-interface CampaignSeed {
-  readonly id: string;
-  readonly name: string;
-  readonly objective: CampaignObjective;
-  readonly status: CampaignStatus;
-  readonly adAccountId: string;
-  readonly productGroupId: string;
-  readonly platform: AdvertisingPlatform;
-  readonly dailyBudget: number;
-  readonly amountSpent: number;
-  readonly attributedRevenue: number;
-  readonly impressions: number;
-  readonly reach: number;
-  readonly clicks: number;
-  readonly purchases: number;
-  readonly startDate: string;
-  readonly hasWarnings?: boolean;
-  readonly warningMessage?: string;
-}
-
-const CAMPAIGN_SEEDS: readonly CampaignSeed[] = [
-  seed(
-    'camp-fyntra-abo',
-    'Fyntra 2 | ABO | Prospecting',
-    'Ventas',
-    'Activa',
-    'act-main',
-    'fyntra-2',
-    'Varias plataformas',
-    185000,
-    2240000,
-    9120000,
-    188400,
-    102500,
-    6810,
-    68,
-    '2026-07-21',
-  ),
-  seed(
-    'camp-helvor-scale',
-    'Helvor 2 | Escala compras',
-    'Ventas',
-    'Activa',
-    'act-scale',
-    'helvor-2',
-    'Facebook',
-    165000,
-    1980000,
-    7810000,
-    164200,
-    91300,
-    5120,
-    57,
-    '2026-07-24',
-  ),
-  seed(
-    'camp-fondal-reels',
-    'Fondal | Reels ventas frias',
-    'Ventas',
-    'Activa',
-    'act-main',
-    'fondal',
-    'Instagram',
-    142000,
-    1730000,
-    6140000,
-    151800,
-    80200,
-    4890,
-    42,
-    '2026-07-26',
-  ),
-  seed(
-    'camp-gadrix-remarketing',
-    'Gadrix 2 | Remarketing 14D',
-    'Ventas',
-    'Activa',
-    'act-scale',
-    'gadrix-2',
-    'Varias plataformas',
-    118000,
-    1280000,
-    5220000,
-    93400,
-    50400,
-    3560,
-    36,
-    '2026-08-01',
-  ),
-  seed(
-    'camp-halcor-broad',
-    'Halcor | Broad hogares',
-    'Ventas',
-    'Activa',
-    'act-main',
-    'halcor',
-    'Facebook',
-    95000,
-    1020000,
-    3110000,
-    81700,
-    42600,
-    2520,
-    24,
-    '2026-08-03',
-    true,
-    'CPA por encima del objetivo',
-  ),
-  seed(
-    'camp-gemvia-creatives',
-    'Gemvia | Creativos UGC',
-    'Ventas',
-    'En revisión',
-    'act-tests',
-    'gemvia',
-    'Instagram',
-    76000,
-    420000,
-    910000,
-    41800,
-    21900,
-    980,
-    7,
-    '2026-08-15',
-  ),
-  seed(
-    'camp-fyntra-retargeting',
-    'Fyntra 2 | Retargeting visitantes',
-    'Ventas',
-    'Activa',
-    'act-main',
-    'fyntra-2',
-    'Facebook',
-    88000,
-    940000,
-    4680000,
-    50600,
-    30200,
-    2110,
-    34,
-    '2026-08-02',
-  ),
-  seed(
-    'camp-helvor-leads',
-    'Helvor 2 | Clientes potenciales',
-    'Clientes potenciales',
-    'Pausada',
-    'act-tests',
-    'helvor-2',
-    'Messenger',
-    54000,
-    640000,
-    1260000,
-    70200,
-    38600,
-    1820,
-    13,
-    '2026-07-29',
-  ),
-  seed(
-    'camp-fondal-traffic',
-    'Fondal | Tráfico ficha producto',
-    'Tráfico',
-    'Pausada',
-    'act-main',
-    'fondal',
-    'Instagram',
-    62000,
-    510000,
-    820000,
-    88100,
-    50200,
-    3310,
-    6,
-    '2026-07-18',
-  ),
-  seed(
-    'camp-gadrix-testing',
-    'Gadrix 2 | Testing creativo',
-    'Interacción',
-    'Activa',
-    'act-tests',
-    'gadrix-2',
-    'Instagram',
-    70000,
-    760000,
-    1760000,
-    119400,
-    64100,
-    4220,
-    15,
-    '2026-08-05',
-  ),
-  seed(
-    'camp-halcor-retention',
-    'Halcor | Retención compradores',
-    'Ventas',
-    'Finalizada',
-    'act-scale',
-    'halcor',
-    'Facebook',
-    84000,
-    880000,
-    2670000,
-    62300,
-    35400,
-    1860,
-    21,
-    '2026-07-01',
-  ),
-  seed(
-    'camp-gemvia-prospecting',
-    'Gemvia | Prospecting intereses',
-    'Ventas',
-    'Activa',
-    'act-main',
-    'gemvia',
-    'Audience Network',
-    102000,
-    1160000,
-    2940000,
-    137900,
-    70100,
-    2950,
-    22,
-    '2026-08-04',
-    true,
-    'Frecuencia alta en audiencia principal',
-  ),
-  seed(
-    'camp-fyntra-lookalike',
-    'Fyntra 2 | Lookalike compradores',
-    'Ventas',
-    'Activa',
-    'act-scale',
-    'fyntra-2',
-    'Facebook',
-    152000,
-    1840000,
-    7320000,
-    144700,
-    81600,
-    4630,
-    54,
-    '2026-07-31',
-  ),
-  seed(
-    'camp-helvor-reels',
-    'Helvor 2 | Reels prueba Hook',
-    'Interacción',
-    'En revisión',
-    'act-tests',
-    'helvor-2',
-    'Instagram',
-    69000,
-    350000,
-    640000,
-    53700,
-    29500,
-    2050,
-    5,
-    '2026-08-16',
-  ),
-  seed(
-    'camp-fondal-advantage',
-    'Fondal | Advantage+ shopping',
-    'Ventas',
-    'Activa',
-    'act-scale',
-    'fondal',
-    'Varias plataformas',
-    128000,
-    1490000,
-    5310000,
-    132600,
-    72100,
-    3720,
-    39,
-    '2026-08-06',
-  ),
-  seed(
-    'camp-gadrix-awareness',
-    'Gadrix 2 | Reconocimiento marca',
-    'Reconocimiento',
-    'Finalizada',
-    'act-main',
-    'gadrix-2',
-    'Audience Network',
-    48000,
-    310000,
-    280000,
-    226000,
-    148000,
-    1820,
-    2,
-    '2026-07-09',
-  ),
-  seed(
-    'camp-halcor-issue',
-    'Halcor | Catálogo dinámico',
-    'Ventas',
-    'Con errores',
-    'act-main',
-    'halcor',
-    'Facebook',
-    92000,
-    690000,
-    1210000,
-    48200,
-    25400,
-    870,
-    8,
-    '2026-08-10',
-    true,
-    'Conjunto rechazado por política',
-  ),
-  seed(
-    'camp-gemvia-messenger',
-    'Gemvia | Conversaciones Messenger',
-    'Clientes potenciales',
-    'Activa',
-    'act-tests',
-    'gemvia',
-    'Messenger',
-    58000,
-    560000,
-    1420000,
-    61200,
-    31600,
-    1640,
-    11,
-    '2026-08-08',
-  ),
-  seed(
-    'camp-fyntra-archived',
-    'Fyntra 2 | Oferta anterior',
-    'Ventas',
-    'Archivada',
-    'act-main',
-    'fyntra-2',
-    'Facebook',
-    100000,
-    740000,
-    2380000,
-    65100,
-    36800,
-    1620,
-    18,
-    '2026-06-25',
-  ),
-  seed(
-    'camp-helvor-advantage',
-    'Helvor 2 | Advantage+ control',
-    'Ventas',
-    'Activa',
-    'act-scale',
-    'helvor-2',
-    'Varias plataformas',
-    132000,
-    1560000,
-    5480000,
-    121300,
-    68300,
-    3980,
-    41,
-    '2026-08-02',
-  ),
-  seed(
-    'camp-fondal-carousel',
-    'Fondal | Carrusel beneficios',
-    'Ventas',
-    'Pausada',
-    'act-main',
-    'fondal',
-    'Facebook',
-    83000,
-    720000,
-    1910000,
-    77900,
-    42100,
-    2140,
-    16,
-    '2026-07-22',
-  ),
-  seed(
-    'camp-gadrix-catalog',
-    'Gadrix 2 | Catálogo ventas',
-    'Ventas',
-    'Activa',
-    'act-scale',
-    'gadrix-2',
-    'Varias plataformas',
-    106000,
-    1210000,
-    3860000,
-    94500,
-    51700,
-    2780,
-    29,
-    '2026-08-07',
-  ),
-  seed(
-    'camp-halcor-reels',
-    'Halcor | Reels problema-solución',
-    'Tráfico',
-    'En revisión',
-    'act-tests',
-    'halcor',
-    'Instagram',
-    52000,
-    280000,
-    390000,
-    40300,
-    21600,
-    1320,
-    4,
-    '2026-08-17',
-  ),
-  seed(
-    'camp-gemvia-winback',
-    'Gemvia | Winback compradores',
-    'Ventas',
-    'Finalizada',
-    'act-scale',
-    'gemvia',
-    'Facebook',
-    74000,
-    610000,
-    1840000,
-    49800,
-    28900,
-    1210,
-    14,
-    '2026-07-12',
-  ),
-];
-
-const AD_SET_VARIANTS = ['Broad', 'Retargeting'] as const;
-const AD_FORMATS: readonly AdvertisementFormat[] = ['Imagen', 'Video', 'Carrusel', 'Reel'];
-
-function seed(
-  id: string,
-  name: string,
-  objective: CampaignObjective,
-  status: CampaignStatus,
-  adAccountId: string,
-  productGroupId: string,
-  platform: AdvertisingPlatform,
-  dailyBudget: number,
-  amountSpent: number,
-  attributedRevenue: number,
-  impressions: number,
-  reach: number,
-  clicks: number,
-  purchases: number,
-  startDate: string,
-  hasWarnings = false,
-  warningMessage?: string,
-): CampaignSeed {
-  return {
-    id,
-    name,
-    objective,
-    status,
-    adAccountId,
-    productGroupId,
-    platform,
-    dailyBudget,
-    amountSpent,
-    attributedRevenue,
-    impressions,
-    reach,
-    clicks,
-    purchases,
-    startDate,
-    hasWarnings,
-    warningMessage,
-  };
-}
-
-function buildSeedCampaigns(): readonly Campaign[] {
-  return CAMPAIGN_SEEDS.map((item, index) => {
-    const productGroup = PRODUCT_GROUPS.find((group) => group.id === item.productGroupId);
-    const account = AD_ACCOUNTS.find((current) => current.id === item.adAccountId);
-    const updatedAt = addDaysIso(item.startDate, 20 + (index % 7));
-
-    return {
-      ...metricsFor(
-        item.amountSpent,
-        item.attributedRevenue,
-        item.impressions,
-        item.reach,
-        item.clicks,
-        item.purchases,
-      ),
-      id: item.id,
-      externalId: `meta-${100000 + index}`,
-      name: item.name,
-      objective: item.objective,
-      status: item.status,
-      adAccountId: item.adAccountId,
-      adAccountName: account?.name ?? 'Cuenta sin nombre',
-      productGroupId: item.productGroupId,
-      productGroupName: productGroup?.name ?? 'Sin conjunto',
-      platform: item.platform,
-      budgetType: 'Diario',
-      dailyBudget: item.dailyBudget,
-      amountSpent: item.amountSpent,
-      attributedRevenue: item.attributedRevenue,
-      impressions: item.impressions,
-      reach: item.reach,
-      clicks: item.clicks,
-      purchases: item.purchases,
-      startDate: item.startDate,
-      createdAt: `${item.startDate}T08:00:00.000Z`,
-      updatedAt,
-      lastSynchronizedAt: updatedAt,
-      hasWarnings: item.hasWarnings ?? false,
-      warningMessage: item.warningMessage,
-    };
-  });
-}
-
-function buildSeedAdSets(campaigns: readonly Campaign[]): readonly AdSet[] {
-  return campaigns.flatMap((campaign, campaignIndex) =>
-    AD_SET_VARIANTS.map((variant, variantIndex) => {
-      const ratio = variantIndex === 0 ? 0.62 : 0.38;
-      const amountSpent = Math.round(campaign.amountSpent * ratio);
-      const attributedRevenue = Math.round(campaign.attributedRevenue * ratio);
-      const impressions = Math.round(campaign.impressions * ratio);
-      const reach = Math.round(campaign.reach * ratio);
-      const clicks = Math.round(campaign.clicks * ratio);
-      const purchases = Math.round(campaign.purchases * ratio);
-
-      return {
-        ...metricsFor(amountSpent, attributedRevenue, impressions, reach, clicks, purchases),
-        id: `${campaign.id}-set-${variantIndex + 1}`,
-        campaignId: campaign.id,
-        campaignName: campaign.name,
-        externalId: `adset-${campaignIndex + 1}-${variantIndex + 1}`,
-        name: `${campaign.productGroupName} | ${variant}`,
-        status: campaign.status,
-        optimizationGoal: campaign.objective === 'Ventas' ? 'Compras' : campaign.objective,
-        billingEvent: 'Impresiones',
-        dailyBudget: Math.round((campaign.dailyBudget ?? campaign.lifetimeBudget ?? 0) * ratio),
-        amountSpent,
-        attributedRevenue,
-        impressions,
-        reach,
-        clicks,
-        purchases,
-        startDate: campaign.startDate,
-        endDate: campaign.endDate,
-        updatedAt: campaign.updatedAt,
-      };
-    }),
-  );
-}
-
-function buildSeedAdvertisements(
-  campaigns: readonly Campaign[],
-  adSets: readonly AdSet[],
-): readonly Advertisement[] {
-  return adSets.flatMap((adSet, adSetIndex) => {
-    const campaign = campaigns.find((item) => item.id === adSet.campaignId);
-    const products = productsForGroup(campaign?.productGroupId ?? 'all');
-
-    return [0, 1].map((itemIndex) => {
-      const ratio = itemIndex === 0 ? 0.58 : 0.42;
-      const amountSpent = Math.round(adSet.amountSpent * ratio);
-      const attributedRevenue = Math.round(adSet.attributedRevenue * ratio);
-      const impressions = Math.round(adSet.impressions * ratio);
-      const reach = Math.round(adSet.reach * ratio);
-      const clicks = Math.round(adSet.clicks * ratio);
-      const purchases = Math.round(adSet.purchases * ratio);
-      const product = products[(adSetIndex + itemIndex) % products.length];
-      const format = AD_FORMATS[(adSetIndex + itemIndex) % AD_FORMATS.length];
-
-      return {
-        ...metricsFor(amountSpent, attributedRevenue, impressions, reach, clicks, purchases),
-        id: `${adSet.id}-ad-${itemIndex + 1}`,
-        adSetId: adSet.id,
-        adSetName: adSet.name,
-        campaignId: adSet.campaignId,
-        campaignName: adSet.campaignName,
-        externalId: `ad-${adSetIndex + 1}-${itemIndex + 1}`,
-        name: `${product.name} | ${format} ${itemIndex + 1}`,
-        status: adSet.status,
-        format,
-        creativeName: `${product.name} ${itemIndex === 0 ? 'beneficio principal' : 'prueba social'}`,
-        headline: itemIndex === 0 ? 'Oferta disponible hoy' : 'Clientes reales, resultados reales',
-        destinationUrl: `https://linkoba.local/productos/${product.id}`,
-        productId: product.id,
-        productName: product.name,
-        amountSpent,
-        attributedRevenue,
-        impressions,
-        reach,
-        clicks,
-        purchases,
-        createdAt: `${adSet.startDate}T09:30:00.000Z`,
-        updatedAt: adSet.updatedAt,
-      };
-    });
-  });
 }
 
 function buildProductPerformance(
@@ -1274,31 +651,14 @@ function metric(
   };
 }
 
-function metricsFor(
-  amountSpent: number,
-  attributedRevenue: number,
-  impressions: number,
-  reach: number,
-  clicks: number,
-  purchases: number,
-) {
-  return {
-    ctr: calculateCtr(clicks, impressions),
-    cpc: calculateCpc(amountSpent, clicks),
-    cpm: calculateCpm(amountSpent, impressions),
-    cpa: calculateCpa(amountSpent, purchases),
-    roas: calculateRoas(attributedRevenue, amountSpent),
-    frequency: calculateFrequency(impressions, reach),
-  };
-}
-
 function isCampaignInPeriod(campaign: Campaign, filters: CampaignFilter): boolean {
   if (filters.period === 'all') {
     return true;
   }
 
-  const campaignDate = parseDateOnly(campaign.startDate);
-  if (!campaignDate) {
+  const campaignStart = parseDateOnly(campaign.startDate);
+  const campaignEnd = campaign.endDate ? parseDateOnly(campaign.endDate) : campaignStart;
+  if (!campaignStart || !campaignEnd) {
     return false;
   }
 
@@ -1340,7 +700,36 @@ function isCampaignInPeriod(campaign: Campaign, filters: CampaignFilter): boolea
       break;
   }
 
-  return (!from || campaignDate >= from) && (!to || campaignDate <= to);
+  return (!from || campaignEnd >= from) && (!to || campaignStart <= to);
+}
+
+function getLatestCampaignTimestamp(campaigns: readonly Campaign[]): string {
+  return campaigns
+    .map((campaign) => campaign.lastSynchronizedAt || campaign.updatedAt)
+    .filter((value): value is string => Boolean(value))
+    .sort((left, right) => right.localeCompare(left))[0] ?? '';
+}
+
+function buildCampaignImportHistory(
+  campaigns: readonly Campaign[],
+  synchronizedAt: string,
+): readonly SynchronizationRecord[] {
+  if (!campaigns.length || !synchronizedAt) {
+    return [];
+  }
+
+  return [
+    buildSynchronizationRecord(
+      'imported-campaigns',
+      synchronizedAt,
+      'Manual',
+      'Exitosa',
+      campaigns.length,
+      0,
+      0,
+      'Datos de Meta Ads cargados desde archivo.',
+    ),
+  ];
 }
 
 function buildSynchronizationRecord(
@@ -1365,17 +754,6 @@ function buildSynchronizationRecord(
     message,
     errorsFound: status === 'Fallida' ? 1 : 0,
   };
-}
-
-function productsForGroup(groupId: string) {
-  const products = PRODUCTS.filter((product) => product.groupId === groupId);
-  return products.length > 0 ? products : PRODUCTS.filter((product) => product.id !== 'all');
-}
-
-function addDaysIso(dateIso: string, days: number): string {
-  const next = new Date(`${dateIso}T00:00:00.000Z`);
-  next.setUTCDate(next.getUTCDate() + days);
-  return next.toISOString();
 }
 
 function parseDateOnly(value: string): Date | null {

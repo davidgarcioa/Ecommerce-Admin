@@ -3,21 +3,53 @@
 .testing-form-page {
   display: grid;
   gap: $space-5;
-  max-width: 58rem;
+  max-width: 64rem;
+  min-width: 0;
 
   h2,
   p {
     margin: 0;
   }
 
-  header p {
-    color: var(--color-text-secondary);
-    font-size: $font-size-sm;
+  &__header {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-lg;
+    padding: $space-5;
+    position: relative;
+
+    &::after {
+      background: rgb(59 130 246);
+      border-radius: 999px;
+      bottom: $space-5;
+      content: '';
+      height: 0.15rem;
+      position: absolute;
+      right: $space-5;
+      width: 4rem;
+    }
+
+    p {
+      color: rgb(59 130 246);
+      font-size: $font-size-xs;
+      font-weight: $font-weight-bold;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      color: var(--color-text-primary);
+      font-size: clamp(1.8rem, 2.5vw, 2.45rem);
+      line-height: 1;
+      margin-top: $space-2;
+    }
   }
 
   &__error {
-    border: 1px solid var(--color-error);
+    background: rgb(239 68 68 / 8%);
+    border: 1px solid rgb(239 68 68 / 42%);
     border-radius: $radius-md;
-    padding: $space-3;
+    color: var(--color-text-primary);
+    font-size: $font-size-sm;
+    padding: $space-4;
   }
 }

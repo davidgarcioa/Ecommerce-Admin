@@ -2,12 +2,14 @@
   <header class="settings-page__header">
     <div>
       <h2 id="permissions-title" class="settings-page__title">Permisos</h2>
-      <p class="settings-page__description">Catálogo técnico que habilita o limita cada módulo.</p>
+      <p class="settings-page__description">Catálogo que habilita o limita cada módulo.</p>
     </div>
   </header>
 
   <div class="settings-summary" aria-label="Resumen de permisos">
-    <div class="settings-summary-card"><span>Permisos registrados</span><strong>{{ totalPermissions() }}</strong></div>
+    <div class="settings-summary-card" style="--settings-accent: 59 130 246">
+      <span>Permisos registrados</span><strong>{{ totalPermissions() }}</strong>
+    </div>
   </div>
 
   <app-data-table

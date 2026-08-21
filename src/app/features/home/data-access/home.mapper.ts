@@ -172,9 +172,7 @@ function mapFileAttentionItems(
   ];
 }
 
-function mapTagAttentionItems(
-  statistics: HomeStatisticsResponse['tags'],
-): readonly HomeWorkItem[] {
+function mapTagAttentionItems(statistics: HomeStatisticsResponse['tags']): readonly HomeWorkItem[] {
   if (!statistics || statistics.unused <= 0) return [];
   return [
     {

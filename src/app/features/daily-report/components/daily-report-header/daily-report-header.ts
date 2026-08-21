@@ -6,5 +6,4 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   styleUrl: './daily-report-header.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DailyReportHeaderComponent {
-}
+export class DailyReportHeaderComponent {}

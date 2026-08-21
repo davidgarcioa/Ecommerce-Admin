@@ -130,6 +130,7 @@ export function formatTableCell<T extends object>(row: T, column: TableColumn<T>
     case 'boolean':
       return Boolean(value) ? 'Sí' : 'No';
     case 'status':
+    case 'color':
     case 'custom':
     case 'text':
       return String(value ?? '');

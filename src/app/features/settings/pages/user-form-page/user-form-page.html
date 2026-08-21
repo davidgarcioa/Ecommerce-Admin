@@ -2,7 +2,13 @@
   <header class="settings-page__header">
     <div>
       <h2 id="user-form-title" class="settings-page__title">
-        {{ pendingReview() ? 'Revisar acceso' : mode() === 'edit' ? 'Editar usuario' : 'Nuevo usuario' }}
+        {{
+          pendingReview()
+            ? 'Revisar acceso'
+            : mode() === 'edit'
+              ? 'Editar usuario'
+              : 'Nuevo usuario'
+        }}
       </h2>
       <p class="settings-page__description">
         {{
@@ -21,7 +27,9 @@
         <span class="material-symbols-rounded" aria-hidden="true">hourglass_top</span>
         <div>
           <strong>Cuenta esperando aprobación</strong>
-          <span>El correo ya fue verificado. Selecciona un rol y guarda para habilitar el acceso.</span>
+          <span
+            >El correo ya fue verificado. Selecciona un rol y guarda para habilitar el acceso.</span
+          >
         </div>
       </div>
     }
@@ -54,7 +62,12 @@
       </div>
       <div class="settings-field">
         <label for="password">Contraseña {{ mode() === 'edit' ? '(sin cambios)' : '' }}</label>
-        <input id="password" type="password" formControlName="password" autocomplete="new-password" />
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          autocomplete="new-password"
+        />
       </div>
       <div class="settings-field">
         <label for="phone">Teléfono</label>

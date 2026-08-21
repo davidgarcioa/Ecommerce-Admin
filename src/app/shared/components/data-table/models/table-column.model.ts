@@ -1,7 +1,15 @@
 import { TemplateRef } from '@angular/core';
 
 export type TableColumnType =
-  'text' | 'number' | 'currency' | 'percentage' | 'date' | 'status' | 'boolean' | 'custom';
+  | 'text'
+  | 'number'
+  | 'currency'
+  | 'percentage'
+  | 'date'
+  | 'status'
+  | 'boolean'
+  | 'color'
+  | 'custom';
 
 export type TableColumnAlign = 'left' | 'center' | 'right';
 

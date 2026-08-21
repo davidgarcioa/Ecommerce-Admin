@@ -1,30 +1,112 @@
-<section class="expenses-summary" aria-label="Resumen de gastos">
-  <article>
-    <span>Total del periodo</span>
-    <strong>{{ formatCurrency(totalAmount()) }}</strong>
-  </article>
-  <article>
-    <span>Pagados</span>
-    <strong>{{ formatCurrency(paidAmount()) }}</strong>
-  </article>
-  <article>
-    <span>Pendientes</span>
-    <strong>{{ formatCurrency(pendingAmount()) }}</strong>
-  </article>
-  <article>
-    <span>Cantidad</span>
-    <strong>{{ expenseCount() }}</strong>
-  </article>
-  <article>
-    <span>Promedio</span>
-    <strong>{{ formatCurrency(averageExpense()) }}</strong>
-  </article>
-  <article>
-    <span>Categoría mayor</span>
-    <strong>{{ topCategory() }}</strong>
-  </article>
-  <article>
-    <span>Sin comprobante</span>
-    <strong>{{ withoutReceipt() }}</strong>
-  </article>
+<section class="expenses-summary" aria-label="Resumen financiero">
+  <div class="expenses-summary__cards">
+    <article class="expenses-summary__card expenses-summary__card--blue">
+      <span class="expenses-summary__icon material-symbols-rounded" aria-hidden="true"
+        >account_balance_wallet</span
+      >
+      <span class="expenses-summary__dot" aria-hidden="true"></span>
+      <p>Flujo neto</p>
+      <strong>{{ formatCurrency(netCashFlow()) }}</strong>
+      <small>Ingresos menos gastos</small>
+    </article>
+
+    <article class="expenses-summary__card expenses-summary__card--green">
+      <span class="expenses-summary__icon material-symbols-rounded" aria-hidden="true"
+        >trending_up</span
+      >
+      <span class="expenses-summary__dot" aria-hidden="true"></span>
+      <p>Ingresos estimados</p>
+      <strong>{{ formatCurrency(projectedIncome()) }}</strong>
+      <small>Base mensual del negocio</small>
+    </article>
+
+    <article class="expenses-summary__card expenses-summary__card--red">
+      <span class="expenses-summary__icon material-symbols-rounded" aria-hidden="true"
+        >payments</span
+      >
+      <span class="expenses-summary__dot" aria-hidden="true"></span>
+      <p>Gastos del periodo</p>
+      <strong>{{ formatCurrency(totalAmount()) }}</strong>
+      <small>{{ expenseCount() }} movimientos activos</small>
+    </article>
+
+    <article class="expenses-summary__card expenses-summary__card--amber">
+      <span class="expenses-summary__icon material-symbols-rounded" aria-hidden="true"
+        >schedule</span
+      >
+      <span class="expenses-summary__dot" aria-hidden="true"></span>
+      <p>Por pagar</p>
+      <strong>{{ formatCurrency(pendingAmount()) }}</strong>
+      <small>{{ pendingCount() }} pendientes</small>
+    </article>
+
+    <article class="expenses-summary__card expenses-summary__card--cyan">
+      <span class="expenses-summary__icon material-symbols-rounded" aria-hidden="true"
+        >fact_check</span
+      >
+      <span class="expenses-summary__dot" aria-hidden="true"></span>
+      <p>Pagado</p>
+      <strong>{{ formatCurrency(paidAmount()) }}</strong>
+      <small>{{ formatPercentage(paidRatio()) }} liquidado</small>
+    </article>
+
+    <article class="expenses-summary__card expenses-summary__card--violet">
+      <span class="expenses-summary__icon material-symbols-rounded" aria-hidden="true"
+        >receipt_long</span
+      >
+      <span class="expenses-summary__dot" aria-hidden="true"></span>
+      <p>Sin soporte</p>
+      <strong>{{ withoutReceipt() }}</strong>
+      <small>{{ topCategory() }} pesa mas</small>
+    </article>
+  </div>
+
+  <section class="expenses-summary__planner" aria-label="Presupuesto por categoria">
+    <header>
+      <div>
+        <p>Presupuesto operativo</p>
+        <h2>{{ formatPercentage(budgetUsedPercentage()) }} usado</h2>
+      </div>
+      <span>{{ formatCurrency(totalAmount()) }} de {{ formatCurrency(budgetAmount()) }}</span>
+    </header>
+
+    <div class="expenses-summary__budget-track" aria-hidden="true">
+      <i [style.width.%]="clamp(budgetUsedPercentage())"></i>
+    </div>
+
+    <div class="expenses-summary__alerts">
+      <span>
+        <b>{{ formatCurrency(overdueAmount()) }}</b>
+        vencido
+      </span>
+      <span>
+        <b>{{ formatCurrency(dueSoonAmount()) }}</b>
+        vence pronto
+      </span>
+      <span>
+        <b>{{ formatCurrency(averageExpense()) }}</b>
+        promedio
+      </span>
+    </div>
+
+    <div class="expenses-summary__categories">
+      @for (category of categoryBreakdown(); track category.category) {
+        <article>
+          <div>
+            <span [style.background]="category.color" aria-hidden="true"></span>
+            <strong>{{ category.label }}</strong>
+            <small>{{ category.count }} mov.</small>
+          </div>
+          <p>{{ formatCurrency(category.amount) }}</p>
+          <div class="expenses-summary__category-track" aria-hidden="true">
+            <i
+              [style.background]="category.color"
+              [style.width.%]="clamp(category.budgetUsage)"
+            ></i>
+          </div>
+          <small>{{ formatPercentage(category.budgetUsage) }} del presupuesto</small>
+        </article>
+      }
+    </div>
+  </section>
 </section>

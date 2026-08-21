@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { RouterLink } from '@angular/router';
 
 import { ExpenseDetailCardComponent } from '../../components/expense-detail-card/expense-detail-card';
 import { ExpensesStore } from '../../data-access/expenses.store';
 
 @Component({
   selector: 'app-expense-detail-page',
-  imports: [ExpenseDetailCardComponent],
+  imports: [ExpenseDetailCardComponent, RouterLink],
   providers: [ExpensesStore],
   templateUrl: './expense-detail-page.html',
   styleUrl: './expense-detail-page.scss',

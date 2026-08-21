@@ -6,15 +6,18 @@
   z-index: 40;
 
   &__overlay {
-    background: rgb(0 0 0 / 70%);
+    background: rgb(0 0 0 / 72%);
     border: 0;
+    cursor: pointer;
     inset: 0;
     position: absolute;
   }
 
   &__panel {
-    background: var(--color-bg);
+    background:
+      radial-gradient(circle at 0% 0%, rgb(59 130 246 / 9%), transparent 26rem), var(--color-bg);
     border-left: 1px solid var(--color-border);
+    box-shadow: -2rem 0 4rem rgb(0 0 0 / 35%);
     display: grid;
     gap: $space-5;
     height: 100%;
@@ -34,29 +37,65 @@
     justify-content: space-between;
 
     h2 {
-      margin: 0 0 $space-2;
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+      line-height: 1;
+      margin: $space-2 0;
+    }
+
+    p,
+    span {
+      color: var(--color-text-secondary);
+      margin: 0;
     }
 
     p {
-      color: var(--color-text-secondary);
-      margin: 0;
+      color: rgb(59 130 246);
+      font-size: $font-size-xs;
+      font-weight: $font-weight-bold;
+      letter-spacing: 0;
     }
   }
 
   label {
     color: var(--color-text-secondary);
     display: grid;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-bold;
     gap: $space-2;
+    min-width: 0;
   }
 
   input,
   button {
-    background: var(--color-card);
+    background: rgb(255 255 255 / 2.5%);
     border: 1px solid var(--color-border);
     border-radius: $radius-md;
     color: var(--color-text-primary);
+    font: inherit;
+    font-weight: $font-weight-semibold;
     min-height: 2.5rem;
+    outline: none;
     padding: 0 $space-4;
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      transform 180ms ease;
+
+    &:hover,
+    &:focus-visible {
+      background: rgb(59 130 246 / 8%);
+      border-color: rgb(59 130 246 / 42%);
+      transform: translateY(-0.0625rem);
+    }
+  }
+
+  input {
+    background: rgb(0 0 0 / 28%);
+    width: 100%;
+  }
+
+  button {
+    cursor: pointer;
   }
 
   footer {
@@ -65,8 +104,24 @@
     justify-content: flex-end;
 
     button:last-child {
-      background: var(--color-primary);
-      color: var(--color-bg);
+      background: rgb(59 130 246 / 12%);
+      border-color: rgb(59 130 246 / 52%);
+      color: var(--color-text-primary);
+
+      &:disabled {
+        color: var(--color-text-disabled);
+        cursor: not-allowed;
+        opacity: 0.7;
+        transform: none;
+      }
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .associate-products-dialog {
+    footer {
+      display: grid;
     }
   }
 }

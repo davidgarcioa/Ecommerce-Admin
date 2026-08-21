@@ -4,5 +4,22 @@
   display: grid;
   gap: $space-6;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
+
+  &__filters {
+    animation: testing-panel-in 160ms ease both;
+    min-width: 0;
+  }
+}
+
+@keyframes testing-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.35rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

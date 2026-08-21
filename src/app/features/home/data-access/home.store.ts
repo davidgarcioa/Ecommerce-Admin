@@ -3,15 +3,8 @@ import { finalize } from 'rxjs';
 
 import { PermissionCode, PermissionsService } from '../../../core/services/permissions.service';
 import { HOME_QUICK_ACCESS_ITEMS } from '../utils/home.constants';
-import {
-  formatHomeDate,
-  getHomeGreeting,
-} from '../utils/home-date.utils';
-import {
-  getDisplayName,
-  getRoleLabel,
-  readHomeUserFromToken,
-} from '../utils/home-user.utils';
+import { formatHomeDate, getHomeGreeting } from '../utils/home-date.utils';
+import { getDisplayName, getRoleLabel, readHomeUserFromToken } from '../utils/home-user.utils';
 import { HomePreferencesService } from './home-preferences.service';
 import { toHomeOverview } from './home.mapper';
 import { HomeOverview, HomeUserSummary } from './home.models';

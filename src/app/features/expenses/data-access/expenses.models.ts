@@ -64,14 +64,34 @@ export interface ExpenseFilters {
   readonly maxAmount: number | null;
 }
 
+export interface ExpenseCategoryBreakdown {
+  readonly category: ExpenseCategory;
+  readonly label: string;
+  readonly amount: number;
+  readonly budget: number;
+  readonly count: number;
+  readonly percentage: number;
+  readonly budgetUsage: number;
+  readonly color: string;
+}
+
 export interface ExpenseSummary {
   readonly totalAmount: number;
   readonly paidAmount: number;
   readonly pendingAmount: number;
+  readonly projectedIncome: number;
+  readonly netCashFlow: number;
+  readonly budgetAmount: number;
+  readonly budgetUsedPercentage: number;
+  readonly paidRatio: number;
+  readonly pendingCount: number;
+  readonly overdueAmount: number;
+  readonly dueSoonAmount: number;
   readonly expenseCount: number;
   readonly averageExpense: number;
   readonly topCategoryLabel: string;
   readonly withoutReceiptCount: number;
+  readonly categoryBreakdown: readonly ExpenseCategoryBreakdown[];
 }
 
 export interface ExpenseFormValue {
