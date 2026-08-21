@@ -5,6 +5,10 @@ import { catchError, forkJoin, map, Observable, of } from 'rxjs';
 import { API_CONFIG } from '../../../core/config/api.config';
 import { ApiResponse } from '../../../core/models/api-response.model';
 import { PermissionCode } from '../../../core/services/permissions.service';
+import { DailyOrder } from '../../daily-report/models/daily-order.model';
+import { ImportedOrdersStoreService } from '../../daily-report/services/imported-orders-store.service';
+import { ImportHistoryService } from '../../files/services/import-history.service';
+import { toImportedProductGroups } from '../../product-groups/data-access/imported-product-groups.mapper';
 import {
   FileHomeStatistics,
   HomeStatisticsResponse,
@@ -19,13 +23,23 @@ interface HomeSectionResult<TData> {
   readonly error: string | null;
 }
 
+const LOCAL_TESTS_STORAGE_KEY = 'ecommerce.testing.local.records';
+const LOCAL_TAGS_STORAGE_KEY = 'ecommerce.tags.local.records';
+const LOCAL_PRODUCT_GROUPS_STORAGE_KEY = 'ecommerce.product-groups.local.records';
+
 @Injectable({ providedIn: 'root' })
 export class HomeApiService {
   private readonly http = inject(HttpClient);
   private readonly apiConfig = inject(API_CONFIG);
+  private readonly importedOrdersStore = inject(ImportedOrdersStoreService);
+  private readonly importHistory = inject(ImportHistoryService);
   private readonly baseUrl = this.apiConfig.baseUrl;
 
   loadOverview(permissions: readonly PermissionCode[]): Observable<HomeStatisticsResponse> {
+    if (isStaticFrontendApi(this.baseUrl)) {
+      return of(this.loadStaticOverview(permissions));
+    }
+
     return forkJoin({
       orders: this.has(permissions, 'orders.statistics')
         ? this.safeGet<OrderHomeStatistics>('orders', `${this.baseUrl}/orders/statistics`, {
@@ -87,6 +101,37 @@ export class HomeApiService {
   private has(permissions: readonly PermissionCode[], permission: PermissionCode): boolean {
     return permissions.includes(permission);
   }
+
+  private loadStaticOverview(permissions: readonly PermissionCode[]): HomeStatisticsResponse {
+    const orders = this.importedOrdersStore.orders();
+    const productGroups =
+      orders.length > 0
+        ? toImportedProductGroups(orders)
+        : readStoredRecords(LOCAL_PRODUCT_GROUPS_STORAGE_KEY);
+    const fileHistory = this.importHistory.history();
+
+    return {
+      orders: this.has(permissions, 'orders.statistics') ? buildOrderStatistics(orders) : null,
+      testing: this.has(permissions, 'testing.statistics')
+        ? buildTestingStatistics(readStoredRecords(LOCAL_TESTS_STORAGE_KEY))
+        : null,
+      tags: this.has(permissions, 'tags.statistics')
+        ? buildTagStatistics(readStoredRecords(LOCAL_TAGS_STORAGE_KEY))
+        : null,
+      productGroups: this.has(permissions, 'product-groups.statistics')
+        ? buildProductGroupStatistics(productGroups)
+        : null,
+      files: this.has(permissions, 'files.import')
+        ? {
+            total: fileHistory.length,
+            active: fileHistory.filter((record) => record.status !== 'Cancelada').length,
+            archived: 0,
+            withoutRelation: 0,
+          }
+        : null,
+      errors: [],
+    };
+  }
 }
 
 function emptyResult<TData>(): HomeSectionResult<TData> {
@@ -110,4 +155,98 @@ function resolveStatusMessage(status: number): string {
   };
 
   return messages[status] ?? 'no fue posible cargar datos';
+}
+
+function buildOrderStatistics(orders: readonly DailyOrder[]): OrderHomeStatistics {
+  return {
+    totalOrders: orders.length,
+    sales: orders.reduce((sum, order) => sum + Math.max(0, order.orderValue), 0),
+    cancelled: orders.filter((order) => order.status === 'Cancelada').length,
+    delivered: orders.filter((order) => order.status === 'Entregada').length,
+    inTransit: orders.filter((order) =>
+      ['en preparacion', 'despachada', 'en transito'].includes(normalize(order.status)),
+    ).length,
+    urgent: orders.filter((order) => order.urgent).length,
+  };
+}
+
+function buildTestingStatistics(records: readonly unknown[]): TestingHomeStatistics {
+  return {
+    total: records.length,
+    active: records.filter((record) => readString(record, 'status') === 'active').length,
+    draft: records.filter((record) => readString(record, 'status') === 'draft').length,
+    paused: records.filter((record) => readString(record, 'status') === 'paused').length,
+  };
+}
+
+function buildTagStatistics(records: readonly unknown[]): TagHomeStatistics {
+  return {
+    total: records.length,
+    active: records.filter((record) => readBoolean(record, 'active')).length,
+    unused: records.filter((record) => readNumber(record, 'usageCount') === 0).length,
+  };
+}
+
+function buildProductGroupStatistics(records: readonly unknown[]): ProductGroupHomeStatistics {
+  return {
+    total: records.length,
+    active: records.filter((record) => readBoolean(record, 'active')).length,
+    archived: records.filter((record) => !readBoolean(record, 'active')).length,
+    associatedProducts: records.reduce<number>(
+      (sum, record) => sum + readNumber(record, 'productCount'),
+      0,
+    ),
+  };
+}
+
+function readStoredRecords(key: string): readonly unknown[] {
+  try {
+    const raw = globalThis.localStorage?.getItem(key);
+    if (!raw) return [];
+
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function readString(record: unknown, key: string): string {
+  if (!record || typeof record !== 'object') return '';
+
+  const value = (record as Record<string, unknown>)[key];
+  return typeof value === 'string' ? value : '';
+}
+
+function readBoolean(record: unknown, key: string): boolean {
+  if (!record || typeof record !== 'object') return false;
+
+  return (record as Record<string, unknown>)[key] === true;
+}
+
+function readNumber(record: unknown, key: string): number {
+  if (!record || typeof record !== 'object') return 0;
+
+  const value = (record as Record<string, unknown>)[key];
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
+
+function normalize(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function isStaticFrontendApi(baseUrl: string): boolean {
+  const location = globalThis.location;
+  const origin = location?.origin;
+  const hostname = location?.hostname;
+
+  if (!origin || hostname === 'localhost' || hostname === '127.0.0.1') {
+    return false;
+  }
+
+  return baseUrl === `${origin}/api`;
 }
