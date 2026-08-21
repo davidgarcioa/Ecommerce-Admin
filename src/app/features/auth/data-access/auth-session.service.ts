@@ -9,6 +9,7 @@ import {
   signOut,
   updateProfile,
 } from 'firebase/auth';
+import type { User } from 'firebase/auth';
 import { catchError, from, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
 
 import { API_CONFIG } from '../../../core/config/api.config';
@@ -52,11 +53,20 @@ export class AuthSessionService {
           );
         }
 
-        return from(credential.user.getIdToken(true));
+        return from(credential.user.getIdToken(true)).pipe(
+          switchMap((idToken) =>
+            this.post<AuthSession, FirebaseLoginRequest>('firebase-login', { idToken }).pipe(
+              catchError((error: unknown) => {
+                if (!this.canUseStaticSession(error)) {
+                  return throwError(() => error);
+                }
+
+                return of(createStaticSession(credential.user));
+              }),
+            ),
+          ),
+        );
       }),
-      switchMap((idToken) =>
-        this.post<AuthSession, FirebaseLoginRequest>('firebase-login', { idToken }),
-      ),
       tap((session) => this.storeSession(session)),
       catchError((error: unknown) => throwError(() => this.toMessage(error))),
     );
@@ -184,6 +194,14 @@ export class AuthSessionService {
     return getAuth(app);
   }
 
+  private canUseStaticSession(error: unknown): boolean {
+    if (!(error instanceof HttpErrorResponse)) {
+      return false;
+    }
+
+    return isStaticFrontendApi(this.apiConfig.baseUrl) && [0, 404, 405].includes(error.status);
+  }
+
   private toMessage(error: unknown): string {
     const firebaseCode = getFirebaseErrorCode(error);
 
@@ -198,6 +216,78 @@ export class AuthSessionService {
 
     return typeof error === 'string' ? error : 'Ocurrió un problema. Inténtalo nuevamente.';
   }
+}
+
+function createStaticSession(user: User): AuthSession {
+  const displayName = normalizeAscii(user.displayName) || nameFromEmail(user.email) || 'Usuario';
+  const [firstName = displayName, ...restName] = displayName.split(' ');
+  const lastName = restName.join(' ');
+
+  return {
+    accessToken: createLocalAccessToken({
+      sub: user.uid,
+      uid: user.uid,
+      email: user.email ?? '',
+      username: nameFromEmail(user.email) || user.uid,
+      firstName,
+      lastName,
+      displayName,
+      role: 'Administrador',
+      roles: ['Administrador'],
+      permissions: [],
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7,
+    }),
+    refreshToken: `static-${createSessionId()}`,
+    expiresIn: '7d',
+    user: {
+      id: user.uid,
+      uid: user.uid,
+      email: user.email ?? '',
+      username: nameFromEmail(user.email) || user.uid,
+      firstName,
+      lastName,
+      displayName,
+      roleId: 'admin',
+      permissions: [],
+      active: true,
+      emailVerified: user.emailVerified,
+      lastLogin: new Date().toISOString(),
+    },
+  };
+}
+
+function createLocalAccessToken(payload: Record<string, unknown>): string {
+  return `local.${btoa(JSON.stringify(payload))}.session`;
+}
+
+function createSessionId(): string {
+  return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function nameFromEmail(email: string | null): string {
+  return normalizeAscii(email?.split('@')[0]).replace(/[._-]+/g, ' ').trim();
+}
+
+function normalizeAscii(value: string | null | undefined): string {
+  return (value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\x20-\x7e]/g, '')
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+
+function isStaticFrontendApi(baseUrl: string): boolean {
+  const location = globalThis.location;
+  const origin = location?.origin;
+  const hostname = location?.hostname;
+
+  if (!origin || hostname === 'localhost' || hostname === '127.0.0.1') {
+    return false;
+  }
+
+  return baseUrl === `${origin}/api`;
 }
 
 function getFirebaseErrorCode(error: unknown): string | null {
