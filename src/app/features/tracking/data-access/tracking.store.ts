@@ -19,12 +19,12 @@ export class TrackingStore {
   private readonly api = inject(TrackingApiService);
   private readonly permissions = inject(PermissionsService);
 
-  private readonly searchTypeState = signal<TrackingSearchType>('order');
+  private readonly searchTypeState = signal<TrackingSearchType>('tracking');
   private readonly searchValueState = signal('');
   private readonly searchResultsState = signal<readonly TrackingSearchResult[]>([]);
   private readonly selectedTrackingState = signal<TrackingSearchResult | null>(null);
   private readonly recentSearchesState =
-    signal<readonly TrackingRecentSearch[]>(readRecentSearches());
+    signal<readonly TrackingRecentSearch[]>(readRecentSearches().filter((item) => item.type === 'tracking'));
   private readonly loadingState = signal(false);
   private readonly loadingDetailState = signal(false);
   private readonly errorState = signal<string | null>(null);
@@ -70,7 +70,8 @@ export class TrackingStore {
   readonly canOpenExternalTracking = computed(() => false);
 
   setSearchType(type: TrackingSearchType): void {
-    this.searchTypeState.set(type);
+    void type;
+    this.searchTypeState.set('tracking');
   }
 
   setSearchValue(value: string): void {
@@ -79,8 +80,8 @@ export class TrackingStore {
 
   search(): void {
     const query: TrackingSearchQuery = {
-      type: this.searchTypeState(),
-      value: normalizeTrackingValue(this.searchTypeState(), this.searchValueState()),
+      type: 'tracking',
+      value: normalizeTrackingValue('tracking', this.searchValueState()),
     };
     const validation = validateTrackingSearch(query);
 

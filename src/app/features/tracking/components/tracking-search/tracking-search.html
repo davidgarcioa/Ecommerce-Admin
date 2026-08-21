@@ -1,66 +1,29 @@
-<section class="tracking-search" aria-label="Buscar rastreo">
+<section class="tracking-search" aria-label="Buscar guia">
   <div class="tracking-search__title">
     <span class="material-symbols-rounded" aria-hidden="true">manage_search</span>
     <div>
-      <strong>Buscar envío</strong>
-      <p>Pedido, guía o cliente</p>
+      <strong>Buscar guia</strong>
+      <p>Escribe solo el numero o la guia completa</p>
     </div>
   </div>
 
   <div class="tracking-search__controls">
-    <label class="tracking-search__field">
-      <span>Tipo</span>
-      <div
-        class="tracking-search__select"
-        [class.tracking-search__select--open]="typeMenuOpen()"
-        (focusout)="closeTypeMenuOnBlur($event)"
-      >
-        <button
-          type="button"
-          class="tracking-search__select-trigger"
-          [attr.aria-expanded]="typeMenuOpen()"
-          aria-haspopup="listbox"
-          (click)="toggleTypeMenu()"
-        >
-          <span>{{ currentType().label }}</span>
-          <span class="material-symbols-rounded" aria-hidden="true">keyboard_arrow_down</span>
-        </button>
-
-        @if (typeMenuOpen()) {
-          <div class="tracking-search__select-menu" role="listbox">
-            @for (item of types; track item.id) {
-              <button
-                type="button"
-                role="option"
-                [attr.aria-selected]="item.id === type()"
-                [class.tracking-search__select-option--selected]="item.id === type()"
-                (click)="setType(item.id)"
-              >
-                <span>{{ item.label }}</span>
-                @if (item.id === type()) {
-                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
-                }
-              </button>
-            }
-          </div>
-        }
-      </div>
-    </label>
-
     <label class="tracking-search__field tracking-search__field--query">
-      <span>Búsqueda</span>
+      <span>Numero de guia</span>
       <div class="tracking-search__input">
         <span class="material-symbols-rounded" aria-hidden="true">search</span>
         <input
           #queryInput
           type="search"
-          [placeholder]="currentType().placeholder"
+          inputmode="numeric"
+          autocomplete="off"
+          placeholder="Ej: 890001 o GUIA890001"
           [value]="value()"
           (input)="valueChange.emit(queryInput.value)"
           (keydown.enter)="search.emit()"
         />
       </div>
-      <small>{{ currentType().example }}</small>
+      <small>Busca por coincidencia exacta o por el numero dentro de la guia.</small>
     </label>
 
     <div class="tracking-search__actions">
@@ -86,7 +49,7 @@
   </div>
 
   @if (recentSearches().length > 0) {
-    <div class="tracking-search__recent" aria-label="Búsquedas recientes">
+    <div class="tracking-search__recent" aria-label="Guias recientes">
       <span class="material-symbols-rounded" aria-hidden="true">history</span>
       @for (item of recentSearches(); track item.searchedAt) {
         <button type="button" (click)="recentSelected.emit(item)">

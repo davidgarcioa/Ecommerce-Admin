@@ -2,11 +2,9 @@
   <app-tracking-header [lastSearchLabel]="lastSearch()?.value ?? null" />
 
   <app-tracking-search
-    [type]="searchType()"
     [value]="searchValue()"
     [loading]="loading()"
     [recentSearches]="recentSearches()"
-    (typeChange)="setType($event)"
     (valueChange)="setValue($event)"
     (search)="search()"
     (clear)="clear()"
@@ -17,8 +15,8 @@
     <section class="tracking-page__state" aria-live="polite">
       <span class="material-symbols-rounded" aria-hidden="true">sync</span>
       <div>
-        <strong>Buscando rastreo</strong>
-        <p>Consultando la información del envío.</p>
+        <strong>Buscando guia</strong>
+        <p>Consultando la informacion del envio.</p>
       </div>
     </section>
   } @else if (error(); as message) {
@@ -48,7 +46,7 @@
       <span class="material-symbols-rounded" aria-hidden="true">location_searching</span>
       <div>
         <strong>Listo para consultar</strong>
-        <p>Busca por pedido, guía, teléfono, correo o nombre.</p>
+        <p>Escribe el numero de guia para consultar el estado del envio.</p>
       </div>
     </section>
   }

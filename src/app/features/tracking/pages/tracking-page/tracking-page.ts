@@ -10,7 +10,6 @@ import { TrackingTimelineComponent } from '../../components/tracking-timeline/tr
 import {
   TrackingRecentSearch,
   TrackingSearchResult,
-  TrackingSearchType,
 } from '../../data-access/tracking.models';
 import { TrackingStore } from '../../data-access/tracking.store';
 
@@ -33,7 +32,6 @@ export class TrackingPageComponent {
   private readonly store = inject(TrackingStore);
   private readonly router = inject(Router);
 
-  readonly searchType = this.store.searchType;
   readonly searchValue = this.store.searchValue;
   readonly recentSearches = this.store.recentSearches;
   readonly loading = this.store.loading;
@@ -44,10 +42,6 @@ export class TrackingPageComponent {
   readonly canViewOrder = this.store.canViewOrder;
   readonly canViewLogistics = this.store.canViewLogistics;
   readonly lastSearch = this.store.lastSearch;
-
-  setType(type: TrackingSearchType): void {
-    this.store.setSearchType(type);
-  }
 
   setValue(value: string): void {
     this.store.setSearchValue(value);
@@ -63,7 +57,6 @@ export class TrackingPageComponent {
 
   useRecent(search: TrackingRecentSearch): void {
     if (!search.value) return;
-    this.store.setSearchType(search.type);
     this.store.setSearchValue(search.value);
     this.store.search();
   }
