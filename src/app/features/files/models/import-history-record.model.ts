@@ -9,6 +9,8 @@ export interface ImportHistoryRecord {
   readonly typeName: string;
   readonly fileName: string;
   readonly fileSize: string;
+  readonly fileChecksum?: string;
+  readonly fileSizeBytes?: number;
   readonly sheetName: string;
   readonly processedRows: number;
   readonly successfulRows: number;

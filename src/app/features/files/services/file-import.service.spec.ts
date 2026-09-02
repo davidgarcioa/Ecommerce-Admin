@@ -16,6 +16,26 @@ describe('FileImportService', () => {
     service = TestBed.inject(FileImportService);
   });
 
+  async function importBasicOrdersFile(
+    fileName: string,
+    orderNumber: string,
+    value = 100000,
+  ): Promise<void> {
+    const file = new File(
+      [
+        `Orden,Fecha,Cliente,Producto,Ciudad,Estado,Valor\n${orderNumber},2026-07-29,Ana,Producto,Bogota,Entregada,${value}`,
+      ],
+      fileName,
+      { type: 'text/csv' },
+    );
+
+    service.setFile(file);
+    await service.readFile();
+    service.validateRows();
+    service.setConfirmationAccepted(true);
+    service.confirmImport();
+  }
+
   it('should select import type', () => {
     service.selectImportType(IMPORT_TYPES[1]);
 
@@ -49,6 +69,57 @@ describe('FileImportService', () => {
 
     expect(service.importResult()?.importedRows).toBe(1);
     expect(service.importHistory().length).toBe(initialHistory + 1);
+  });
+
+  it('should keep multiple import history records', async () => {
+    await importBasicOrdersFile('ordenes-uno.csv', 'ORD-1');
+    service.startNewImport();
+    await importBasicOrdersFile('ordenes-dos.csv', 'ORD-2', 200000);
+
+    expect(service.importHistory()).toHaveLength(2);
+    expect(service.importHistory().map((record) => record.fileName)).toEqual(
+      expect.arrayContaining(['ordenes-uno.csv', 'ordenes-dos.csv']),
+    );
+  });
+
+  it('should replace previous order data on every order import', async () => {
+    await importBasicOrdersFile('ordenes-viejas.csv', 'ORD-OLD');
+    service.startNewImport();
+    await importBasicOrdersFile('ordenes-nuevas.csv', 'ORD-NEW', 250000);
+
+    const orders = JSON.parse(
+      localStorage.getItem('ecommerce-control-center.imported-orders') ?? '[]',
+    ) as readonly {
+      readonly orderNumber: string;
+      readonly orderValue: number;
+    }[];
+
+    expect(orders).toHaveLength(1);
+    expect(orders[0]).toMatchObject({ orderNumber: 'ORD-NEW', orderValue: 250000 });
+  });
+
+  it('should reject the exact same imported file', async () => {
+    const content =
+      'Orden,Fecha,Cliente,Producto,Ciudad,Estado,Valor\nORD-1,2026-07-29,Ana,Producto,Bogota,Entregada,100000';
+    const file = new File([content], 'ordenes-original.csv', { type: 'text/csv' });
+    const duplicate = new File([content], 'ordenes-copia.csv', { type: 'text/csv' });
+
+    service.setFile(file);
+    await service.readFile();
+    service.validateRows();
+    service.setConfirmationAccepted(true);
+    service.confirmImport();
+
+    service.startNewImport();
+    service.setFile(duplicate);
+    await service.readFile();
+
+    expect(service.error()).toBe(
+      'Este archivo ya fue importado. No puedes subir el mismo archivo otra vez.',
+    );
+    expect(service.importedFile()?.status).toBe('invalid');
+    expect(service.workbook()).toBeNull();
+    expect(service.importHistory()).toHaveLength(1);
   });
 
   it('should import Meta Ads files into local campaign data', async () => {
@@ -148,6 +219,48 @@ describe('FileImportService', () => {
       endDate: '2026-09-02',
     });
     expect(campaigns[1]?.status).toBe('Pausada');
+  });
+
+  it('should replace previous campaign data on every campaign import', async () => {
+    const metaType = IMPORT_TYPES.find((type) => type.id === 'campaigns');
+
+    expect(metaType).toBeTruthy();
+
+    service.selectImportType(metaType!);
+    service.setFile(
+      new File(
+        ['Campaign name,Amount spent,Purchases\nCampana vieja,1000,1'],
+        'campanas-viejas.csv',
+        { type: 'text/csv' },
+      ),
+    );
+    await service.readFile();
+    service.validateRows();
+    service.setConfirmationAccepted(true);
+    service.confirmImport();
+
+    service.startNewImport();
+    service.selectImportType(metaType!);
+    service.setFile(
+      new File(
+        ['Campaign name,Amount spent,Purchases\nCampana nueva,2000,2'],
+        'campanas-nuevas.csv',
+        { type: 'text/csv' },
+      ),
+    );
+    await service.readFile();
+    service.validateRows();
+    service.setConfirmationAccepted(true);
+    service.confirmImport();
+
+    const campaigns = JSON.parse(localStorage.getItem(CAMPAIGN_STORAGE_KEY) ?? '[]') as readonly {
+      readonly name: string;
+      readonly amountSpent: number;
+    }[];
+
+    expect(campaigns).toHaveLength(1);
+    expect(campaigns[0]).toMatchObject({ name: 'Campana nueva', amountSpent: 2000 });
+    expect(service.importHistory()).toHaveLength(2);
   });
 
   it('should aggregate Dropi product rows by guide before saving orders', async () => {

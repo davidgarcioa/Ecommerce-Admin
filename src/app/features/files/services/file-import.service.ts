@@ -162,6 +162,7 @@ export class FileImportService {
       file,
       this.selectedImportTypeState()?.maximumFileSize,
     );
+    this.clearLoadedFileState();
     this.importedFileState.set(createImportedFile(file, validationMessage));
     this.errorState.set(validationMessage);
     if (!validationMessage) {
@@ -171,10 +172,7 @@ export class FileImportService {
 
   removeFile(): void {
     this.importedFileState.set(null);
-    this.spreadsheetReader.reset();
-    this.workbookState.set(null);
-    this.selectedSheetState.set(null);
-    this.previewRowsState.set([]);
+    this.clearLoadedFileState();
     this.currentStepState.set('file');
   }
 
@@ -187,6 +185,22 @@ export class FileImportService {
     this.loadingState.set(true);
     this.errorState.set(null);
     try {
+      const checksum = await this.calculateFileChecksum(importedFile.file);
+      if (this.historyService.hasImportedFileChecksum(checksum)) {
+        const message = 'Este archivo ya fue importado. No puedes subir el mismo archivo otra vez.';
+        this.importedFileState.set({
+          ...importedFile,
+          checksum,
+          status: 'invalid',
+          validationMessage: message,
+        });
+        this.clearLoadedFileState();
+        this.errorState.set(message);
+        this.currentStepState.set('file');
+        return;
+      }
+
+      this.importedFileState.set({ ...importedFile, checksum });
       const workbook = await this.spreadsheetReader.readWorkbook(importedFile.file);
       this.workbookState.set(workbook);
       const firstAvailableSheet = workbook.sheets.find((sheet) => !sheet.empty) ?? null;
@@ -329,10 +343,10 @@ export class FileImportService {
     };
     this.importResultState.set(result);
     if (type.id === 'orders') {
-      this.importedOrdersStore.upsertOrders(this.toDailyOrders(this.validRows()));
+      this.importedOrdersStore.replaceOrders(this.toDailyOrders(this.validRows()));
     }
     if (type.id === 'campaigns') {
-      this.importedCampaignsStore.upsertCampaigns(this.toCampaigns(this.validRows()));
+      this.importedCampaignsStore.replaceCampaigns(this.toCampaigns(this.validRows()));
     }
     this.historyService.addRecord({
       id: result.id,
@@ -341,6 +355,8 @@ export class FileImportService {
       typeName: type.name,
       fileName: file.name,
       fileSize: file.formattedSize,
+      fileChecksum: file.checksum,
+      fileSizeBytes: file.size,
       sheetName: sheet.name,
       processedRows: validation.totalRows,
       successfulRows: validation.validRows,
@@ -914,6 +930,12 @@ export class FileImportService {
 
   resetImport(): void {
     this.importedFileState.set(null);
+    this.clearLoadedFileState();
+    this.errorState.set(null);
+    this.currentStepState.set('file');
+  }
+
+  private clearLoadedFileState(): void {
     this.workbookState.set(null);
     this.selectedSheetState.set(null);
     this.previewRowsState.set([]);
@@ -922,9 +944,22 @@ export class FileImportService {
     this.validationResultState.set(null);
     this.importResultState.set(null);
     this.confirmationAcceptedState.set(false);
-    this.errorState.set(null);
-    this.currentStepState.set('file');
     this.spreadsheetReader.reset();
+  }
+
+  private async calculateFileChecksum(file: File): Promise<string> {
+    const buffer = await file.arrayBuffer();
+    const subtle = globalThis.crypto?.subtle;
+
+    if (!subtle) {
+      return `${file.name}:${file.size}:${file.lastModified}`;
+    }
+
+    const hash = await subtle.digest('SHA-256', buffer);
+
+    return Array.from(new Uint8Array(hash))
+      .map((byte) => byte.toString(16).padStart(2, '0'))
+      .join('');
   }
 
   openHistory(): void {

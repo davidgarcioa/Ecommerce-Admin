@@ -3,9 +3,9 @@ import { Injectable, signal } from '@angular/core';
 import { FILE_IMPORT_HISTORY_KEY } from '../constants/files.constants';
 import { ImportHistoryRecord } from '../models/import-history-record.model';
 
-const HISTORY_RETENTION_DAYS = 30;
+const HISTORY_RETENTION_DAYS = 365;
 const HISTORY_RETENTION_MS = HISTORY_RETENTION_DAYS * 24 * 60 * 60 * 1000;
-const HISTORY_LIMIT = 1;
+const HISTORY_LIMIT = 100;
 
 @Injectable({ providedIn: 'root' })
 export class ImportHistoryService {
@@ -20,6 +20,18 @@ export class ImportHistoryService {
   addRecord(record: ImportHistoryRecord): void {
     this.historyState.update((history) => this.normalizeHistory([record, ...history]));
     this.persist();
+  }
+
+  hasImportedFileChecksum(checksum: string): boolean {
+    const normalizedChecksum = checksum.trim().toLowerCase();
+
+    if (!normalizedChecksum) {
+      return false;
+    }
+
+    return this.historyState().some(
+      (record) => record.fileChecksum?.trim().toLowerCase() === normalizedChecksum,
+    );
   }
 
   deleteRecord(id: string): void {
