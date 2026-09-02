@@ -205,10 +205,7 @@ export class FileImportService {
     if (!sheet || sheet.empty) {
       return;
     }
-    const aliases = this.activeColumnDefinitions().flatMap((column) => [
-      column.label,
-      ...column.acceptedAliases,
-    ]);
+    const aliases = this.allKnownColumnAliases();
     const headerDetection = this.spreadsheetReader.detectHeaders(sheet.rows, aliases);
     this.selectedSheetState.set(sheet);
     this.headerDetectionState.set(headerDetection);
@@ -362,16 +359,17 @@ export class FileImportService {
   private toDailyOrders(rows: readonly RowValidationResult[]): readonly DailyOrder[] {
     const importedAt = new Date().toISOString();
 
-    return rows.map((row) => this.toDailyOrder(row, importedAt));
+    return this.aggregateDailyOrders(rows.map((row) => this.toDailyOrder(row, importedAt)));
   }
 
   private toCampaigns(rows: readonly RowValidationResult[]): readonly Campaign[] {
     const importedAt = new Date().toISOString();
+    const fileName = this.importedFileState()?.name ?? '';
 
-    return rows.map((row) => this.toCampaign(row, importedAt));
+    return rows.map((row) => this.toCampaign(row, importedAt, fileName));
   }
 
-  private toCampaign(row: RowValidationResult, importedAt: string): Campaign {
+  private toCampaign(row: RowValidationResult, importedAt: string, fileName: string): Campaign {
     const normalizedRow = row.normalizedRow;
     const campaignName = this.readText(normalizedRow, 'campaignName') || `Campaña fila ${row.rowIndex}`;
     const externalId = this.readText(normalizedRow, 'campaignId');
@@ -385,7 +383,10 @@ export class FileImportService {
     const importedCpa = this.readNumber(normalizedRow, 'cpa');
     const startDate = this.readText(normalizedRow, 'startDate') || importedAt.slice(0, 10);
     const endDate = this.readText(normalizedRow, 'endDate');
-    const accountName = this.readText(normalizedRow, 'accountName') || 'Cuenta Meta Ads';
+    const accountName =
+      this.readText(normalizedRow, 'accountName') ||
+      this.inferAccountNameFromFile(fileName) ||
+      'Meta Ads';
     const productGroupName =
       this.readText(normalizedRow, 'productGroupName') || this.inferProductGroupName(campaignName);
 
@@ -428,6 +429,7 @@ export class FileImportService {
     const normalizedRow = row.normalizedRow;
     const orderNumber = this.readText(normalizedRow, 'orderNumber') || `DROP-${row.rowIndex}`;
     const orderDate = this.readText(normalizedRow, 'date') || importedAt.slice(0, 10);
+    const reportDate = this.readText(normalizedRow, 'reportDate');
     const orderHour = this.readText(normalizedRow, 'orderHour');
     const createdAt = this.toDateTime(orderDate, orderHour, importedAt);
     const productName = this.readText(normalizedRow, 'product') || 'Producto sin nombre';
@@ -463,7 +465,7 @@ export class FileImportService {
       id: `dropi-${orderNumber}`,
       orderNumber,
       createdAt,
-      reportDate: this.readText(normalizedRow, 'reportDate'),
+      reportDate,
       orderHour,
       customerName: this.readText(normalizedRow, 'customer') || 'Cliente sin nombre',
       customerPhone: this.readText(normalizedRow, 'phone'),
@@ -518,8 +520,130 @@ export class FileImportService {
       operationDays: this.calculateOperationDays(createdAt),
       urgent: this.isUrgentOrder(rawStatus, novelty, noveltySolved),
       paymentMethod: this.toPaymentMethod(this.readText(normalizedRow, 'shippingType')),
-      lastUpdated: lastMovementAt || importedAt,
+      lastUpdated: lastMovementAt || this.toDateTime(reportDate, '', '') || createdAt || importedAt,
     };
+  }
+
+  private aggregateDailyOrders(orders: readonly DailyOrder[]): readonly DailyOrder[] {
+    const byOrder = new Map<string, DailyOrder>();
+    const lineKeysByOrder = new Map<string, Set<string>>();
+
+    for (const order of orders) {
+      const key = this.toOrderImportKey(order);
+      const lineKey = this.toOrderLineKey(order);
+      const knownLineKeys = lineKeysByOrder.get(key) ?? new Set<string>();
+
+      if (knownLineKeys.has(lineKey)) {
+        continue;
+      }
+
+      knownLineKeys.add(lineKey);
+      lineKeysByOrder.set(key, knownLineKeys);
+
+      const current = byOrder.get(key);
+      byOrder.set(key, current ? this.mergeDailyOrderLines(current, order) : order);
+    }
+
+    return Array.from(byOrder.values()).sort((left, right) =>
+      right.createdAt.localeCompare(left.createdAt),
+    );
+  }
+
+  private mergeDailyOrderLines(current: DailyOrder, incoming: DailyOrder): DailyOrder {
+    const latest = this.shouldUseIncomingOrder(current, incoming) ? incoming : current;
+    const productName = this.mergeProductLabel(current.productName, incoming.productName);
+    const productGroupName =
+      productName === 'Varios productos' ? 'Varios productos' : this.toProductGroupName(productName);
+
+    return {
+      ...latest,
+      productName,
+      productGroupName,
+      productGroupId: normalizeColumnKey(productGroupName) || 'varios-productos',
+      orderValue: current.orderValue + incoming.orderValue,
+      advertisingCost: current.advertisingCost + incoming.advertisingCost,
+      estimatedProfit: current.estimatedProfit + incoming.estimatedProfit,
+      shippingCost: this.sumOptional(current.shippingCost, incoming.shippingCost),
+      returnShippingCost: this.sumOptional(current.returnShippingCost, incoming.returnShippingCost),
+      commission: this.sumOptional(current.commission, incoming.commission),
+      providerCostTotal: this.sumOptional(current.providerCostTotal, incoming.providerCostTotal),
+      quantity: this.sumOptional(current.quantity, incoming.quantity),
+      productId: this.mergeSharedText(current.productId, incoming.productId),
+      sku: this.mergeSharedText(current.sku, incoming.sku),
+      variationId: this.mergeSharedText(current.variationId, incoming.variationId),
+      variation: this.mergeSharedText(current.variation, incoming.variation),
+      tags: this.mergeTags(current.tags, incoming.tags),
+      urgent: current.urgent || incoming.urgent,
+    };
+  }
+
+  private shouldUseIncomingOrder(current: DailyOrder, incoming: DailyOrder): boolean {
+    return this.toSourceTime(incoming) >= this.toSourceTime(current);
+  }
+
+  private toSourceTime(order: DailyOrder): number {
+    const value =
+      order.lastMovementAt ||
+      order.reportDate ||
+      order.guideGeneratedAt ||
+      order.createdAt ||
+      order.lastUpdated;
+    const parsed = Date.parse(value);
+
+    return Number.isNaN(parsed) ? 0 : parsed;
+  }
+
+  private toOrderImportKey(order: DailyOrder): string {
+    return normalizeColumnKey(order.guideNumber || order.orderNumber || order.id);
+  }
+
+  private toOrderLineKey(order: DailyOrder): string {
+    return normalizeColumnKey(
+      [
+        order.productId,
+        order.sku,
+        order.variationId,
+        order.variation,
+        order.productName,
+        order.orderValue,
+        order.quantity,
+      ].join('|'),
+    );
+  }
+
+  private mergeProductLabel(current: string, incoming: string): string {
+    if (!current.trim()) return incoming;
+    if (!incoming.trim()) return current;
+    if (normalizeText(current) === normalizeText(incoming)) return current;
+
+    return 'Varios productos';
+  }
+
+  private mergeSharedText(current: string | undefined, incoming: string | undefined): string {
+    const left = current?.trim() ?? '';
+    const right = incoming?.trim() ?? '';
+
+    if (!left) return right;
+    if (!right) return left;
+    return normalizeText(left) === normalizeText(right) ? left : '';
+  }
+
+  private mergeTags(current: string | undefined, incoming: string | undefined): string {
+    const tags = [...`${current ?? ''},${incoming ?? ''}`.split(',')]
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+    const uniqueTags = Array.from(new Map(tags.map((tag) => [normalizeText(tag), tag])).values());
+
+    return uniqueTags.join(', ');
+  }
+
+  private sumOptional(
+    current: number | undefined,
+    incoming: number | undefined,
+  ): number | undefined {
+    const total = (Number(current) || 0) + (Number(incoming) || 0);
+
+    return total === 0 ? undefined : total;
   }
 
   private readText(
@@ -567,11 +691,37 @@ export class FileImportService {
     const normalizedValue = normalizeText(value);
     const statusByDropiValue: readonly [readonly string[], OrderStatus][] = [
       [['entregado'], 'Entregada'],
-      [['cancelado'], 'Cancelada'],
+      [['cancelado', 'cancelada'], 'Cancelada'],
       [['devolucion', 'rechazado', 'reclame en oficina'], 'Devuelta'],
-      [['transito nacional', 'intento de entrega'], 'En tránsito'],
-      [['despachado', 'en bodega', 'en bodega origen'], 'Despachada'],
-      [['pendiente confirmacion', 'pendiente'], 'Pendiente'],
+      [
+        [
+          'transito nacional',
+          'intento de entrega',
+          'en reparto',
+          'en bodega transportadora',
+          'en bodega destino',
+          'en espera de ruta domestica',
+          'en punto droop',
+        ],
+        'En tránsito',
+      ],
+      [
+        [
+          'despachado',
+          'despachada',
+          'guia_generada',
+          'guia generada',
+          'recogido por dropi',
+          'preparado para transportadora',
+          'entregado a transportadora',
+          'en procesamiento',
+          'en bodega',
+          'en bodega origen',
+          'en bodega dropi',
+        ],
+        'Despachada',
+      ],
+      [['pendiente confirmacion', 'pendiente', 'telemercadeo'], 'Pendiente'],
       [['novedad'], 'Pendiente'],
     ];
     const match = statusByDropiValue.find(([aliases]) =>
@@ -584,6 +734,10 @@ export class FileImportService {
   private toCampaignStatus(value: string): CampaignStatus {
     const normalizedValue = normalizeText(value);
 
+    if (['inactive', 'inactivo', 'inactiva', 'not delivering'].includes(normalizedValue)) {
+      return 'Pausada';
+    }
+    if (['active', 'activo', 'activa', 'delivering'].includes(normalizedValue)) return 'Activa';
     if (normalizedValue.includes('pause') || normalizedValue.includes('paus')) return 'Pausada';
     if (normalizedValue.includes('archive') || normalizedValue.includes('archiv')) return 'Archivada';
     if (normalizedValue.includes('error') || normalizedValue.includes('reject')) return 'Con errores';
@@ -629,6 +783,18 @@ export class FileImportService {
     return firstPart.trim() || 'Sin conjunto';
   }
 
+  private inferAccountNameFromFile(fileName: string): string {
+    const extensionless = fileName.replace(/\.[^.]+$/, '');
+    const readableName = extensionless.replace(/[-_]+/g, ' ').trim();
+    const markerIndex = normalizeText(readableName).search(/\bcampanas?\b/);
+
+    if (markerIndex <= 0) {
+      return '';
+    }
+
+    return this.toTitleCase(readableName.slice(0, markerIndex));
+  }
+
   private toGuideStatus(value: string): string {
     const normalizedValue = normalizeText(value);
 
@@ -640,9 +806,15 @@ export class FileImportService {
       [['guia_generada', 'guia generada'], 'Guía generada'],
       [['recogido por dropi'], 'Recogida'],
       [['preparado para transportadora'], 'Preparado para transportadora'],
+      [['entregado a transportadora'], 'Entregado a transportadora'],
       [['en procesamiento'], 'En procesamiento'],
       [['en reparto'], 'En reparto'],
+      [['en bodega dropi'], 'En bodega Dropi'],
+      [['en bodega destino'], 'En bodega destino'],
       [['en bodega transportadora'], 'En bodega'],
+      [['en espera de ruta domestica'], 'En espera de ruta domestica'],
+      [['en punto droop'], 'En punto Dropi'],
+      [['telemercadeo'], 'Telemercadeo'],
       [['pendiente confirmacion'], 'Pendiente confirmación'],
       [['transito nacional', 'en ruta', 'intento de entrega'], 'En ruta'],
       [['en bodega origen', 'en bodega'], 'En bodega'],
@@ -650,7 +822,7 @@ export class FileImportService {
       [['novedad'], 'Novedad'],
       [['devolucion', 'reclame en oficina', 'rechazado'], 'Devuelta'],
       [['cancelado'], 'Cancelada'],
-      [['despachado'], 'Despachada'],
+      [['despachado', 'despachada'], 'Despachada'],
     ];
     const match = guideStatusByDropiValue.find(([aliases]) =>
       aliases.some((alias) => normalizedValue.includes(alias)),
@@ -857,6 +1029,17 @@ export class FileImportService {
 
   private activeColumnDefinitions() {
     return getImportColumnDefinitions(this.selectedImportTypeState()?.id);
+  }
+
+  private allKnownColumnAliases(): readonly string[] {
+    const aliases = IMPORT_TYPES.flatMap((type) =>
+      getImportColumnDefinitions(type.id).flatMap((column) => [
+        column.label,
+        ...column.acceptedAliases,
+      ]),
+    );
+
+    return Array.from(new Set(aliases));
   }
 
   private hasEnoughMappedRequiredColumns(): boolean {

@@ -4,8 +4,10 @@ import { initializeApp, getApps } from 'firebase/app';
 import {
   createUserWithEmailAndPassword,
   getAuth,
+  GoogleAuthProvider,
   sendEmailVerification,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
   updateProfile,
 } from 'firebase/auth';
@@ -87,6 +89,33 @@ export class AuthSessionService {
       switchMap(() => from(signOut(auth))),
       tap(() => this.clearSession()),
       map(() => undefined),
+      catchError((error: unknown) => throwError(() => this.toMessage(error))),
+    );
+  }
+
+  signInWithGoogle(): Observable<AuthSession> {
+    const auth = this.firebaseAuth;
+    const provider = new GoogleAuthProvider();
+
+    provider.setCustomParameters({ prompt: 'select_account' });
+
+    return from(signInWithPopup(auth, provider)).pipe(
+      switchMap((credential) =>
+        from(credential.user.getIdToken(true)).pipe(
+          switchMap((idToken) =>
+            this.post<AuthSession, FirebaseLoginRequest>('firebase-login', { idToken }).pipe(
+              catchError((error: unknown) => {
+                if (!this.canUseStaticSession(error)) {
+                  return throwError(() => error);
+                }
+
+                return of(createStaticSession(credential.user));
+              }),
+            ),
+          ),
+        ),
+      ),
+      tap((session) => this.storeSession(session)),
       catchError((error: unknown) => throwError(() => this.toMessage(error))),
     );
   }
@@ -319,6 +348,15 @@ function toFirebaseMessage(code: string): string {
     'auth/app-not-authorized': 'Esta aplicación no está autorizada en Firebase.',
     'auth/unauthorized-domain':
       'El dominio localhost no está autorizado en Firebase Authentication.',
+    'auth/popup-closed-by-user': 'Cerraste la ventana de Google antes de completar el acceso.',
+    'auth/popup-blocked':
+      'El navegador bloqueó la ventana de Google. Permite ventanas emergentes e inténtalo de nuevo.',
+    'auth/cancelled-popup-request':
+      'Ya hay una ventana de Google abierta. Termina ese intento o vuelve a probar.',
+    'auth/account-exists-with-different-credential':
+      'Ese correo ya existe con otro método de acceso. Inicia sesión con el método original.',
+    'auth/credential-already-in-use':
+      'La cuenta de Google ya está vinculada a otro usuario.',
     'auth/network-request-failed':
       'No pudimos conectarnos. Revisa tu conexión e inténtalo nuevamente.',
     'auth/too-many-requests': 'Demasiados intentos. Espera un momento.',

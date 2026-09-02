@@ -17,7 +17,7 @@ import { SheetSelectorComponent } from '../../components/sheet-selector/sheet-se
 import { TemplateDownloadPanelComponent } from '../../components/template-download-panel/template-download-panel';
 import { ValidationErrorsTableComponent } from '../../components/validation-errors-table/validation-errors-table';
 import { ValidationSummaryComponent } from '../../components/validation-summary/validation-summary';
-import { ORDER_COLUMN_DEFINITIONS } from '../../constants/files.constants';
+import { getImportColumnDefinitions } from '../../constants/files.constants';
 import { ImportHistoryRecord } from '../../models/import-history-record.model';
 import { ImportStepId } from '../../models/import-process.model';
 import { ValidationIssue } from '../../models/row-validation.model';
@@ -50,7 +50,6 @@ import { FileImportService } from '../../services/file-import.service';
 export class FilesPageComponent {
   private readonly fileImportService = inject(FileImportService);
 
-  readonly columnDefinitions = ORDER_COLUMN_DEFINITIONS;
   readonly activeTab = this.fileImportService.activeTab;
   readonly currentStep = this.fileImportService.currentStep;
   readonly steps = this.fileImportService.steps;
@@ -74,6 +73,9 @@ export class FilesPageComponent {
   readonly templates = this.fileImportService.templates;
   readonly importDetection = this.fileImportService.importDetection;
   readonly detectedHeaders = computed(() => this.headerDetection()?.detectedHeaders ?? []);
+  readonly columnDefinitions = computed(() =>
+    getImportColumnDefinitions(this.selectedImportType()?.id),
+  );
 
   onFileSelected(file: File): void {
     this.fileImportService.setFile(file);

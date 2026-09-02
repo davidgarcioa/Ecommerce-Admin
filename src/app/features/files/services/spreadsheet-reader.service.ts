@@ -13,14 +13,15 @@ export class SpreadsheetReaderService {
 
   async readWorkbook(file: File): Promise<SpreadsheetWorkbook> {
     const buffer = await file.arrayBuffer();
-    const workbook = XLSX.read(buffer, { cellDates: true, type: 'array' });
+    const workbook = XLSX.read(buffer, { cellDates: true, raw: true, type: 'array' });
     const sheets = workbook.SheetNames.map((name) => {
       const sheet = workbook.Sheets[name];
       const rawRows = XLSX.utils.sheet_to_json<readonly unknown[]>(sheet, {
         blankrows: false,
+        dateNF: 'yyyy-mm-dd',
         defval: null,
         header: 1,
-        raw: true,
+        raw: false,
       });
       const rows = toSpreadsheetRows(
         rawRows.map((row) => row.map((cell) => this.normalizeCell(cell))),

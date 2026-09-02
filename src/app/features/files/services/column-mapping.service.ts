@@ -11,6 +11,7 @@ export class ColumnMappingService {
     sourceHeaders: readonly string[],
   ): readonly ColumnMapping[] {
     const usedHeaders = new Set<string>();
+    const exactOwnerByHeader = this.getExactOwnerByHeader(definitions, sourceHeaders);
 
     return definitions.map((definition) => {
       const labelKey = normalizeColumnKey(definition.label);
@@ -28,6 +29,12 @@ export class ColumnMappingService {
         exactMatch ??
         sourceHeaders.find((header) => {
           const normalized = normalizeColumnKey(header);
+          const exactOwner = exactOwnerByHeader.get(normalized);
+
+          if (exactOwner && exactOwner !== definition.key) {
+            return false;
+          }
+
           return (
             this.matchesColumn(normalized, [labelKey, ...aliases]) && !usedHeaders.has(normalized)
           );
@@ -57,9 +64,31 @@ export class ColumnMappingService {
     return aliases.some(
       (alias) =>
         normalizedHeader === alias ||
-        normalizedHeader.includes(alias) ||
-        alias.includes(normalizedHeader),
+        (alias.length >= 4 && normalizedHeader.includes(alias)),
     );
+  }
+
+  private getExactOwnerByHeader(
+    definitions: readonly ImportColumnDefinition[],
+    sourceHeaders: readonly string[],
+  ): ReadonlyMap<string, string> {
+    const owners = new Map<string, string>();
+
+    for (const header of sourceHeaders) {
+      const normalizedHeader = normalizeColumnKey(header);
+      if (!normalizedHeader) continue;
+
+      const owner = definitions.find((definition) => {
+        const keys = [definition.label, ...definition.acceptedAliases].map(normalizeColumnKey);
+        return keys.includes(normalizedHeader);
+      });
+
+      if (owner) {
+        owners.set(normalizedHeader, owner.key);
+      }
+    }
+
+    return owners;
   }
 
   updateMapping(

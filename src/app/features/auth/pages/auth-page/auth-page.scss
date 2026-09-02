@@ -273,6 +273,62 @@
   }
 }
 
+.auth-card__divider {
+  align-items: center;
+  color: var(--color-text-disabled);
+  display: grid;
+  font-size: $font-size-xs;
+  grid-template-columns: 1fr auto 1fr;
+  gap: $space-3;
+  margin: $space-1 0;
+
+  &::before,
+  &::after {
+    background: var(--color-border);
+    content: '';
+    height: 1px;
+  }
+}
+
+.auth-card__google {
+  align-items: center;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: $radius-md;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: $font-weight-semibold;
+  gap: $space-2;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0 $space-4;
+  transition:
+    border-color $transition-base,
+    box-shadow $transition-base,
+    transform $transition-base;
+  width: 100%;
+
+  img {
+    display: block;
+    height: 1.25rem;
+    width: 1.25rem;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.68;
+  }
+
+  &:not(:disabled):hover,
+  &:focus-visible {
+    border-color: var(--color-interaction);
+    box-shadow: 0 0 22px color-mix(in srgb, var(--color-interaction) 20%, transparent);
+    transform: translateY(-1px);
+  }
+}
+
 .auth-card__spinner {
   animation: auth-spin 700ms linear infinite;
   border: 2px solid var(--color-text-disabled);

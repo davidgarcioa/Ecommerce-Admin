@@ -43,6 +43,7 @@ describe('FileImportService', () => {
     service.setFile(file);
     await service.readFile();
     service.validateRows();
+    expect(service.validationResult()).toMatchObject({ errorRows: 0 });
     service.setConfirmationAccepted(true);
     service.confirmImport();
 
@@ -90,6 +91,117 @@ describe('FileImportService', () => {
       name: 'Meta Agosto',
       amountSpent: 250000,
       purchases: 18,
+    });
+  });
+
+  it('should import Clickcero Meta Ads export headers correctly', async () => {
+    const csv = [
+      [
+        'Inicio del informe',
+        'Fin del informe',
+        'Nombre de la campaña',
+        'Objetivo',
+        'Entrega de la campaña',
+        'Alcance',
+        'Frecuencia',
+        'Importe gastado (COP)',
+        'Compras',
+        'Costo por compra (COP)',
+        'Impresiones',
+        'Clics en el enlace',
+      ].join(','),
+      '2026-08-01,2026-09-02,Collar rosa 3d,Ventas,active,142141,1.44,934563,50,18691.26,204895,2135',
+      '2026-08-01,2026-09-02,Campaña sin entrega,Interacción,inactive,0,0,0,0,,0,0',
+    ].join('\n');
+    const file = new File([csv], 'Clickcero-TECNOLOGIA-Y-ELECTRONICA-Campañas.csv', {
+      type: 'text/csv',
+    });
+
+    service.setFile(file);
+    await service.readFile();
+    service.validateRows();
+    service.setConfirmationAccepted(true);
+    service.confirmImport();
+
+    const campaigns = JSON.parse(localStorage.getItem(CAMPAIGN_STORAGE_KEY) ?? '[]') as readonly {
+      readonly name: string;
+      readonly status: string;
+      readonly adAccountName: string;
+      readonly amountSpent: number;
+      readonly purchases: number;
+      readonly clicks: number;
+      readonly startDate: string;
+      readonly endDate: string;
+    }[];
+
+    expect(service.selectedImportType()?.id).toBe('campaigns');
+    expect(service.importResult()?.importedRows).toBe(2);
+    expect(campaigns).toHaveLength(2);
+    expect(campaigns[0]).toMatchObject({
+      name: 'Collar rosa 3d',
+      status: 'Activa',
+      adAccountName: 'Clickcero Tecnologia Y Electronica',
+      amountSpent: 934563,
+      purchases: 50,
+      clicks: 2135,
+      startDate: '2026-08-01',
+      endDate: '2026-09-02',
+    });
+    expect(campaigns[1]?.status).toBe('Pausada');
+  });
+
+  it('should aggregate Dropi product rows by guide before saving orders', async () => {
+    const csv = [
+      [
+        'ID',
+        'FECHA',
+        'NOMBRE CLIENTE',
+        'PRODUCTO',
+        'CIUDAD DESTINO',
+        'ESTATUS',
+        'TOTAL DE LA ORDEN',
+        'NÚMERO GUIA',
+        'PRECIO FLETE',
+        'PRECIO PROVEEDOR X CANTIDAD',
+        'CANTIDAD',
+      ].join(','),
+      '88099636,02-09-2026,Odilia Oviedo,Tarjeta Prediseñada,ESPINAL,GUIA_GENERADA,1500,024034839837,341.78,1500,1',
+      '88099636,02-09-2026,Odilia Oviedo,Collar Rosa 3D,ESPINAL,GUIA_GENERADA,78400,024034839837,17863.72,14500,1',
+    ].join('\n');
+    const file = new File([csv], 'ordenes_productos.csv', { type: 'text/csv' });
+
+    service.setFile(file);
+    await service.readFile();
+    service.validateRows();
+    service.setConfirmationAccepted(true);
+    service.confirmImport();
+
+    const orders = JSON.parse(
+      localStorage.getItem('ecommerce-control-center.imported-orders') ?? '[]',
+    ) as readonly {
+      readonly orderNumber: string;
+      readonly guideNumber: string;
+      readonly productName: string;
+      readonly status: string;
+      readonly guideStatus: string;
+      readonly orderValue: number;
+      readonly shippingCost: number;
+      readonly providerCostTotal: number;
+      readonly quantity: number;
+    }[];
+
+    expect(service.importResult()?.importedRows).toBe(2);
+    expect(orders).toHaveLength(1);
+    expect(orders[0]).toMatchObject({
+      orderNumber: '88099636',
+      guideNumber: '024034839837',
+      productName: 'Varios productos',
+      status: 'Despachada',
+      guideStatus: 'Guía generada',
+      orderValue: 79900,
+      shippingCost: 18205.5,
+      providerCostTotal: 16000,
+      quantity: 2,
     });
   });
 });
@@ -200,9 +312,15 @@ describe('file import helper services', () => {
       'GUIA_GENERADA',
       'RECOGIDO POR DROPI',
       'PREPARADO PARA TRANSPORTADORA',
+      'ENTREGADO A TRANSPORTADORA',
+      'EN BODEGA DROPI',
       'EN REPARTO',
       'EN PROCESAMIENTO',
       'EN BODEGA TRANSPORTADORA',
+      'EN BODEGA DESTINO',
+      'EN ESPERA DE RUTA DOMESTICA',
+      'EN PUNTO DROOP',
+      'TELEMERCADEO',
     ];
     const result = validator.validateRows(
       [

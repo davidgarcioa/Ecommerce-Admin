@@ -128,10 +128,28 @@
         </p>
 
         <button class="auth-card__submit" type="submit" [disabled]="loading()">
-          @if (loading()) {
+          @if (loading() && !googleLoading()) {
             <span class="auth-card__spinner" aria-hidden="true"></span>
           }
-          <span>{{ loading() ? 'Ingresando...' : 'Iniciar sesión' }}</span>
+          <span>{{ loading() && !googleLoading() ? 'Ingresando...' : 'Iniciar sesión' }}</span>
+        </button>
+
+        <div class="auth-card__divider" aria-hidden="true">
+          <span>o</span>
+        </div>
+
+        <button
+          class="auth-card__google"
+          type="button"
+          [disabled]="loading()"
+          (click)="onGoogleSubmit($event)"
+        >
+          @if (googleLoading()) {
+            <span class="auth-card__spinner" aria-hidden="true"></span>
+          } @else {
+            <img src="/assets/icon_google.png" alt="" width="20" height="20" />
+          }
+          <span>{{ googleLoading() ? 'Conectando con Google...' : 'Continuar con Google' }}</span>
         </button>
       </form>
 
@@ -240,10 +258,28 @@
         }
 
         <button class="auth-card__submit" type="submit" [disabled]="loading()">
-          @if (loading()) {
+          @if (loading() && !googleLoading()) {
             <span class="auth-card__spinner" aria-hidden="true"></span>
           }
-          <span>{{ loading() ? 'Creando cuenta...' : 'Crear cuenta' }}</span>
+          <span>{{ loading() && !googleLoading() ? 'Creando cuenta...' : 'Crear cuenta' }}</span>
+        </button>
+
+        <div class="auth-card__divider" aria-hidden="true">
+          <span>o</span>
+        </div>
+
+        <button
+          class="auth-card__google"
+          type="button"
+          [disabled]="loading()"
+          (click)="onGoogleSubmit($event)"
+        >
+          @if (googleLoading()) {
+            <span class="auth-card__spinner" aria-hidden="true"></span>
+          } @else {
+            <img src="/assets/icon_google.png" alt="" width="20" height="20" />
+          }
+          <span>{{ googleLoading() ? 'Conectando con Google...' : 'Registrarme con Google' }}</span>
         </button>
 
         <button class="auth-card__link" type="button" (click)="setMode('login')">

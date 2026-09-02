@@ -98,7 +98,7 @@
       }
       @case ('mapping') {
         <app-column-mapping
-          [definitions]="columnDefinitions"
+          [definitions]="columnDefinitions()"
           [mappings]="columnMappings()"
           [headers]="detectedHeaders()"
           (mappingChange)="updateMapping($event)"

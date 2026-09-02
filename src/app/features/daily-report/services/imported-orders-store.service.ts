@@ -64,9 +64,8 @@ export class ImportedOrdersStoreService {
     existingOrders.forEach((order) => byBusinessKey.set(orderKey(order), order));
     incomingOrders.forEach((order) => {
       const key = orderKey(order);
-      const current = byBusinessKey.get(key);
 
-      byBusinessKey.set(key, current && shouldKeepCurrentOrder(current, order) ? current : order);
+      byBusinessKey.set(key, order);
     });
 
     return Array.from(byBusinessKey.values()).sort((left, right) =>
@@ -77,19 +76,6 @@ export class ImportedOrdersStoreService {
 
 function orderKey(order: DailyOrder): string {
   return normalizeKey(order.guideNumber || order.orderNumber || order.id);
-}
-
-function shouldKeepCurrentOrder(current: DailyOrder | undefined, incoming: DailyOrder): boolean {
-  if (!current) return false;
-
-  const currentTime = Date.parse(current.lastUpdated || current.createdAt);
-  const incomingTime = Date.parse(incoming.lastUpdated || incoming.createdAt);
-
-  if (Number.isNaN(currentTime) || Number.isNaN(incomingTime)) {
-    return false;
-  }
-
-  return currentTime > incomingTime;
 }
 
 function normalizeKey(value: string): string {

@@ -145,7 +145,7 @@ export class ImportValidationService {
         );
       }
       if (
-        definition.key === 'status' &&
+        definition.dataType === 'status' &&
         normalizedValue &&
         !this.isAllowedStatus(String(normalizedValue))
       ) {

@@ -25,6 +25,7 @@ export class AuthPageComponent {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
+  readonly googleLoading = signal(false);
   readonly loginPasswordVisible = signal(false);
   readonly registerPasswordVisible = signal(false);
   readonly registerPasswordFocused = signal(false);
@@ -89,6 +90,11 @@ export class AuthPageComponent {
     this.submitRegister();
   }
 
+  onGoogleSubmit(event: Event): void {
+    event.preventDefault();
+    this.submitGoogle();
+  }
+
   updateLoginControl(controlName: LoginControlName, event: Event): void {
     const target = event.target;
 
@@ -146,6 +152,7 @@ export class AuthPageComponent {
     }
 
     this.loading.set(true);
+    this.googleLoading.set(false);
     this.error.set(null);
     this.success.set(null);
     this.authSession.login(this.loginForm.getRawValue()).subscribe({
@@ -161,6 +168,7 @@ export class AuthPageComponent {
     }
 
     this.loading.set(true);
+    this.googleLoading.set(false);
     this.error.set(null);
     this.success.set(null);
     this.authSession.register(this.registerForm.getRawValue()).subscribe({
@@ -169,10 +177,26 @@ export class AuthPageComponent {
     });
   }
 
+  submitGoogle(): void {
+    if (this.loading()) {
+      return;
+    }
+
+    this.loading.set(true);
+    this.googleLoading.set(true);
+    this.error.set(null);
+    this.success.set(null);
+    this.authSession.signInWithGoogle().subscribe({
+      next: () => this.complete('Ingresando con Google...'),
+      error: (message: string) => this.fail(message),
+    });
+  }
+
   private complete(message: string): void {
     this.success.set(message);
     window.setTimeout(() => {
       this.loading.set(false);
+      this.googleLoading.set(false);
       void this.router.navigate(['/inicio']);
     }, 450);
   }
@@ -193,6 +217,7 @@ export class AuthPageComponent {
 
   private fail(message: string): void {
     this.loading.set(false);
+    this.googleLoading.set(false);
     this.error.set(message);
   }
 

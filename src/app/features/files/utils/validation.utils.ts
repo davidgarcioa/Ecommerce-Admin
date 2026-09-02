@@ -1,10 +1,34 @@
 export function normalizeText(value: unknown): string {
-  return String(value ?? '')
+  return repairMojibake(String(value ?? ''))
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .trim()
     .replace(/\s+/g, ' ')
     .toLowerCase();
+}
+
+function repairMojibake(value: string): string {
+  if (!/[\u00c3\u00c2]/.test(value)) {
+    return value;
+  }
+
+  try {
+    const bytes = Uint8Array.from(
+      Array.from(value, (character) => character.charCodeAt(0) & 0xff),
+    );
+
+    return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+  } catch {
+    return value
+      .replace(/\u00c3\u00a1/g, 'a')
+      .replace(/\u00c3\u00a9/g, 'e')
+      .replace(/\u00c3\u00ad/g, 'i')
+      .replace(/\u00c3\u00b3/g, 'o')
+      .replace(/\u00c3\u00ba/g, 'u')
+      .replace(/\u00c3\u00b1/g, 'n')
+      .replace(/\u00c3\u00bc/g, 'u')
+      .replace(/\u00c2/g, '');
+  }
 }
 
 export function normalizeColumnKey(value: string): string {
