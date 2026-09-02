@@ -1,6 +1,7 @@
 import { computed, inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { finalize, forkJoin, Observable, of } from 'rxjs';
 
+import { API_CONFIG, isStaticFrontendApi } from '../../../core/config/api.config';
 import { PermissionsService } from '../../../core/services/permissions.service';
 import { DailyOrder } from '../../daily-report/models/daily-order.model';
 import { ImportedOrdersStoreService } from '../../daily-report/services/imported-orders-store.service';
@@ -53,6 +54,7 @@ const EMPTY_PAGINATION: LogisticsPagination = {
 @Injectable()
 export class LogisticsStore {
   private readonly api = inject(LogisticsApiService);
+  private readonly apiConfig = inject(API_CONFIG);
   private readonly permissionsService = inject(PermissionsService);
   private readonly importedOrdersStore = inject(ImportedOrdersStoreService);
 
@@ -159,6 +161,11 @@ export class LogisticsStore {
       return;
     }
 
+    if (this.isStaticMode()) {
+      this.applyLocalOrders([]);
+      return;
+    }
+
     this.loadingState.set(true);
     this.errorState.set(null);
 
@@ -185,6 +192,15 @@ export class LogisticsStore {
   }
 
   loadDetail(id: string): void {
+    if (this.isStaticMode()) {
+      const localOrder = this.ordersState().find((order) => order.id === id) ?? null;
+
+      this.selectedOrderState.set(localOrder);
+      this.historyState.set([]);
+      this.errorState.set(localOrder ? null : 'No se encontro el despacho solicitado.');
+      return;
+    }
+
     this.loadingDetailState.set(true);
     this.errorState.set(null);
 
@@ -263,6 +279,20 @@ export class LogisticsStore {
   }
 
   updateShipment(id: string, payload: UpdateShipmentRequest, onSuccess?: () => void): void {
+    if (this.isStaticMode()) {
+      const order = this.patchLocalOrder(id, {
+        carrier: payload.carrier,
+        trackingNumber: payload.trackingNumber,
+        observations: payload.observations,
+        updatedBy: 'Local',
+      });
+
+      if (order) {
+        onSuccess?.();
+      }
+      return;
+    }
+
     this.savingState.set(true);
     this.errorState.set(null);
 
@@ -295,6 +325,15 @@ export class LogisticsStore {
   }
 
   updateDeliveryStatus(id: string, payload: UpdateLogisticsDeliveryStatusRequest): void {
+    if (this.isStaticMode()) {
+      this.patchLocalOrder(id, {
+        deliveryStatus: payload.deliveryStatus,
+        observations: payload.notes,
+        updatedBy: 'Local',
+      });
+      return;
+    }
+
     this.updatingStatusState.set(true);
     this.errorState.set(null);
 
@@ -377,6 +416,33 @@ export class LogisticsStore {
     this.lastUpdatedState.set(new Date().toISOString());
   }
 
+  private patchLocalOrder(id: string, patch: Partial<LogisticsOrder>): LogisticsOrder | null {
+    const current = this.ordersState().find((order) => order.id === id);
+
+    if (!current) {
+      this.errorState.set('No se encontro el despacho solicitado.');
+      return null;
+    }
+
+    const cleanedPatch = Object.fromEntries(
+      Object.entries(patch).filter(([, value]) => value !== undefined),
+    ) as Partial<LogisticsOrder>;
+    const updatedOrder: LogisticsOrder = {
+      ...current,
+      ...cleanedPatch,
+      updatedAt: new Date().toISOString(),
+    };
+
+    this.upsertOrder(updatedOrder);
+    this.selectedOrderState.set(updatedOrder);
+    this.statisticsState.set(toOrderStatistics(this.ordersState()));
+    this.errorState.set(null);
+    this.savingState.set(false);
+    this.updatingStatusState.set(false);
+
+    return updatedOrder;
+  }
+
   private filterOrders(orders: readonly LogisticsOrder[]): readonly LogisticsOrder[] {
     const filters = this.filtersState();
     const search = this.searchState().trim().toLowerCase();
@@ -430,11 +496,21 @@ export class LogisticsStore {
     source: Observable<readonly TResource[]>,
     target: WritableSignal<readonly TResource[]>,
   ): void {
+    if (this.isStaticMode()) {
+      target.set([]);
+      this.errorState.set(null);
+      return;
+    }
+
     this.loadingState.set(true);
     this.errorState.set(null);
     source.pipe(finalize(() => this.loadingState.set(false))).subscribe({
       next: (items) => target.set(items),
       error: (error: Error) => this.errorState.set(error.message),
     });
+  }
+
+  private isStaticMode(): boolean {
+    return isStaticFrontendApi(this.apiConfig.baseUrl);
   }
 }

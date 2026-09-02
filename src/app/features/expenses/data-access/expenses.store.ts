@@ -1,6 +1,9 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { finalize } from 'rxjs';
 
+import { API_CONFIG, isStaticFrontendApi } from '../../../core/config/api.config';
+import { DailyOrder } from '../../daily-report/models/daily-order.model';
+import { ImportedOrdersStoreService } from '../../daily-report/services/imported-orders-store.service';
 import { calculateExpenseSummary } from '../utils/expense-calculations';
 import { DEFAULT_EXPENSE_FILTERS } from '../utils/expenses.constants';
 import {
@@ -19,6 +22,8 @@ const LOCAL_EXPENSES_STORAGE_KEY = 'ecommerce.expenses.local.records';
 @Injectable()
 export class ExpensesStore {
   private readonly api = inject(ExpensesApiService);
+  private readonly apiConfig = inject(API_CONFIG);
+  private readonly importedOrdersStore = inject(ImportedOrdersStoreService);
 
   private readonly expensesState = signal<readonly Expense[]>([]);
   private readonly selectedExpenseState = signal<Expense | null>(null);
@@ -55,7 +60,12 @@ export class ExpensesStore {
       this.sortState(),
     ),
   );
-  readonly summary = computed(() => calculateExpenseSummary(this.filteredExpenses()));
+  readonly importedRevenue = computed(() =>
+    calculateImportedRevenue(this.importedOrdersStore.orders(), this.filtersState()),
+  );
+  readonly summary = computed(() =>
+    calculateExpenseSummary(this.filteredExpenses(), this.importedRevenue()),
+  );
   readonly totalExpenses = computed(() => this.summary().expenseCount);
   readonly totalAmount = computed(() => this.summary().totalAmount);
   readonly paidAmount = computed(() => this.summary().paidAmount);
@@ -82,6 +92,11 @@ export class ExpensesStore {
   readonly canManageReceipts = computed(() => false);
 
   loadExpenses(): void {
+    if (this.isStaticMode()) {
+      this.replaceExpenses(readStoredExpenses() ?? [], false);
+      return;
+    }
+
     this.loadingState.set(true);
     this.errorState.set(null);
 
@@ -98,6 +113,11 @@ export class ExpensesStore {
   }
 
   loadExpense(id: string): void {
+    if (this.isStaticMode()) {
+      this.loadLocalExpenseDetail(id);
+      return;
+    }
+
     this.loadingDetailState.set(true);
     this.errorState.set(null);
     this.selectedExpenseState.set(this.findKnownExpense(id));
@@ -112,6 +132,14 @@ export class ExpensesStore {
   }
 
   create(payload: CreateExpenseRequest, onSuccess: (expense: Expense) => void): void {
+    if (this.isStaticMode()) {
+      const expense = createLocalExpense(payload);
+
+      this.upsertExpense(expense, true);
+      onSuccess(expense);
+      return;
+    }
+
     this.savingState.set(true);
     this.errorState.set(null);
 
@@ -133,6 +161,20 @@ export class ExpensesStore {
   }
 
   update(id: string, payload: UpdateExpenseRequest, onSuccess: (expense: Expense) => void): void {
+    if (this.isStaticMode()) {
+      const expense = updateLocalExpense(this.findKnownExpense(id), payload);
+
+      if (!expense) {
+        this.errorState.set('No se encontro el movimiento solicitado.');
+        return;
+      }
+
+      this.upsertExpense(expense, true);
+      this.selectedExpenseState.set(expense);
+      onSuccess(expense);
+      return;
+    }
+
     this.savingState.set(true);
     this.errorState.set(null);
 
@@ -161,6 +203,12 @@ export class ExpensesStore {
   }
 
   delete(id: string, onSuccess?: () => void): void {
+    if (this.isStaticMode()) {
+      this.removeExpense(id, true);
+      onSuccess?.();
+      return;
+    }
+
     this.deletingState.set(true);
     this.errorState.set(null);
 
@@ -243,6 +291,21 @@ export class ExpensesStore {
     this.loadingDetailState.set(false);
     this.lastUpdatedState.set(new Date().toISOString());
   }
+
+  private isStaticMode(): boolean {
+    return isStaticFrontendApi(this.apiConfig.baseUrl);
+  }
+}
+
+function calculateImportedRevenue(orders: readonly DailyOrder[], filters: ExpenseFilters): number {
+  return orders
+    .filter((order) => {
+      const orderDate = (order.reportDate || order.createdAt).slice(0, 10);
+      if (filters.dateFrom && orderDate < filters.dateFrom) return false;
+      if (filters.dateTo && orderDate > filters.dateTo) return false;
+      return !['cancelada', 'devuelta'].includes(normalize(order.status));
+    })
+    .reduce((sum, order) => sum + Math.max(0, order.orderValue), 0);
 }
 
 function matchesExpense(
@@ -386,4 +449,3 @@ function toSlug(value: string): string {
       .slice(0, 42) || 'movimiento'
   );
 }
-

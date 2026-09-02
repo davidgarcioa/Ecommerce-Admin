@@ -14,6 +14,9 @@
     <app-campaigns-filters
       class="campaigns-page__filters"
       [filters]="filters()"
+      [accounts]="accountOptions()"
+      [groups]="productGroupOptions()"
+      [products]="productOptions()"
       (applyFilters)="onApplyFilters($event)"
       (clearFilters)="onClearFilters()"
     />
@@ -135,6 +138,8 @@
     <app-campaign-form
       [mode]="campaignFormMode()"
       [campaign]="selectedCampaign()"
+      [accounts]="accountOptions()"
+      [groups]="productGroupOptions()"
       (close)="closeForm()"
       (save)="onSaveCampaign($event)"
     />

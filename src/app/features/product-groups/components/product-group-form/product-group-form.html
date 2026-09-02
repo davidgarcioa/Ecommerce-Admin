@@ -22,7 +22,12 @@
 
     <label class="product-group-form__field">
       <span>Nombre</span>
-      <input type="text" formControlName="name" autocomplete="off" placeholder="Helvor 2" />
+      <input
+        type="text"
+        formControlName="name"
+        autocomplete="off"
+        placeholder="Nombre del conjunto"
+      />
       @if (nameError(); as message) {
         <small>{{ message }}</small>
       }

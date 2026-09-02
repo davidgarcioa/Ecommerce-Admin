@@ -1,25 +1,4 @@
 ﻿import { computed, inject, Injectable, signal } from '@angular/core';
-import {
-  catchError,
-  defaultIfEmpty,
-  finalize,
-  forkJoin,
-  map,
-  Observable,
-  of,
-  switchMap,
-  take,
-  timeout,
-} from 'rxjs';
-
-import {
-  DeliveryStatus as BackendDeliveryStatus,
-  Order,
-  OrderQuery,
-  OrderStatus as BackendOrderStatus,
-  PaymentMethod as BackendPaymentMethod,
-} from '../../office/data-access/office.models';
-import { OfficeApiService } from '../../office/data-access/office-api.service';
 import { DEFAULT_DAILY_REPORT_FILTER } from '../constants/daily-report.constants';
 import { DailyMetric } from '../models/daily-metric.model';
 import { DailyOrder, OrderStatus, PaymentMethod } from '../models/daily-order.model';
@@ -35,7 +14,6 @@ import { ImportedOrdersStoreService } from './imported-orders-store.service';
 })
 export class DailyReportService {
   private readonly importedOrdersStore = inject(ImportedOrdersStoreService);
-  private readonly ordersApi = inject(OfficeApiService);
   private readonly ordersState = signal<readonly DailyOrder[]>([]);
   private readonly filtersState = signal<DailyReportFilter>(DEFAULT_DAILY_REPORT_FILTER);
   private readonly loadingState = signal(false);
@@ -73,26 +51,9 @@ export class DailyReportService {
     this.loadingState.set(true);
     this.errorState.set(null);
     this.ensureVisibleReportData();
-
-    this.loadBackendOrders()
-      .pipe(
-        take(1),
-        finalize(() => this.loadingState.set(false)),
-      )
-      .subscribe({
-        next: (orders) => {
-          const mappedOrders = normalizeDailyOrders(
-            orders.map((order) => mapBackendOrderToDailyOrder(order)),
-          );
-          this.ordersState.set(mappedOrders);
-          this.generatedAtState.set(new Date().toISOString());
-        },
-        error: () => {
-          this.ordersState.set(this.resolveFallbackOrders());
-          this.errorState.set(null);
-          this.generatedAtState.set(new Date().toISOString());
-        },
-      });
+    this.ordersState.set(this.resolveFallbackOrders());
+    this.generatedAtState.set(new Date().toISOString());
+    this.loadingState.set(false);
   }
 
   refreshReport(): void {
@@ -107,32 +68,6 @@ export class DailyReportService {
     this.closeOrderDetail();
     this.closeExportPanel();
     this.generatedAtState.set(new Date().toISOString());
-  }
-
-  private loadBackendOrders(): Observable<readonly Order[]> {
-    const baseQuery = buildOrdersQuery(1);
-
-    return this.ordersApi.listOrders(baseQuery).pipe(
-      timeout({ first: 15000 }),
-      switchMap((firstPage) => {
-        const firstPageData = firstPage.data ?? [];
-        const rawTotalPages = Number(firstPage.meta?.totalPages ?? 1);
-        const totalPages =
-          Number.isFinite(rawTotalPages) && rawTotalPages > 1 ? Math.min(rawTotalPages, 10) : 1;
-
-        if (totalPages <= 1) return of(firstPageData);
-
-        const pageRequests = Array.from({ length: totalPages - 1 }, (_, index) =>
-          this.ordersApi.listOrders(buildOrdersQuery(index + 2)),
-        );
-
-        return forkJoin(pageRequests).pipe(
-          map((pages) => [...firstPageData, ...pages.flatMap((page) => page.data ?? [])]),
-        );
-      }),
-      defaultIfEmpty([]),
-      catchError(() => of([])),
-    );
   }
 
   private resolveFallbackOrders(): readonly DailyOrder[] {
@@ -730,171 +665,6 @@ function toPaymentMethod(value: unknown): PaymentMethod {
   return 'Otro';
 }
 
-function buildOrdersQuery(page: number): OrderQuery {
-  return {
-    page,
-    pageSize: 100,
-    sortBy: 'createdAt',
-    sortDirection: 'desc',
-    search: '',
-    filters: {
-      orderStatus: 'all',
-      paymentStatus: 'all',
-      deliveryStatus: 'all',
-      city: '',
-      carrier: '',
-      urgent: 'all',
-      pendingConfirmation: false,
-      dateFrom: '',
-      dateTo: '',
-    },
-  };
-}
-
-function mapBackendOrderToDailyOrder(order: Order): DailyOrder {
-  const metadata = order.metadata;
-  const rawGuideStatus =
-    readString(metadata, 'guideStatus') ??
-    readString(metadata, 'rawStatus') ??
-    order.deliveryStatus;
-  const returnShippingCost = readNumber(metadata, 'returnShippingCost') ?? 0;
-  const providerCost = readNumber(metadata, 'providerCost');
-  const providerCostTotal = readNumber(metadata, 'providerCostTotal') ?? 0;
-  const commission = readNumber(metadata, 'commission') ?? estimateCommission(order.total);
-  const storedEstimatedProfit = readNumber(metadata, 'estimatedProfit');
-  const operationalCost =
-    order.shippingCost + order.discount + returnShippingCost + providerCostTotal + commission;
-
-  return {
-    id: order.id,
-    orderNumber: order.orderNumber,
-    createdAt: order.createdAt,
-    reportDate: order.createdAt.slice(0, 10),
-    orderHour: formatOrderHour(order.createdAt),
-    customerName: order.customerName || 'Cliente sin nombre',
-    customerPhone: order.customerPhone || 'Sin teléfono',
-    customerEmail: order.customerEmail,
-    productName: order.productName || 'Producto sin nombre',
-    productGroupId:
-      order.productGroupId || normalizeId(order.productGroupName || order.productName || 'dropi'),
-    productGroupName: order.productGroupName || order.productName || 'Dropi',
-    guideNumber: order.trackingNumber,
-    guideStatus: normalizeDisplayText(rawGuideStatus),
-    department: order.department,
-    city: order.city || 'Sin ciudad',
-    address: order.address,
-    notes: order.observations,
-    carrier: order.carrier || 'Sin transportadora',
-    status: mapBackendStatus(order.orderStatus, order.deliveryStatus, rawGuideStatus),
-    orderValue: order.total,
-    advertisingCost: 0,
-    estimatedProfit: storedEstimatedProfit ?? Math.max(order.total - operationalCost, 0),
-    shippingCost: order.shippingCost,
-    returnShippingCost,
-    commission,
-    providerCost,
-    providerCostTotal,
-    productId: order.productId,
-    sku: readString(metadata, 'sku'),
-    quantity: order.quantity,
-    novelty: readString(metadata, 'novelty') ?? order.observations,
-    operationDays: calculateOperationDays(order.createdAt),
-    urgent: order.urgent,
-    paymentMethod: mapPaymentMethod(order.paymentMethod),
-    lastUpdated: order.updatedAt,
-  };
-}
-
-function mapBackendStatus(
-  orderStatus: BackendOrderStatus,
-  deliveryStatus: BackendDeliveryStatus,
-  guideStatus?: string,
-): OrderStatus {
-  const normalizedGuide = normalizeText(guideStatus ?? '');
-
-  if (orderStatus === 'Cancelled') return 'Cancelada';
-  if (orderStatus === 'Returned' || orderStatus === 'Refunded') return 'Devuelta';
-  if (
-    orderStatus === 'Delivered' ||
-    deliveryStatus === 'Delivered' ||
-    normalizedGuide.includes('entreg')
-  ) {
-    return 'Entregada';
-  }
-  if (
-    orderStatus === 'Shipped' ||
-    deliveryStatus === 'In Transit' ||
-    normalizedGuide.includes('ruta') ||
-    normalizedGuide.includes('transito') ||
-    normalizedGuide.includes('despach')
-  ) {
-    return 'En tránsito';
-  }
-  if (
-    orderStatus === 'Packed' ||
-    orderStatus === 'Processing' ||
-    deliveryStatus === 'Assigned' ||
-    normalizedGuide.includes('bodega') ||
-    normalizedGuide.includes('recog')
-  ) {
-    return 'En preparación';
-  }
-  if (orderStatus === 'Confirmed' || normalizedGuide.includes('confirm')) return 'Confirmada';
-  return 'Pendiente';
-}
-
-function mapPaymentMethod(method: BackendPaymentMethod): PaymentMethod {
-  const labels: Readonly<Record<BackendPaymentMethod, PaymentMethod>> = {
-    'Cash on Delivery': 'Contraentrega',
-    Transfer: 'Transferencia',
-    Card: 'Tarjeta',
-    PSE: 'PSE',
-    Other: 'Otro',
-  };
-
-  return labels[method];
-}
-
-function readString(
-  metadata: Record<string, unknown> | undefined,
-  key: string,
-): string | undefined {
-  const value = metadata?.[key];
-  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
-}
-
-function readNumber(
-  metadata: Record<string, unknown> | undefined,
-  key: string,
-): number | undefined {
-  const value = metadata?.[key];
-
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value;
-  }
-
-  if (typeof value !== 'string' || value.trim().length === 0) {
-    return undefined;
-  }
-
-  const compactValue = value.replace(/[^\d,.-]/g, '');
-  const normalizedValue =
-    compactValue.includes('.') && compactValue.includes(',')
-      ? compactValue.replace(/\./g, '').replace(',', '.')
-      : compactValue.includes(',') && !compactValue.includes('.')
-        ? compactValue.replace(',', '.')
-        : compactValue.split('.').at(-1)?.length === 3
-          ? compactValue.replace(/\./g, '')
-          : compactValue;
-  const parsedValue = Number(normalizedValue);
-
-  return Number.isFinite(parsedValue) ? parsedValue : undefined;
-}
-
-function estimateCommission(total: number): number {
-  return Math.round(Math.max(total, 0) * 0.03);
-}
-
 function calculateOperationDays(createdAt: string): number {
   const createdDate = new Date(createdAt);
   if (Number.isNaN(createdDate.getTime())) return 0;
@@ -911,16 +681,6 @@ function formatOrderHour(value: string): string | undefined {
     hour: '2-digit',
     minute: '2-digit',
   }).format(date);
-}
-
-function normalizeDisplayText(value: string | undefined): string | undefined {
-  if (!value) return undefined;
-  const normalized = value.trim().replace(/\s+/g, ' ').toLowerCase();
-
-  return normalized
-    .split(' ')
-    .map((word) => (word.length > 0 ? word[0].toUpperCase() + word.slice(1) : word))
-    .join(' ');
 }
 
 function normalizeId(value: string): string {

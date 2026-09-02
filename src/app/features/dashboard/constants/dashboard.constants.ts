@@ -18,8 +18,4 @@ export const DASHBOARD_PERIOD_OPTIONS: readonly DashboardFilterOption[] = [
   { label: 'Este mes', value: 'this-month' },
 ] as const;
 
-export const RECENT_ACTIVITY_ITEMS: readonly string[] = [
-  'Se actualizó el conjunto Helvor 2.',
-  'Se registraron 9 devoluciones.',
-  'Se sincronizó el gasto publicitario.',
-] as const;
+export const RECENT_ACTIVITY_ITEMS: readonly string[] = [] as const;

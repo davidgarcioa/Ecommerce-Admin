@@ -42,7 +42,8 @@ describe('ExpensesStore', () => {
     expect(store.expenses().length).toBe(1);
     expect(store.totalAmount()).toBe(120000);
     expect(store.paidAmount()).toBe(120000);
-    expect(store.netCashFlow()).toBeGreaterThan(0);
+    expect(store.projectedIncome()).toBe(0);
+    expect(store.netCashFlow()).toBe(-120000);
   });
 
   it('keeps a clean empty state when the API does not respond and no local data exists', () => {

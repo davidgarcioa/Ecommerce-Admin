@@ -11,6 +11,11 @@ import {
 import { Campaign, CampaignFormData } from '../../models/campaign.model';
 import { CampaignFormMode } from '../../models/campaigns-state.model';
 
+interface CampaignOption {
+  readonly id: string;
+  readonly name: string;
+}
+
 @Component({
   selector: 'app-campaign-form',
   templateUrl: './campaign-form.html',
@@ -20,13 +25,19 @@ import { CampaignFormMode } from '../../models/campaigns-state.model';
 export class CampaignFormComponent {
   readonly mode = input.required<CampaignFormMode>();
   readonly campaign = input<Campaign | null>(null);
+  readonly accounts = input<readonly CampaignOption[]>(AD_ACCOUNTS);
+  readonly groups = input<readonly CampaignOption[]>(
+    PRODUCT_GROUPS.filter((group) => group.id !== 'all'),
+  );
   readonly close = output<void>();
   readonly save = output<CampaignFormData>();
 
-  readonly accounts = AD_ACCOUNTS;
   readonly objectives = CAMPAIGN_OBJECTIVES;
   readonly statuses = CAMPAIGN_STATUSES;
-  readonly groups = PRODUCT_GROUPS.filter((group) => group.id !== 'all');
+  readonly groupOptions = computed(() => {
+    const groups = this.groups().filter((group) => group.id !== 'all');
+    return groups.length > 0 ? groups : PRODUCT_GROUPS.filter((group) => group.id !== 'all');
+  });
   readonly platforms = ADVERTISING_PLATFORMS;
   readonly budgetTypes = BUDGET_TYPES;
 
@@ -35,12 +46,12 @@ export class CampaignFormComponent {
     objective: 'Ventas',
     adAccountId: AD_ACCOUNTS[0].id,
     status: 'Activa',
-    productGroupId: 'helvor-2',
+    productGroupId: 'sin-conjunto',
     platform: 'Facebook',
     budgetType: 'Diario',
-    dailyBudget: 90000,
+    dailyBudget: null,
     lifetimeBudget: null,
-    startDate: '2026-07-29',
+    startDate: new Date().toISOString().slice(0, 10),
     endDate: null,
   });
 
@@ -72,6 +83,11 @@ export class CampaignFormComponent {
     queueMicrotask(() => {
       const campaign = this.campaign();
       if (!campaign) {
+        this.form.update((form) => ({
+          ...form,
+          adAccountId: this.accounts()[0]?.id ?? 'local-account',
+          productGroupId: this.groupOptions()[0]?.id ?? 'sin-conjunto',
+        }));
         return;
       }
 

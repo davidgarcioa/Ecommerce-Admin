@@ -95,7 +95,7 @@ export const ORDER_COLUMN_DEFINITIONS: readonly ImportColumnDefinition[] = [
       'referencia',
       'sku',
     ],
-    example: 'Helvor Shaper',
+    example: 'Producto principal',
     unique: false,
     nullable: false,
     validatorIds: ['required'],
@@ -768,7 +768,6 @@ export const ORDER_COLUMN_DEFINITIONS: readonly ImportColumnDefinition[] = [
   },
 ];
 
-
 export const CAMPAIGN_COLUMN_DEFINITIONS: readonly ImportColumnDefinition[] = [
   {
     key: 'campaignName',
@@ -849,7 +848,7 @@ export const CAMPAIGN_COLUMN_DEFINITIONS: readonly ImportColumnDefinition[] = [
     required: false,
     dataType: 'text',
     acceptedAliases: ['conjunto', 'ad set name', 'adset', 'grupo', 'producto'],
-    example: 'Helvor 2',
+    example: 'Conjunto principal',
     unique: false,
     nullable: true,
     validatorIds: [],

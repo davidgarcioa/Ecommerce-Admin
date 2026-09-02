@@ -4,16 +4,15 @@ import {
   ExpenseListItem,
   ExpenseSummary,
 } from '../data-access/expenses.models';
-import {
-  EXPENSE_CATEGORY_BUDGETS,
-  EXPENSE_CATEGORY_COLORS,
-  FINANCE_MONTHLY_INCOME_TARGET,
-} from './expenses.constants';
+import { EXPENSE_CATEGORY_COLORS, EXPENSE_CATEGORY_OPTIONS } from './expenses.constants';
 import { expenseCategoryLabel } from './expenses.formatters';
 
 const WEEK_IN_DAYS = 7;
 
-export function calculateExpenseSummary(expenses: readonly ExpenseListItem[]): ExpenseSummary {
+export function calculateExpenseSummary(
+  expenses: readonly ExpenseListItem[],
+  projectedIncome = 0,
+): ExpenseSummary {
   const activeExpenses = expenses.filter((expense) => expense.status !== 'cancelled');
   const totalAmount = activeExpenses.reduce((sum, expense) => sum + expense.amount, 0);
   const paidExpenses = activeExpenses.filter((expense) => expense.status === 'paid');
@@ -21,20 +20,16 @@ export function calculateExpenseSummary(expenses: readonly ExpenseListItem[]): E
   const paidAmount = paidExpenses.reduce((sum, expense) => sum + expense.amount, 0);
   const pendingAmount = pendingExpenses.reduce((sum, expense) => sum + expense.amount, 0);
   const withoutReceiptCount = activeExpenses.filter((expense) => !expense.hasReceipt).length;
-  const budgetAmount = Object.values(EXPENSE_CATEGORY_BUDGETS).reduce(
-    (sum, budget) => sum + budget,
-    0,
-  );
   const categoryBreakdown = calculateCategoryBreakdown(activeExpenses, totalAmount);
 
   return {
     totalAmount,
     paidAmount,
     pendingAmount,
-    projectedIncome: FINANCE_MONTHLY_INCOME_TARGET,
-    netCashFlow: FINANCE_MONTHLY_INCOME_TARGET - totalAmount,
-    budgetAmount,
-    budgetUsedPercentage: budgetAmount > 0 ? (totalAmount / budgetAmount) * 100 : 0,
+    projectedIncome,
+    netCashFlow: projectedIncome - totalAmount,
+    budgetAmount: 0,
+    budgetUsedPercentage: 0,
     paidRatio: totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0,
     pendingCount: pendingExpenses.length,
     overdueAmount: calculateDueAmount(pendingExpenses, 'overdue'),
@@ -61,24 +56,21 @@ function calculateCategoryBreakdown(
     });
   }
 
-  return Object.keys(EXPENSE_CATEGORY_BUDGETS)
-    .map((category) => {
-      const typedCategory = category as ExpenseCategory;
-      const row = rows.get(typedCategory) ?? { amount: 0, count: 0 };
-      const budget = EXPENSE_CATEGORY_BUDGETS[typedCategory];
+  return EXPENSE_CATEGORY_OPTIONS.map(({ value: typedCategory }) => {
+    const row = rows.get(typedCategory) ?? { amount: 0, count: 0 };
+    const percentage = totalAmount > 0 ? (row.amount / totalAmount) * 100 : 0;
 
-      return {
-        category: typedCategory,
-        label: expenseCategoryLabel(typedCategory),
-        amount: row.amount,
-        budget,
-        count: row.count,
-        percentage: totalAmount > 0 ? (row.amount / totalAmount) * 100 : 0,
-        budgetUsage: budget > 0 ? (row.amount / budget) * 100 : 0,
-        color: EXPENSE_CATEGORY_COLORS[typedCategory],
-      };
-    })
-    .sort((left, right) => right.amount - left.amount);
+    return {
+      category: typedCategory,
+      label: expenseCategoryLabel(typedCategory),
+      amount: row.amount,
+      budget: 0,
+      count: row.count,
+      percentage,
+      budgetUsage: percentage,
+      color: EXPENSE_CATEGORY_COLORS[typedCategory],
+    };
+  }).sort((left, right) => right.amount - left.amount);
 }
 
 function resolveTopCategory(breakdown: readonly ExpenseCategoryBreakdown[]): string {

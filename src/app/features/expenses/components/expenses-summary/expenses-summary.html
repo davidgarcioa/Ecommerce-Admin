@@ -15,9 +15,9 @@
         >trending_up</span
       >
       <span class="expenses-summary__dot" aria-hidden="true"></span>
-      <p>Ingresos estimados</p>
+      <p>Ingresos importados</p>
       <strong>{{ formatCurrency(projectedIncome()) }}</strong>
-      <small>Base mensual del negocio</small>
+      <small>Ventas reales cargadas</small>
     </article>
 
     <article class="expenses-summary__card expenses-summary__card--red">
@@ -61,17 +61,17 @@
     </article>
   </div>
 
-  <section class="expenses-summary__planner" aria-label="Presupuesto por categoria">
+  <section class="expenses-summary__planner" aria-label="Distribucion por categoria">
     <header>
       <div>
-        <p>Presupuesto operativo</p>
-        <h2>{{ formatPercentage(budgetUsedPercentage()) }} usado</h2>
+        <p>Distribucion por categoria</p>
+        <h2>{{ topCategory() }}</h2>
       </div>
-      <span>{{ formatCurrency(totalAmount()) }} de {{ formatCurrency(budgetAmount()) }}</span>
+      <span>{{ expenseCount() }} movimientos registrados</span>
     </header>
 
     <div class="expenses-summary__budget-track" aria-hidden="true">
-      <i [style.width.%]="clamp(budgetUsedPercentage())"></i>
+      <i [style.width.%]="expenseCount() > 0 ? 100 : 0"></i>
     </div>
 
     <div class="expenses-summary__alerts">
@@ -99,12 +99,9 @@
           </div>
           <p>{{ formatCurrency(category.amount) }}</p>
           <div class="expenses-summary__category-track" aria-hidden="true">
-            <i
-              [style.background]="category.color"
-              [style.width.%]="clamp(category.budgetUsage)"
-            ></i>
+            <i [style.background]="category.color" [style.width.%]="clamp(category.percentage)"></i>
           </div>
-          <small>{{ formatPercentage(category.budgetUsage) }} del presupuesto</small>
+          <small>{{ formatPercentage(category.percentage) }} del gasto total</small>
         </article>
       }
     </div>

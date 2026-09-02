@@ -12,7 +12,7 @@ import {
 import type { User } from 'firebase/auth';
 import { catchError, from, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
 
-import { API_CONFIG } from '../../../core/config/api.config';
+import { API_CONFIG, isStaticFrontendApi } from '../../../core/config/api.config';
 import { FIREBASE_CONFIG } from '../../../core/config/firebase.config';
 import { ApiResponse } from '../../../core/models/api-response.model';
 import { PermissionsService } from '../../../core/services/permissions.service';
@@ -262,11 +262,15 @@ function createLocalAccessToken(payload: Record<string, unknown>): string {
 }
 
 function createSessionId(): string {
-  return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return (
+    globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
+  );
 }
 
 function nameFromEmail(email: string | null): string {
-  return normalizeAscii(email?.split('@')[0]).replace(/[._-]+/g, ' ').trim();
+  return normalizeAscii(email?.split('@')[0])
+    .replace(/[._-]+/g, ' ')
+    .trim();
 }
 
 function normalizeAscii(value: string | null | undefined): string {
@@ -276,18 +280,6 @@ function normalizeAscii(value: string | null | undefined): string {
     .replace(/[^\x20-\x7e]/g, '')
     .trim()
     .replace(/\s+/g, ' ');
-}
-
-function isStaticFrontendApi(baseUrl: string): boolean {
-  const location = globalThis.location;
-  const origin = location?.origin;
-  const hostname = location?.hostname;
-
-  if (!origin || hostname === 'localhost' || hostname === '127.0.0.1') {
-    return false;
-  }
-
-  return baseUrl === `${origin}/api`;
 }
 
 function getFirebaseErrorCode(error: unknown): string | null {

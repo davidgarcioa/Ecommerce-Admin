@@ -1,6 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { finalize, forkJoin, of } from 'rxjs';
 
+import { API_CONFIG, isStaticFrontendApi } from '../../../core/config/api.config';
 import { PermissionsService } from '../../../core/services/permissions.service';
 import { DailyOrder } from '../../daily-report/models/daily-order.model';
 import { ImportedOrdersStoreService } from '../../daily-report/services/imported-orders-store.service';
@@ -53,6 +54,7 @@ const EMPTY_PAGINATION: OrderPagination = {
 @Injectable()
 export class OfficeStore {
   private readonly api = inject(OfficeApiService);
+  private readonly apiConfig = inject(API_CONFIG);
   private readonly permissionsService = inject(PermissionsService);
   private readonly importedOrdersStore = inject(ImportedOrdersStoreService);
 
@@ -149,6 +151,11 @@ export class OfficeStore {
       return;
     }
 
+    if (this.isStaticMode()) {
+      this.applyLocalOrders([]);
+      return;
+    }
+
     this.loadingState.set(true);
     this.errorState.set(null);
 
@@ -175,6 +182,16 @@ export class OfficeStore {
   }
 
   loadOrderDetail(id: string): void {
+    if (this.isStaticMode()) {
+      const localOrder = this.ordersState().find((order) => order.id === id) ?? null;
+
+      this.selectedOrderState.set(localOrder);
+      this.selectedCustomerState.set(localOrder ? toOrderCustomer(localOrder) : null);
+      this.historyState.set([]);
+      this.errorState.set(localOrder ? null : 'No se encontro el pedido solicitado.');
+      return;
+    }
+
     this.loadingDetailState.set(true);
     this.errorState.set(null);
 
@@ -250,6 +267,18 @@ export class OfficeStore {
   }
 
   updateOrder(id: string, payload: UpdateOrderRequest, onSuccess?: (order: Order) => void): void {
+    if (this.isStaticMode()) {
+      const order = this.patchLocalOrder(id, {
+        ...payload,
+        updatedBy: 'Local',
+      });
+
+      if (order) {
+        onSuccess?.(order);
+      }
+      return;
+    }
+
     this.savingState.set(true);
     this.errorState.set(null);
 
@@ -268,14 +297,41 @@ export class OfficeStore {
   }
 
   updateOrderStatus(id: string, payload: UpdateOrderStatusRequest): void {
+    if (this.isStaticMode()) {
+      this.patchLocalOrder(id, {
+        orderStatus: payload.orderStatus,
+        observations: payload.notes,
+        updatedBy: 'Local',
+      });
+      return;
+    }
+
     this.mutateStatus(id, () => this.api.updateOrderStatus(id, payload));
   }
 
   updatePaymentStatus(id: string, payload: UpdatePaymentStatusRequest): void {
+    if (this.isStaticMode()) {
+      this.patchLocalOrder(id, {
+        paymentStatus: payload.paymentStatus,
+        observations: payload.notes,
+        updatedBy: 'Local',
+      });
+      return;
+    }
+
     this.mutateStatus(id, () => this.api.updatePaymentStatus(id, payload));
   }
 
   updateDeliveryStatus(id: string, payload: UpdateDeliveryStatusRequest): void {
+    if (this.isStaticMode()) {
+      this.patchLocalOrder(id, {
+        deliveryStatus: payload.deliveryStatus,
+        observations: payload.notes,
+        updatedBy: 'Local',
+      });
+      return;
+    }
+
     this.mutateStatus(id, () => this.api.updateDeliveryStatus(id, payload));
   }
 
@@ -396,6 +452,38 @@ export class OfficeStore {
         ? orders.map((item) => (item.id === order.id ? order : item))
         : [order, ...orders];
     });
+  }
+
+  private patchLocalOrder(id: string, patch: Partial<Order>): Order | null {
+    const current = this.ordersState().find((order) => order.id === id);
+
+    if (!current) {
+      this.errorState.set('No se encontro el pedido solicitado.');
+      return null;
+    }
+
+    const cleanedPatch = Object.fromEntries(
+      Object.entries(patch).filter(([, value]) => value !== undefined),
+    ) as Partial<Order>;
+    const updatedOrder: Order = {
+      ...current,
+      ...cleanedPatch,
+      updatedAt: new Date().toISOString(),
+    };
+
+    this.upsertOrder(updatedOrder);
+    this.selectedOrderState.set(updatedOrder);
+    this.selectedCustomerState.set(toOrderCustomer(updatedOrder));
+    this.statisticsState.set(toOrderStatistics(this.ordersState()));
+    this.errorState.set(null);
+    this.savingState.set(false);
+    this.changingStatusState.set(false);
+
+    return updatedOrder;
+  }
+
+  private isStaticMode(): boolean {
+    return isStaticFrontendApi(this.apiConfig.baseUrl);
   }
 }
 

@@ -2,7 +2,7 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { inject, Injectable } from '@angular/core';
 import { catchError, forkJoin, map, Observable, of, switchMap, throwError } from 'rxjs';
 
-import { API_CONFIG } from '../../../core/config/api.config';
+import { API_CONFIG, isStaticFrontendApi } from '../../../core/config/api.config';
 import { ApiResponse } from '../../../core/models/api-response.model';
 import { DailyOrder } from '../../daily-report/models/daily-order.model';
 import { ImportedOrdersStoreService } from '../../daily-report/services/imported-orders-store.service';
@@ -41,6 +41,13 @@ export class TrackingApiService {
       });
     }
 
+    if (isStaticFrontendApi(this.apiConfig.baseUrl)) {
+      return of({
+        results: [],
+        metadata: { partial: false, warnings: [] },
+      });
+    }
+
     const value = normalizeTrackingValue(query.type, query.value);
     return this.listOrders(value).pipe(
       switchMap((response) => {
@@ -56,6 +63,15 @@ export class TrackingApiService {
   }
 
   getByOrderId(orderId: string): Observable<TrackingSearchResult | null> {
+    const importedOrder = this.importedOrdersStore.orders().find((order) => order.id === orderId);
+    if (importedOrder) {
+      return of(toImportedTrackingResult(importedOrder));
+    }
+
+    if (isStaticFrontendApi(this.apiConfig.baseUrl)) {
+      return of(null);
+    }
+
     return this.getOrder(orderId).pipe(
       switchMap((order) => {
         if (order) return this.toResultWithHistory(order);
@@ -239,9 +255,7 @@ function buildImportedTimeline(order: DailyOrder): readonly TrackingEvent[] {
   );
 }
 
-function dedupeImportedEvents(
-  events: readonly TrackingEvent[],
-): readonly TrackingEvent[] {
+function dedupeImportedEvents(events: readonly TrackingEvent[]): readonly TrackingEvent[] {
   const byId = new Map<string, TrackingEvent>();
   events.forEach((event) => byId.set(event.id, event));
   return Array.from(byId.values());

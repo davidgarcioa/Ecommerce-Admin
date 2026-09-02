@@ -1,6 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { finalize, forkJoin, of } from 'rxjs';
 
+import { API_CONFIG, isStaticFrontendApi } from '../../../core/config/api.config';
 import { PermissionsService } from '../../../core/services/permissions.service';
 import { DEFAULT_TAG_FILTERS, TAGS_PERMISSIONS } from '../utils/tags.constants';
 import { resolveSafeTagColor } from '../utils/tags.formatters';
@@ -23,6 +24,7 @@ const LOCAL_TAGS_STORAGE_KEY = 'ecommerce.tags.local.records';
 @Injectable()
 export class TagsStore {
   private readonly api = inject(TagsApiService);
+  private readonly apiConfig = inject(API_CONFIG);
   private readonly permissions = inject(PermissionsService);
 
   private readonly tagsState = signal<readonly Tag[]>([]);
@@ -101,6 +103,11 @@ export class TagsStore {
       return;
     }
 
+    if (this.isStaticMode()) {
+      this.replaceTags(readStoredTags() ?? [], false);
+      return;
+    }
+
     this.loadingState.set(true);
     this.errorState.set(null);
 
@@ -126,6 +133,14 @@ export class TagsStore {
   }
 
   loadTag(id: string): void {
+    if (this.isStaticMode()) {
+      const tag = this.findKnownTag(id);
+
+      this.selectedTagState.set(tag);
+      this.errorState.set(tag ? null : 'No se encontro la etiqueta solicitada.');
+      return;
+    }
+
     this.loadingDetailState.set(true);
     this.errorState.set(null);
     this.selectedTagState.set(this.findKnownTag(id));
@@ -154,6 +169,14 @@ export class TagsStore {
     this.validationErrorsState.set(validation.errors);
     if (!validation.valid) return;
 
+    if (this.isStaticMode()) {
+      const tag = createLocalTag(toCreateTagRequest(value));
+
+      this.upsertTag(tag, true);
+      onSuccess(tag);
+      return;
+    }
+
     this.savingState.set(true);
     this.errorState.set(null);
 
@@ -178,6 +201,20 @@ export class TagsStore {
     const validation = validateTagForm(value, this.tagsState(), id);
     this.validationErrorsState.set(validation.errors);
     if (!validation.valid) return;
+
+    if (this.isStaticMode()) {
+      const tag = updateLocalTag(this.findKnownTag(id), toUpdateTagRequest(value));
+
+      if (!tag) {
+        this.errorState.set('No se encontro la etiqueta solicitada.');
+        return;
+      }
+
+      this.upsertTag(tag, true);
+      this.selectedTagState.set(tag);
+      onSuccess(tag);
+      return;
+    }
 
     this.savingState.set(true);
     this.errorState.set(null);
@@ -207,6 +244,11 @@ export class TagsStore {
   }
 
   archive(id: string): void {
+    if (this.isStaticMode()) {
+      this.applyLocalTagMutation(id, archiveLocalTag);
+      return;
+    }
+
     this.mutateTag(
       id,
       () => this.api.archiveTag(id),
@@ -215,6 +257,11 @@ export class TagsStore {
   }
 
   restore(id: string): void {
+    if (this.isStaticMode()) {
+      this.applyLocalTagMutation(id, restoreLocalTag);
+      return;
+    }
+
     this.mutateTag(
       id,
       () => this.api.restoreTag(id),
@@ -223,6 +270,12 @@ export class TagsStore {
   }
 
   delete(id: string, onSuccess?: () => void): void {
+    if (this.isStaticMode()) {
+      this.removeTag(id, true);
+      onSuccess?.();
+      return;
+    }
+
     this.deletingState.set(true);
     this.errorState.set(null);
 
@@ -293,6 +346,20 @@ export class TagsStore {
       });
   }
 
+  private applyLocalTagMutation(id: string, transform: (tag: Tag) => Tag): void {
+    const tag = this.findKnownTag(id);
+
+    if (!tag) {
+      this.errorState.set('No se encontro la etiqueta solicitada.');
+      return;
+    }
+
+    const updatedTag = transform(tag);
+
+    this.upsertTag(updatedTag, true);
+    this.selectedTagState.set(updatedTag);
+  }
+
   private upsertTag(tag: Tag, persist: boolean): void {
     const nextTags = this.resolveWorkingTags().some((item) => item.id === tag.id)
       ? this.resolveWorkingTags().map((item) => (item.id === tag.id ? tag : item))
@@ -324,6 +391,10 @@ export class TagsStore {
 
   private resolveWorkingTags(): readonly Tag[] {
     return this.tagsState().length > 0 ? this.tagsState() : (readStoredTags() ?? []);
+  }
+
+  private isStaticMode(): boolean {
+    return isStaticFrontendApi(this.apiConfig.baseUrl);
   }
 }
 

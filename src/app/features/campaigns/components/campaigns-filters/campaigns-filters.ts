@@ -32,6 +32,15 @@ interface CampaignFilterSummaryItem {
   active: boolean;
 }
 
+interface CampaignOption {
+  readonly id: string;
+  readonly name: string;
+}
+
+interface CampaignProductOption extends CampaignOption {
+  readonly groupId: string;
+}
+
 type CampaignFilterMenu =
   'period' | 'status' | 'group' | 'account' | 'objective' | 'product' | 'platform';
 
@@ -43,6 +52,9 @@ type CampaignFilterMenu =
 })
 export class CampaignsFiltersComponent {
   readonly filters = input.required<CampaignFilter>();
+  readonly accounts = input<readonly CampaignOption[]>(AD_ACCOUNTS);
+  readonly groups = input<readonly CampaignOption[]>(PRODUCT_GROUPS);
+  readonly products = input<readonly CampaignProductOption[]>(PRODUCTS);
   readonly applyFilters = output<CampaignFilter>();
   readonly clearFilters = output<void>();
   readonly current = signal<CampaignFilter>(DEFAULT_CAMPAIGN_FILTER);
@@ -50,20 +62,18 @@ export class CampaignsFiltersComponent {
   readonly openMenu = signal<CampaignFilterMenu | null>(null);
 
   readonly periods = CAMPAIGN_PERIOD_OPTIONS;
-  readonly accounts = AD_ACCOUNTS;
   readonly statuses = CAMPAIGN_STATUSES;
   readonly objectives = CAMPAIGN_OBJECTIVES;
-  readonly groups = PRODUCT_GROUPS;
-  readonly products = PRODUCTS;
   readonly platforms = ADVERTISING_PLATFORMS;
   readonly filteredProducts = computed(() => {
     const groupId = this.current().productGroupId;
+    const products = this.products();
 
     if (groupId === 'all') {
-      return this.products;
+      return products;
     }
 
-    return this.products.filter((product) => product.id === 'all' || product.groupId === groupId);
+    return products.filter((product) => product.id === 'all' || product.groupId === groupId);
   });
   readonly activeFilterSummary = computed(() => this.filterSummary().filter((item) => item.active));
   readonly activeFiltersCount = computed(() => this.activeFilterSummary().length);
@@ -87,7 +97,7 @@ export class CampaignsFiltersComponent {
       {
         label: 'Cuenta',
         value:
-          this.accounts.find((account) => account.id === current.adAccountId)?.name ??
+          this.accounts().find((account) => account.id === current.adAccountId)?.name ??
           'Todas las cuentas',
         active: current.adAccountId !== DEFAULT_CAMPAIGN_FILTER.adAccountId,
       },
@@ -104,13 +114,13 @@ export class CampaignsFiltersComponent {
       {
         label: 'Conjunto',
         value:
-          this.groups.find((group) => group.id === current.productGroupId)?.name ??
+          this.groups().find((group) => group.id === current.productGroupId)?.name ??
           'Todos los conjuntos',
         active: current.productGroupId !== DEFAULT_CAMPAIGN_FILTER.productGroupId,
       },
       {
         label: 'Producto',
-        value: this.products.find((product) => product.id === current.productId)?.name ?? 'Todos',
+        value: this.products().find((product) => product.id === current.productId)?.name ?? 'Todos',
         active: current.productId !== DEFAULT_CAMPAIGN_FILTER.productId,
       },
       {
@@ -208,17 +218,19 @@ export class CampaignsFiltersComponent {
 
   selectedAccountLabel(): string {
     return (
-      this.accounts.find((account) => account.id === this.current().adAccountId)?.name ?? 'Todas'
+      this.accounts().find((account) => account.id === this.current().adAccountId)?.name ?? 'Todas'
     );
   }
 
   selectedGroupLabel(): string {
-    return this.groups.find((group) => group.id === this.current().productGroupId)?.name ?? 'Todos';
+    return (
+      this.groups().find((group) => group.id === this.current().productGroupId)?.name ?? 'Todos'
+    );
   }
 
   selectedProductLabel(): string {
     return (
-      this.products.find((product) => product.id === this.current().productId)?.name ?? 'Todos'
+      this.products().find((product) => product.id === this.current().productId)?.name ?? 'Todos'
     );
   }
 

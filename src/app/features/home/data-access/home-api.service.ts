@@ -2,7 +2,7 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { inject, Injectable } from '@angular/core';
 import { catchError, forkJoin, map, Observable, of } from 'rxjs';
 
-import { API_CONFIG } from '../../../core/config/api.config';
+import { API_CONFIG, isStaticFrontendApi } from '../../../core/config/api.config';
 import { ApiResponse } from '../../../core/models/api-response.model';
 import { PermissionCode } from '../../../core/services/permissions.service';
 import { DailyOrder } from '../../daily-report/models/daily-order.model';
@@ -237,16 +237,4 @@ function normalize(value: string): string {
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .trim();
-}
-
-function isStaticFrontendApi(baseUrl: string): boolean {
-  const location = globalThis.location;
-  const origin = location?.origin;
-  const hostname = location?.hostname;
-
-  if (!origin || hostname === 'localhost' || hostname === '127.0.0.1') {
-    return false;
-  }
-
-  return baseUrl === `${origin}/api`;
 }

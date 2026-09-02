@@ -138,7 +138,7 @@
 
         @if (isSelectOpen('group')) {
           <div class="campaigns-filters__select-menu" role="listbox">
-            @for (group of groups; track group.id) {
+            @for (group of groups(); track group.id) {
               <button
                 type="button"
                 role="option"
@@ -229,7 +229,7 @@
                 }
               </button>
 
-              @for (account of accounts; track account.id) {
+              @for (account of accounts(); track account.id) {
                 <button
                   type="button"
                   role="option"

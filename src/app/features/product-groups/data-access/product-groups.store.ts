@@ -1,6 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { finalize, forkJoin } from 'rxjs';
 
+import { API_CONFIG, isStaticFrontendApi } from '../../../core/config/api.config';
 import { PermissionsService } from '../../../core/services/permissions.service';
 import { DailyOrder } from '../../daily-report/models/daily-order.model';
 import { ImportedOrdersStoreService } from '../../daily-report/services/imported-orders-store.service';
@@ -35,6 +36,7 @@ const LOCAL_PRODUCT_GROUPS_STORAGE_KEY = 'ecommerce.product-groups.local.records
 @Injectable()
 export class ProductGroupsStore {
   private readonly api = inject(ProductGroupsApiService);
+  private readonly apiConfig = inject(API_CONFIG);
   private readonly permissionsService = inject(PermissionsService);
   private readonly importedOrdersStore = inject(ImportedOrdersStoreService);
 
@@ -164,6 +166,11 @@ export class ProductGroupsStore {
       return;
     }
 
+    if (this.isStaticMode()) {
+      this.replaceGroups(readStoredGroups() ?? [], false);
+      return;
+    }
+
     this.loadingState.set(true);
     this.errorState.set(null);
 
@@ -185,6 +192,11 @@ export class ProductGroupsStore {
     const importedOrders = this.importedOrdersStore.orders();
     if (importedOrders.length > 0) {
       this.loadImportedGroupDetail(id, importedOrders);
+      return;
+    }
+
+    if (this.isStaticMode()) {
+      this.loadLocalGroupDetail(id);
       return;
     }
 
@@ -233,6 +245,18 @@ export class ProductGroupsStore {
       return;
     }
 
+    if (this.isStaticMode()) {
+      const normalizedTerm = normalize(term);
+      const storedProducts = (readStoredGroups() ?? []).flatMap(localProductsForGroup);
+
+      this.availableProductsState.set(
+        storedProducts.filter((product) =>
+          normalize(`${product.name} ${product.sku}`).includes(normalizedTerm),
+        ),
+      );
+      return;
+    }
+
     this.api.availableProducts(term).subscribe({
       next: (products) => this.availableProductsState.set(products),
       error: () => {
@@ -249,6 +273,14 @@ export class ProductGroupsStore {
   }
 
   create(payload: CreateProductGroupRequest, onSuccess: (group: ProductGroup) => void): void {
+    if (this.isStaticMode()) {
+      const group = createLocalGroup(payload);
+
+      this.upsertGroup(group, true);
+      onSuccess(group);
+      return;
+    }
+
     this.savingState.set(true);
     this.errorState.set(null);
 
@@ -274,6 +306,20 @@ export class ProductGroupsStore {
     payload: UpdateProductGroupRequest,
     onSuccess: (group: ProductGroup) => void,
   ): void {
+    if (this.isStaticMode()) {
+      const group = updateLocalGroup(this.findKnownGroup(id), payload);
+
+      if (!group) {
+        this.errorState.set('No se encontro el conjunto solicitado.');
+        return;
+      }
+
+      this.upsertGroup(group, true);
+      this.selectedGroupState.set(group);
+      onSuccess(group);
+      return;
+    }
+
     this.savingState.set(true);
     this.errorState.set(null);
 
@@ -302,14 +348,29 @@ export class ProductGroupsStore {
   }
 
   archive(id: string): void {
+    if (this.isStaticMode()) {
+      this.applyLocalGroupMutation(id, archiveLocalGroup);
+      return;
+    }
+
     this.mutateGroup(id, this.api.archiveGroup(id), (group) => archiveLocalGroup(group));
   }
 
   restore(id: string): void {
+    if (this.isStaticMode()) {
+      this.applyLocalGroupMutation(id, restoreLocalGroup);
+      return;
+    }
+
     this.mutateGroup(id, this.api.restoreGroup(id), (group) => restoreLocalGroup(group));
   }
 
   delete(id: string): void {
+    if (this.isStaticMode()) {
+      this.removeGroup(id, true);
+      return;
+    }
+
     this.deletingState.set(true);
     this.errorState.set(null);
 
@@ -383,6 +444,12 @@ export class ProductGroupsStore {
     fallback: (group: ProductGroup) => ProductGroup,
     after?: () => void,
   ): void {
+    if (this.isStaticMode()) {
+      this.applyLocalGroupMutation(id, fallback);
+      after?.();
+      return;
+    }
+
     this.savingState.set(true);
     this.errorState.set(null);
 
@@ -413,6 +480,27 @@ export class ProductGroupsStore {
         after?.();
       },
     });
+  }
+
+  private applyLocalGroupMutation(
+    id: string,
+    transform: (group: ProductGroup) => ProductGroup,
+  ): void {
+    const group = this.findKnownGroup(id);
+
+    if (!group) {
+      this.errorState.set('No se encontro el conjunto solicitado.');
+      return;
+    }
+
+    const updatedGroup = transform(group);
+
+    this.upsertGroup(updatedGroup, true);
+    if (this.selectedGroupState()?.id === updatedGroup.id) {
+      this.selectedGroupState.set(updatedGroup);
+    }
+    this.associatedProductsState.set(localProductsForGroup(updatedGroup));
+    this.profitabilityState.set(localProfitabilityForGroup(updatedGroup));
   }
 
   private applyImportedOrders(importedOrders: readonly DailyOrder[]): void {
@@ -481,6 +569,10 @@ export class ProductGroupsStore {
     this.errorState.set(group ? null : 'No se encontro el conjunto solicitado.');
     this.loadingState.set(false);
     this.lastUpdatedState.set(new Date().toISOString());
+  }
+
+  private isStaticMode(): boolean {
+    return isStaticFrontendApi(this.apiConfig.baseUrl);
   }
 }
 

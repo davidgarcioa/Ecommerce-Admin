@@ -19,14 +19,16 @@ describe('expense calculations', () => {
       }),
     ];
 
-    const summary = calculateExpenseSummary(rows);
+    const summary = calculateExpenseSummary(rows, 500000);
 
     expect(summary.totalAmount).toBe(200000);
     expect(summary.paidAmount).toBe(120000);
     expect(summary.pendingAmount).toBe(80000);
+    expect(summary.projectedIncome).toBe(500000);
+    expect(summary.netCashFlow).toBe(300000);
     expect(summary.withoutReceiptCount).toBe(1);
-    expect(summary.netCashFlow).toBeGreaterThan(0);
-    expect(summary.budgetUsedPercentage).toBeGreaterThan(0);
+    expect(summary.budgetUsedPercentage).toBe(0);
     expect(summary.categoryBreakdown.length).toBeGreaterThan(0);
+    expect(summary.categoryBreakdown[0].percentage).toBeGreaterThan(0);
   });
 });

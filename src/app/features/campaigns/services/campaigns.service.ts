@@ -3,7 +3,6 @@ import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import {
   AD_ACCOUNTS,
   DEFAULT_CAMPAIGN_FILTER,
-  PRODUCTS,
   PRODUCT_GROUPS,
 } from '../constants/campaigns.constants';
 import { AdSet } from '../models/ad-set.model';
@@ -31,6 +30,15 @@ import {
   formatCampaignValue,
 } from '../utils/campaigns.utils';
 import { ImportedCampaignsStoreService } from './imported-campaigns-store.service';
+
+export interface CampaignOption {
+  readonly id: string;
+  readonly name: string;
+}
+
+export interface CampaignProductOption extends CampaignOption {
+  readonly groupId: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class CampaignsService {
@@ -76,6 +84,9 @@ export class CampaignsService {
   readonly comparison = computed(() => this.reportState().comparison);
   readonly statusSummary = computed(() => buildStatusSummary(this.filteredCampaigns()));
   readonly filters = this.filtersState.asReadonly();
+  readonly accountOptions = computed(() => buildAccountOptions(this.campaignsState()));
+  readonly productGroupOptions = computed(() => buildProductGroupOptions(this.campaignsState()));
+  readonly productOptions = computed(() => buildProductOptions(this.advertisementsState()));
   readonly loading = this.loadingState.asReadonly();
   readonly error = this.errorState.asReadonly();
   readonly comparisonEnabled = this.comparisonEnabledState.asReadonly();
@@ -100,6 +111,7 @@ export class CampaignsService {
       this.lastSynchronizationState.set(generatedAt);
       this.reportState.update((report) => ({
         ...report,
+        adAccountName: resolveReportAccountName(campaigns),
         generatedAt,
         campaigns,
         summaryMetrics: buildSummaryMetrics(campaigns),
@@ -277,7 +289,7 @@ export class CampaignsService {
 
     return {
       generatedAt,
-      adAccountName: 'Ecommerce Colombia Principal',
+      adAccountName: resolveReportAccountName(campaigns),
       selectedPeriodLabel: 'Todos los periodos',
       summaryMetrics: buildSummaryMetrics(campaigns),
       campaigns,
@@ -389,8 +401,6 @@ export class CampaignsService {
   }
 
   private createCampaign(data: CampaignFormData, source: Campaign | null): Campaign {
-    const group = PRODUCT_GROUPS.find((item) => item.id === data.productGroupId);
-    const account = AD_ACCOUNTS.find((item) => item.id === data.adAccountId);
     const now = new Date().toISOString();
 
     return {
@@ -399,9 +409,9 @@ export class CampaignsService {
       objective: data.objective,
       status: data.status,
       adAccountId: data.adAccountId,
-      adAccountName: account?.name ?? 'Cuenta sin nombre',
+      adAccountName: this.resolveAccountName(data.adAccountId),
       productGroupId: data.productGroupId,
-      productGroupName: group?.name ?? 'Sin conjunto',
+      productGroupName: this.resolveProductGroupName(data.productGroupId),
       platform: data.platform,
       budgetType: data.budgetType,
       dailyBudget: data.dailyBudget ?? undefined,
@@ -428,18 +438,16 @@ export class CampaignsService {
   }
 
   private mergeCampaign(campaign: Campaign, data: CampaignFormData): Campaign {
-    const group = PRODUCT_GROUPS.find((item) => item.id === data.productGroupId);
-    const account = AD_ACCOUNTS.find((item) => item.id === data.adAccountId);
-
     return {
       ...campaign,
       name: data.name,
       objective: data.objective,
       status: data.status,
       adAccountId: data.adAccountId,
-      adAccountName: account?.name ?? campaign.adAccountName,
+      adAccountName: this.resolveAccountName(data.adAccountId) || campaign.adAccountName,
       productGroupId: data.productGroupId,
-      productGroupName: group?.name ?? campaign.productGroupName,
+      productGroupName:
+        this.resolveProductGroupName(data.productGroupId) || campaign.productGroupName,
       platform: data.platform,
       budgetType: data.budgetType,
       dailyBudget: data.dailyBudget ?? undefined,
@@ -500,6 +508,14 @@ export class CampaignsService {
   private persistLocalCampaigns(): void {
     this.importedCampaignsStore.replaceCampaigns(this.campaignsState());
   }
+
+  private resolveAccountName(id: string): string {
+    return this.accountOptions().find((item) => item.id === id)?.name ?? 'Cuenta local';
+  }
+
+  private resolveProductGroupName(id: string): string {
+    return this.productGroupOptions().find((item) => item.id === id)?.name ?? 'Sin conjunto';
+  }
 }
 
 function buildProductPerformance(
@@ -515,9 +531,10 @@ function buildProductPerformance(
 
   return [...groups.entries()]
     .map(([productId, ads]) => {
-      const product = PRODUCTS.find((item) => item.id === productId);
       const campaignIds = new Set(ads.map((ad) => ad.campaignId));
       const relatedCampaigns = campaigns.filter((campaign) => campaignIds.has(campaign.id));
+      const firstAd = ads[0];
+      const relatedCampaign = relatedCampaigns[0];
       const amountSpent = sum(ads, 'amountSpent');
       const attributedRevenue = sum(ads, 'attributedRevenue');
       const impressions = sum(ads, 'impressions');
@@ -526,9 +543,8 @@ function buildProductPerformance(
 
       return {
         productId,
-        productName: product?.name ?? 'Producto sin nombre',
-        productGroupName:
-          PRODUCT_GROUPS.find((group) => group.id === product?.groupId)?.name ?? 'Sin conjunto',
+        productName: firstAd?.productName ?? 'Producto sin nombre',
+        productGroupName: relatedCampaign?.productGroupName ?? 'Sin conjunto',
         activeCampaigns: relatedCampaigns.filter((campaign) => campaign.status === 'Activa').length,
         amountSpent,
         attributedRevenue,
@@ -536,11 +552,79 @@ function buildProductPerformance(
         cpa: calculateCpa(amountSpent, purchases),
         roas: calculateRoas(attributedRevenue, amountSpent),
         ctr: calculateCtr(clicks, impressions),
-        returnRate: Number((4 + (purchases % 7) * 0.7).toFixed(1)),
-        estimatedProfit: Math.round(attributedRevenue * 0.52 - amountSpent),
+        returnRate: 0,
+        estimatedProfit: Math.max(0, attributedRevenue - amountSpent),
       };
     })
     .sort((a, b) => b.attributedRevenue - a.attributedRevenue);
+}
+
+function buildAccountOptions(campaigns: readonly Campaign[]): readonly CampaignOption[] {
+  const options = uniqueCampaignOptions(
+    campaigns,
+    (campaign) => campaign.adAccountId,
+    (campaign) => campaign.adAccountName,
+  );
+
+  return options.length > 0 ? options : AD_ACCOUNTS;
+}
+
+function buildProductGroupOptions(campaigns: readonly Campaign[]): readonly CampaignOption[] {
+  const options = uniqueCampaignOptions(
+    campaigns,
+    (campaign) => campaign.productGroupId,
+    (campaign) => campaign.productGroupName,
+  );
+
+  return options.length > 0 ? [{ id: 'all', name: 'Todos' }, ...options] : PRODUCT_GROUPS;
+}
+
+function buildProductOptions(
+  advertisements: readonly Advertisement[],
+): readonly CampaignProductOption[] {
+  const byId = new Map<string, CampaignProductOption>();
+
+  for (const ad of advertisements) {
+    if (!ad.productId) continue;
+    byId.set(ad.productId, {
+      id: ad.productId,
+      name: ad.productName ?? ad.name,
+      groupId: 'all',
+    });
+  }
+
+  const options = Array.from(byId.values()).sort((left, right) =>
+    left.name.localeCompare(right.name),
+  );
+
+  return [{ id: 'all', name: 'Todos', groupId: 'all' }, ...options];
+}
+
+function uniqueCampaignOptions(
+  campaigns: readonly Campaign[],
+  getId: (campaign: Campaign) => string,
+  getName: (campaign: Campaign) => string,
+): readonly CampaignOption[] {
+  const byId = new Map<string, CampaignOption>();
+
+  for (const campaign of campaigns) {
+    const id = getId(campaign).trim();
+    const name = getName(campaign).trim();
+
+    if (!id || !name || id === 'all') continue;
+    byId.set(id, { id, name });
+  }
+
+  return Array.from(byId.values()).sort((left, right) => left.name.localeCompare(right.name));
+}
+
+function resolveReportAccountName(campaigns: readonly Campaign[]): string {
+  const names = [...new Set(campaigns.map((campaign) => campaign.adAccountName).filter(Boolean))];
+
+  if (names.length === 1) return names[0];
+  if (names.length > 1) return `${names.length} cuentas`;
+
+  return 'Datos por archivo';
 }
 
 function buildSummaryMetrics(campaigns: readonly Campaign[]): readonly CampaignMetric[] {
@@ -704,10 +788,12 @@ function isCampaignInPeriod(campaign: Campaign, filters: CampaignFilter): boolea
 }
 
 function getLatestCampaignTimestamp(campaigns: readonly Campaign[]): string {
-  return campaigns
-    .map((campaign) => campaign.lastSynchronizedAt || campaign.updatedAt)
-    .filter((value): value is string => Boolean(value))
-    .sort((left, right) => right.localeCompare(left))[0] ?? '';
+  return (
+    campaigns
+      .map((campaign) => campaign.lastSynchronizedAt || campaign.updatedAt)
+      .filter((value): value is string => Boolean(value))
+      .sort((left, right) => right.localeCompare(left))[0] ?? ''
+  );
 }
 
 function buildCampaignImportHistory(

@@ -54,6 +54,9 @@ export class CampaignsPageComponent {
   readonly productPerformance = this.campaignsService.productPerformance;
   readonly statusSummary = this.campaignsService.statusSummary;
   readonly filters = this.campaignsService.filters;
+  readonly accountOptions = this.campaignsService.accountOptions;
+  readonly productGroupOptions = this.campaignsService.productGroupOptions;
+  readonly productOptions = this.campaignsService.productOptions;
   readonly loading = this.campaignsService.loading;
   readonly error = this.campaignsService.error;
   readonly selectedCampaign = this.campaignsService.selectedCampaign;

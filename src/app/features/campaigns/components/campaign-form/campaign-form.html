@@ -32,7 +32,7 @@
     <label>
       Cuenta publicitaria
       <select [value]="form().adAccountId" (change)="onSelectChange('adAccountId', $event)">
-        @for (account of accounts; track account.id) {
+        @for (account of accounts(); track account.id) {
           <option [value]="account.id">{{ account.name }}</option>
         }
       </select>
@@ -50,7 +50,7 @@
     <label>
       Conjunto
       <select [value]="form().productGroupId" (change)="onSelectChange('productGroupId', $event)">
-        @for (group of groups; track group.id) {
+        @for (group of groupOptions(); track group.id) {
           <option [value]="group.id">{{ group.name }}</option>
         }
       </select>

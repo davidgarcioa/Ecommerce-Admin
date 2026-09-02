@@ -11,6 +11,18 @@ export const API_CONFIG = new InjectionToken<ApiConfig>('API_CONFIG', {
   }),
 });
 
+export function isStaticFrontendApi(baseUrl: string): boolean {
+  const location = globalThis.location;
+  const origin = location?.origin;
+  const hostname = location?.hostname;
+
+  if (!origin || hostname === 'localhost' || hostname === '127.0.0.1') {
+    return false;
+  }
+
+  return baseUrl === `${origin}/api`;
+}
+
 function resolveApiBaseUrl(): string {
   const configuredUrl = readConfiguredApiUrl();
   if (configuredUrl) {

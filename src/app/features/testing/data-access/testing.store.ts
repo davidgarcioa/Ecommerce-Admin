@@ -1,6 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { finalize, forkJoin, of } from 'rxjs';
 
+import { API_CONFIG, isStaticFrontendApi } from '../../../core/config/api.config';
 import { PermissionsService } from '../../../core/services/permissions.service';
 import { DEFAULT_TESTING_FILTERS, TESTING_PERMISSIONS } from '../utils/testing.constants';
 import { validateTestingForm } from '../utils/testing.validators';
@@ -29,6 +30,7 @@ const LOCAL_TESTS_STORAGE_KEY = 'ecommerce.testing.local.records';
 @Injectable()
 export class TestingStore {
   private readonly api = inject(TestingApiService);
+  private readonly apiConfig = inject(API_CONFIG);
   private readonly permissions = inject(PermissionsService);
 
   private readonly testsState = signal<readonly EcommerceTest[]>([]);
@@ -106,6 +108,11 @@ export class TestingStore {
       return;
     }
 
+    if (this.isStaticMode()) {
+      this.replaceTests(readStoredTests() ?? [], false);
+      return;
+    }
+
     this.loadingState.set(true);
     this.errorState.set(null);
 
@@ -131,6 +138,14 @@ export class TestingStore {
   }
 
   loadTest(id: string): void {
+    if (this.isStaticMode()) {
+      const test = this.findKnownTest(id);
+
+      this.selectedTestState.set(test);
+      this.errorState.set(test ? null : 'No se encontro el testeo solicitado.');
+      return;
+    }
+
     this.loadingDetailState.set(true);
     this.errorState.set(null);
     this.selectedTestState.set(this.findKnownTest(id));
@@ -159,6 +174,14 @@ export class TestingStore {
     this.validationErrorsState.set(validation.errors);
     if (!validation.valid) return;
 
+    if (this.isStaticMode()) {
+      const test = createLocalTest(toCreateTestingRequest(value));
+
+      this.upsertTest(test, true);
+      onSuccess(test);
+      return;
+    }
+
     this.savingState.set(true);
     this.errorState.set(null);
 
@@ -183,6 +206,20 @@ export class TestingStore {
     const validation = validateTestingForm(value, this.resolveWorkingTests(), id);
     this.validationErrorsState.set(validation.errors);
     if (!validation.valid) return;
+
+    if (this.isStaticMode()) {
+      const test = updateLocalTest(this.findKnownTest(id), toUpdateTestingRequest(value));
+
+      if (!test) {
+        this.errorState.set('No se encontro el testeo solicitado.');
+        return;
+      }
+
+      this.upsertTest(test, true);
+      this.selectedTestState.set(test);
+      onSuccess(test);
+      return;
+    }
 
     this.savingState.set(true);
     this.errorState.set(null);
@@ -212,6 +249,11 @@ export class TestingStore {
   }
 
   archive(id: string): void {
+    if (this.isStaticMode()) {
+      this.applyLocalTestMutation(id, archiveLocalTest);
+      return;
+    }
+
     this.mutateTest(
       id,
       () => this.api.archiveTest(id),
@@ -220,6 +262,11 @@ export class TestingStore {
   }
 
   restore(id: string): void {
+    if (this.isStaticMode()) {
+      this.applyLocalTestMutation(id, restoreLocalTest);
+      return;
+    }
+
     this.mutateTest(
       id,
       () => this.api.restoreTest(id),
@@ -228,6 +275,12 @@ export class TestingStore {
   }
 
   delete(id: string, onSuccess?: () => void): void {
+    if (this.isStaticMode()) {
+      this.removeTest(id, true);
+      onSuccess?.();
+      return;
+    }
+
     this.deletingState.set(true);
     this.errorState.set(null);
 
@@ -294,6 +347,23 @@ export class TestingStore {
       });
   }
 
+  private applyLocalTestMutation(
+    id: string,
+    transform: (test: EcommerceTest) => EcommerceTest,
+  ): void {
+    const test = this.findKnownTest(id);
+
+    if (!test) {
+      this.errorState.set('No se encontro el testeo solicitado.');
+      return;
+    }
+
+    const updatedTest = transform(test);
+
+    this.upsertTest(updatedTest, true);
+    this.selectedTestState.set(updatedTest);
+  }
+
   private upsertTest(test: EcommerceTest, persist: boolean): void {
     const workingTests = this.resolveWorkingTests();
     const nextTests = workingTests.some((item) => item.id === test.id)
@@ -326,6 +396,10 @@ export class TestingStore {
 
   private resolveWorkingTests(): readonly EcommerceTest[] {
     return this.testsState().length > 0 ? this.testsState() : (readStoredTests() ?? []);
+  }
+
+  private isStaticMode(): boolean {
+    return isStaticFrontendApi(this.apiConfig.baseUrl);
   }
 }
 
