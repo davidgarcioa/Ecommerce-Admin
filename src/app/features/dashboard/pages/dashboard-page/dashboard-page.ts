@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 
+import { accountScopedStorageKey } from '../../../../core/services/account-storage.service';
 import { DailyOrder, OrderStatus } from '../../../daily-report/models/daily-order.model';
 import { ImportedOrdersStoreService } from '../../../daily-report/services/imported-orders-store.service';
 
@@ -441,7 +442,9 @@ export class DashboardPageComponent {
   readonly productGroups = computed<readonly ProductGroupRow[]>(() =>
     buildProductGroups(this.filteredOrders()),
   );
-  readonly statusRows = computed<readonly StatusRow[]>(() => buildStatusRows(this.filteredOrders()));
+  readonly statusRows = computed<readonly StatusRow[]>(() =>
+    buildStatusRows(this.filteredOrders()),
+  );
 
   readonly activeFilterCount = computed(() => {
     const filters = [
@@ -797,16 +800,14 @@ function buildProductGroups(orders: readonly OrderRow[]): readonly ProductGroupR
   >();
 
   orders.forEach((orderRow) => {
-    const item =
-      byGroup.get(orderRow.group) ??
-      {
-        products: new Set<string>(),
-        orders: 0,
-        delivered: 0,
-        sales: 0,
-        profit: 0,
-        costs: 0,
-      };
+    const item = byGroup.get(orderRow.group) ?? {
+      products: new Set<string>(),
+      orders: 0,
+      delivered: 0,
+      sales: 0,
+      profit: 0,
+      costs: 0,
+    };
 
     item.products.add(orderRow.product);
     item.orders += 1;
@@ -868,7 +869,7 @@ function loadGuidePreferences(): GuidePreference[] {
       return [];
     }
 
-    const raw = localStorage.getItem(GUIDE_STORAGE_KEY);
+    const raw = localStorage.getItem(accountScopedStorageKey(GUIDE_STORAGE_KEY));
     if (!raw) {
       return [];
     }
@@ -893,7 +894,7 @@ function loadGuidePreferences(): GuidePreference[] {
 function saveGuidePreferences(preferences: readonly GuidePreference[]): void {
   try {
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(GUIDE_STORAGE_KEY, JSON.stringify(preferences));
+      localStorage.setItem(accountScopedStorageKey(GUIDE_STORAGE_KEY), JSON.stringify(preferences));
     }
   } catch {
     // The dashboard still works when browser storage is unavailable.
@@ -995,10 +996,7 @@ function normalize(value: string): string {
 }
 
 function normalizeForMatch(value: string): string {
-  return normalize(value)
-    .replace(/[_-]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+  return normalize(value).replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 function toTitleCase(value: string): string {

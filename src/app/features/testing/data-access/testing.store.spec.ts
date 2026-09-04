@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { throwError } from 'rxjs';
 
+import { accountScopedStorageKey } from '../../../core/services/account-storage.service';
 import { PermissionsService } from '../../../core/services/permissions.service';
 import { TestingApiService } from './testing-api.service';
 import { TestingStore } from './testing.store';
@@ -73,7 +74,9 @@ describe('TestingStore', () => {
 
     expect(createdId).toContain('test-test-099');
     expect(store.tests().some((test) => test.id === createdId)).toBe(true);
-    expect(localStorage.getItem('ecommerce.testing.local.records')).toContain('Prueba local');
+    expect(
+      localStorage.getItem(accountScopedStorageKey('ecommerce.testing.local.records')),
+    ).toContain('Prueba local');
   });
 
   it('loads detail and archives locally from a created local test', () => {

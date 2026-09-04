@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { throwError } from 'rxjs';
 
+import { accountScopedStorageKey } from '../../../core/services/account-storage.service';
 import { PermissionsService } from '../../../core/services/permissions.service';
 import { TagsApiService } from './tags-api.service';
 import { TagsStore } from './tags.store';
@@ -63,7 +64,9 @@ describe('TagsStore', () => {
 
     expect(createdId).toContain('tag-mayorista');
     expect(store.tags().some((tag) => tag.id === createdId)).toBe(true);
-    expect(localStorage.getItem('ecommerce.tags.local.records')).toContain('Mayorista');
+    expect(localStorage.getItem(accountScopedStorageKey('ecommerce.tags.local.records'))).toContain(
+      'Mayorista',
+    );
   });
 
   it('loads detail and archives locally from a created local tag', () => {

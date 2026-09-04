@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
+import { accountScopedStorageKey } from '../../../../core/services/account-storage.service';
 import { DailyOrder } from '../../../daily-report/models/daily-order.model';
 import { DashboardPageComponent } from './dashboard-page';
 
@@ -11,7 +12,10 @@ describe('DashboardPageComponent', () => {
   beforeEach(async () => {
     TestBed.resetTestingModule();
     localStorage.clear();
-    localStorage.setItem(IMPORTED_ORDERS_STORAGE_KEY, JSON.stringify(importedOrdersFixture()));
+    localStorage.setItem(
+      accountScopedStorageKey(IMPORTED_ORDERS_STORAGE_KEY),
+      JSON.stringify(importedOrdersFixture()),
+    );
 
     await TestBed.configureTestingModule({
       imports: [DashboardPageComponent],
@@ -20,8 +24,8 @@ describe('DashboardPageComponent', () => {
   });
 
   afterEach(() => {
-    localStorage.removeItem(IMPORTED_ORDERS_STORAGE_KEY);
-    localStorage.removeItem(GUIDE_STORAGE_KEY);
+    localStorage.removeItem(accountScopedStorageKey(IMPORTED_ORDERS_STORAGE_KEY));
+    localStorage.removeItem(accountScopedStorageKey(GUIDE_STORAGE_KEY));
   });
 
   it('should render dashboard page with imported orders', () => {

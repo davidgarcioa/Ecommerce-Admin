@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, input, signal } from '@angular/core';
 
+import { accountScopedStorageKey } from '../../../../../../core/services/account-storage.service';
 import { AnimateOnViewDirective } from '../../../../../../shared/directives/animate-on-view.directive';
 import { ProductGroupPerformance } from '../../../../models/product-group-performance.model';
 import { formatDailyValue } from '../../../../utils/daily-report.utils';
@@ -126,7 +127,9 @@ export class ProductSalesBarsComponent {
 
 function loadProductGroupPreferences(): readonly string[] {
   try {
-    const rawPreferences = localStorage.getItem(PRODUCT_GROUP_PREFERENCES_KEY);
+    const rawPreferences = localStorage.getItem(
+      accountScopedStorageKey(PRODUCT_GROUP_PREFERENCES_KEY),
+    );
 
     if (rawPreferences === null) {
       return [];
@@ -149,7 +152,10 @@ function loadProductGroupPreferences(): readonly string[] {
 
 function saveProductGroupPreferences(selectedGroupIds: readonly string[]): void {
   try {
-    localStorage.setItem(PRODUCT_GROUP_PREFERENCES_KEY, JSON.stringify(selectedGroupIds));
+    localStorage.setItem(
+      accountScopedStorageKey(PRODUCT_GROUP_PREFERENCES_KEY),
+      JSON.stringify(selectedGroupIds),
+    );
   } catch {
     // Las preferencias visuales no deben bloquear el dashboard.
   }

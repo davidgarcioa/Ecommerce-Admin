@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
+import { accountScopedStorageKey } from '../../../core/services/account-storage.service';
 import { CAMPAIGN_STORAGE_KEY } from '../constants/campaigns.constants';
 import { Campaign } from '../models/campaign.model';
 import { CampaignsService } from './campaigns.service';
@@ -74,7 +75,7 @@ describe('CampaignsService', () => {
 
   beforeEach(() => {
     localStorage.clear();
-    localStorage.setItem(CAMPAIGN_STORAGE_KEY, JSON.stringify(campaigns));
+    localStorage.setItem(accountScopedStorageKey(CAMPAIGN_STORAGE_KEY), JSON.stringify(campaigns));
     vi.useRealTimers();
     TestBed.configureTestingModule({});
     service = TestBed.inject(CampaignsService);

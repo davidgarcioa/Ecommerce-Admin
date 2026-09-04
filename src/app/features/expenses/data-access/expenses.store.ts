@@ -2,6 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { finalize } from 'rxjs';
 
 import { API_CONFIG, isStaticFrontendApi } from '../../../core/config/api.config';
+import { AccountStorageService } from '../../../core/services/account-storage.service';
 import { DailyOrder } from '../../daily-report/models/daily-order.model';
 import { ImportedOrdersStoreService } from '../../daily-report/services/imported-orders-store.service';
 import { calculateExpenseSummary } from '../utils/expense-calculations';
@@ -23,6 +24,7 @@ const LOCAL_EXPENSES_STORAGE_KEY = 'ecommerce.expenses.local.records';
 export class ExpensesStore {
   private readonly api = inject(ExpensesApiService);
   private readonly apiConfig = inject(API_CONFIG);
+  private readonly accountStorage = inject(AccountStorageService);
   private readonly importedOrdersStore = inject(ImportedOrdersStoreService);
 
   private readonly expensesState = signal<readonly Expense[]>([]);
@@ -93,7 +95,7 @@ export class ExpensesStore {
 
   loadExpenses(): void {
     if (this.isStaticMode()) {
-      this.replaceExpenses(readStoredExpenses() ?? [], false);
+      this.replaceExpenses(this.readStoredExpenses() ?? [], false);
       return;
     }
 
@@ -105,10 +107,10 @@ export class ExpensesStore {
       .pipe(finalize(() => this.loadingState.set(false)))
       .subscribe({
         next: (expenses) => {
-          const storedExpenses = readStoredExpenses();
+          const storedExpenses = this.readStoredExpenses();
           this.replaceExpenses(storedExpenses ?? expenses, false);
         },
-        error: () => this.replaceExpenses(readStoredExpenses() ?? [], false),
+        error: () => this.replaceExpenses(this.readStoredExpenses() ?? [], false),
       });
   }
 
@@ -272,7 +274,7 @@ export class ExpensesStore {
     this.errorState.set(null);
     this.lastUpdatedState.set(new Date().toISOString());
 
-    if (persist) persistExpenses(expenses);
+    if (persist) this.persistExpenses(expenses);
   }
 
   private findKnownExpense(id: string): Expense | null {
@@ -280,7 +282,17 @@ export class ExpensesStore {
   }
 
   private resolveWorkingExpenses(): readonly Expense[] {
-    return this.expensesState().length > 0 ? this.expensesState() : (readStoredExpenses() ?? []);
+    return this.expensesState().length > 0
+      ? this.expensesState()
+      : (this.readStoredExpenses() ?? []);
+  }
+
+  private readStoredExpenses(): readonly Expense[] | null {
+    return readStoredExpenses(this.accountStorage);
+  }
+
+  private persistExpenses(expenses: readonly Expense[]): void {
+    persistExpenses(this.accountStorage, expenses);
   }
 
   private loadLocalExpenseDetail(id: string): void {
@@ -396,9 +408,9 @@ function updateLocalExpense(
   };
 }
 
-function readStoredExpenses(): readonly Expense[] | null {
+function readStoredExpenses(storage: AccountStorageService): readonly Expense[] | null {
   try {
-    const rawExpenses = globalThis.localStorage?.getItem(LOCAL_EXPENSES_STORAGE_KEY);
+    const rawExpenses = storage.getItem(LOCAL_EXPENSES_STORAGE_KEY);
 
     if (!rawExpenses) return null;
 
@@ -412,12 +424,8 @@ function readStoredExpenses(): readonly Expense[] | null {
   }
 }
 
-function persistExpenses(expenses: readonly Expense[]): void {
-  try {
-    globalThis.localStorage?.setItem(LOCAL_EXPENSES_STORAGE_KEY, JSON.stringify(expenses));
-  } catch {
-    return;
-  }
+function persistExpenses(storage: AccountStorageService, expenses: readonly Expense[]): void {
+  storage.setItem(LOCAL_EXPENSES_STORAGE_KEY, JSON.stringify(expenses));
 }
 
 function isExpense(value: unknown): value is Expense {

@@ -1,11 +1,18 @@
 import { TestBed } from '@angular/core/testing';
 
+import {
+  AccountStorageService,
+  accountScopedStorageKey,
+} from '../../../core/services/account-storage.service';
 import { CAMPAIGN_STORAGE_KEY } from '../../campaigns/constants/campaigns.constants';
 import { IMPORT_TYPES } from '../constants/files.constants';
 import { ColumnMappingService } from './column-mapping.service';
 import { FileImportService } from './file-import.service';
 import { ImportValidationService } from './import-validation.service';
 import { TemplateGeneratorService } from './template-generator.service';
+
+const ACCESS_TOKEN_KEY = 'ecommerce_access_token';
+const IMPORTED_ORDERS_STORAGE_KEY = 'ecommerce-control-center.imported-orders';
 
 describe('FileImportService', () => {
   let service: FileImportService;
@@ -87,9 +94,7 @@ describe('FileImportService', () => {
     service.startNewImport();
     await importBasicOrdersFile('ordenes-nuevas.csv', 'ORD-NEW', 250000);
 
-    const orders = JSON.parse(
-      localStorage.getItem('ecommerce-control-center.imported-orders') ?? '[]',
-    ) as readonly {
+    const orders = JSON.parse(localStorage.getItem(ordersStorageKey()) ?? '[]') as readonly {
       readonly orderNumber: string;
       readonly orderValue: number;
     }[];
@@ -150,7 +155,7 @@ describe('FileImportService', () => {
     service.setConfirmationAccepted(true);
     service.confirmImport();
 
-    const campaigns = JSON.parse(localStorage.getItem(CAMPAIGN_STORAGE_KEY) ?? '[]') as readonly {
+    const campaigns = JSON.parse(localStorage.getItem(campaignsStorageKey()) ?? '[]') as readonly {
       readonly name: string;
       readonly amountSpent: number;
       readonly purchases: number;
@@ -194,7 +199,7 @@ describe('FileImportService', () => {
     service.setConfirmationAccepted(true);
     service.confirmImport();
 
-    const campaigns = JSON.parse(localStorage.getItem(CAMPAIGN_STORAGE_KEY) ?? '[]') as readonly {
+    const campaigns = JSON.parse(localStorage.getItem(campaignsStorageKey()) ?? '[]') as readonly {
       readonly name: string;
       readonly status: string;
       readonly adAccountName: string;
@@ -253,7 +258,7 @@ describe('FileImportService', () => {
     service.setConfirmationAccepted(true);
     service.confirmImport();
 
-    const campaigns = JSON.parse(localStorage.getItem(CAMPAIGN_STORAGE_KEY) ?? '[]') as readonly {
+    const campaigns = JSON.parse(localStorage.getItem(campaignsStorageKey()) ?? '[]') as readonly {
       readonly name: string;
       readonly amountSpent: number;
     }[];
@@ -289,9 +294,7 @@ describe('FileImportService', () => {
     service.setConfirmationAccepted(true);
     service.confirmImport();
 
-    const orders = JSON.parse(
-      localStorage.getItem('ecommerce-control-center.imported-orders') ?? '[]',
-    ) as readonly {
+    const orders = JSON.parse(localStorage.getItem(ordersStorageKey()) ?? '[]') as readonly {
       readonly orderNumber: string;
       readonly guideNumber: string;
       readonly productName: string;
@@ -317,7 +320,101 @@ describe('FileImportService', () => {
       quantity: 2,
     });
   });
+
+  it('should clear active order data when deleting the active import record with data', async () => {
+    await importBasicOrdersFile('ordenes-activa.csv', 'ORD-A');
+    const [record] = service.importHistory();
+
+    expect(record?.typeId).toBe('orders');
+    expect(localStorage.getItem(ordersStorageKey())).not.toBeNull();
+
+    service.deleteHistoryRecordWithData(record.id);
+
+    expect(service.importHistory()).toHaveLength(0);
+    expect(localStorage.getItem(ordersStorageKey())).toBeNull();
+  });
+
+  it('should keep current order data when deleting an older history record', async () => {
+    await importBasicOrdersFile('ordenes-viejas.csv', 'ORD-OLD');
+    const oldRecord = service.importHistory()[0];
+
+    service.startNewImport();
+    await importBasicOrdersFile('ordenes-nuevas.csv', 'ORD-NEW', 250000);
+
+    service.deleteHistoryRecordWithData(oldRecord.id);
+
+    const orders = JSON.parse(localStorage.getItem(ordersStorageKey()) ?? '[]') as readonly {
+      readonly orderNumber: string;
+    }[];
+
+    expect(service.importHistory().map((record) => record.id)).not.toContain(oldRecord.id);
+    expect(orders).toHaveLength(1);
+    expect(orders[0]?.orderNumber).toBe('ORD-NEW');
+  });
+
+  it('should clear active campaign data when deleting the active campaign import record with data', async () => {
+    const metaType = IMPORT_TYPES.find((type) => type.id === 'campaigns');
+
+    expect(metaType).toBeTruthy();
+
+    service.selectImportType(metaType!);
+    service.setFile(
+      new File(['Campaign name,Amount spent,Purchases\nCampana activa,3000,3'], 'meta-activa.csv', {
+        type: 'text/csv',
+      }),
+    );
+    await service.readFile();
+    service.validateRows();
+    service.setConfirmationAccepted(true);
+    service.confirmImport();
+
+    const [record] = service.importHistory();
+    expect(record?.typeId).toBe('campaigns');
+    expect(localStorage.getItem(campaignsStorageKey())).not.toBeNull();
+
+    service.deleteHistoryRecordWithData(record.id);
+
+    expect(service.importHistory()).toHaveLength(0);
+    expect(localStorage.getItem(campaignsStorageKey())).toBeNull();
+  });
+
+  it('should isolate imported data and history by account scope', async () => {
+    setAccountScope('user-one');
+    await importBasicOrdersFile('ordenes-user-one.csv', 'ORD-USER-1');
+
+    expect(service.importHistory()).toHaveLength(1);
+    expect(localStorage.getItem(ordersStorageKey())).toContain('ORD-USER-1');
+
+    setAccountScope('user-two');
+
+    expect(service.importHistory()).toHaveLength(0);
+    expect(localStorage.getItem(ordersStorageKey())).toBeNull();
+
+    setAccountScope('user-one');
+
+    expect(service.importHistory()).toHaveLength(1);
+    expect(localStorage.getItem(ordersStorageKey())).toContain('ORD-USER-1');
+  });
 });
+
+function ordersStorageKey(): string {
+  return accountScopedStorageKey(IMPORTED_ORDERS_STORAGE_KEY);
+}
+
+function campaignsStorageKey(): string {
+  return accountScopedStorageKey(CAMPAIGN_STORAGE_KEY);
+}
+
+function setAccountScope(uid: string): void {
+  const payload = toBase64Url(JSON.stringify({ uid, sub: uid, email: `${uid}@example.com` }));
+  localStorage.setItem(ACCESS_TOKEN_KEY, `header.${payload}.signature`);
+  TestBed.inject(AccountStorageService).refreshFromSession();
+  TestBed.tick();
+}
+
+function toBase64Url(value: string): string {
+  return btoa(value).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
 
 describe('file import helper services', () => {
   it('should map columns automatically and avoid duplicates', () => {

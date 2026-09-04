@@ -1,4 +1,6 @@
-﻿import { computed, inject, Injectable, signal } from '@angular/core';
+﻿import { computed, effect, inject, Injectable, signal } from '@angular/core';
+
+import { AccountStorageService } from '../../../core/services/account-storage.service';
 
 import {
   AdvertisingPlatform,
@@ -17,7 +19,11 @@ import {
 } from '../../campaigns/utils/campaigns.utils';
 import { Carrier, DailyOrder, OrderStatus } from '../../daily-report/models/daily-order.model';
 import { ImportedOrdersStoreService } from '../../daily-report/services/imported-orders-store.service';
-import { getImportColumnDefinitions, IMPORT_STEPS, IMPORT_TYPES } from '../constants/files.constants';
+import {
+  getImportColumnDefinitions,
+  IMPORT_STEPS,
+  IMPORT_TYPES,
+} from '../constants/files.constants';
 import { ColumnMapping } from '../models/column-mapping.model';
 import { ImportedFile } from '../models/imported-file.model';
 import { ImportHistoryRecord } from '../models/import-history-record.model';
@@ -56,9 +62,11 @@ export class FileImportService {
   private readonly mappingService = inject(ColumnMappingService);
   private readonly validationService = inject(ImportValidationService);
   private readonly historyService = inject(ImportHistoryService);
+  private readonly accountStorage = inject(AccountStorageService);
   private readonly templateGenerator = inject(TemplateGeneratorService);
   private readonly importedOrdersStore = inject(ImportedOrdersStoreService);
   private readonly importedCampaignsStore = inject(ImportedCampaignsStoreService);
+  private activeAccountScope = this.accountStorage.scope();
 
   private readonly activeTabState = signal<FilesTab>('new-import');
   private readonly currentStepState = signal<ImportStepId>('file');
@@ -110,6 +118,7 @@ export class FileImportService {
   readonly importProgress = this.progressState.asReadonly();
   readonly importResult = this.importResultState.asReadonly();
   readonly importHistory = this.historyService.history;
+  readonly activeDataRecordIds = computed(() => this.getActiveDataRecordIds());
   readonly selectedHistoryRecord = this.selectedHistoryRecordState.asReadonly();
   readonly loading = this.loadingState.asReadonly();
   readonly error = this.errorState.asReadonly();
@@ -127,9 +136,7 @@ export class FileImportService {
     const requiredKeys = new Set(
       this.activeColumnDefinitions()
         .filter((definition) => definition.required)
-        .map(
-        (definition) => definition.key,
-      ),
+        .map((definition) => definition.key),
     );
     const mappedColumns = mappings.filter((mapping) => Boolean(mapping.sourceColumnName)).length;
     const mappedRequiredColumns = mappings.filter(
@@ -146,6 +153,21 @@ export class FileImportService {
       status: confidence >= 85 ? 'ready' : 'review',
     };
   });
+
+  constructor() {
+    effect(() => {
+      const accountScope = this.accountStorage.scope();
+
+      if (accountScope === this.activeAccountScope) {
+        return;
+      }
+
+      this.activeAccountScope = accountScope;
+      this.closeImportDetail();
+      this.resetImport();
+      this.activeTabState.set('new-import');
+    });
+  }
 
   startNewImport(): void {
     this.activeTabState.set('new-import');
@@ -387,7 +409,8 @@ export class FileImportService {
 
   private toCampaign(row: RowValidationResult, importedAt: string, fileName: string): Campaign {
     const normalizedRow = row.normalizedRow;
-    const campaignName = this.readText(normalizedRow, 'campaignName') || `Campaña fila ${row.rowIndex}`;
+    const campaignName =
+      this.readText(normalizedRow, 'campaignName') || `Campaña fila ${row.rowIndex}`;
     const externalId = this.readText(normalizedRow, 'campaignId');
     const amountSpent = this.readNumber(normalizedRow, 'amountSpent');
     const attributedRevenue = this.readNumber(normalizedRow, 'attributedRevenue');
@@ -569,7 +592,9 @@ export class FileImportService {
     const latest = this.shouldUseIncomingOrder(current, incoming) ? incoming : current;
     const productName = this.mergeProductLabel(current.productName, incoming.productName);
     const productGroupName =
-      productName === 'Varios productos' ? 'Varios productos' : this.toProductGroupName(productName);
+      productName === 'Varios productos'
+        ? 'Varios productos'
+        : this.toProductGroupName(productName);
 
     return {
       ...latest,
@@ -755,9 +780,12 @@ export class FileImportService {
     }
     if (['active', 'activo', 'activa', 'delivering'].includes(normalizedValue)) return 'Activa';
     if (normalizedValue.includes('pause') || normalizedValue.includes('paus')) return 'Pausada';
-    if (normalizedValue.includes('archive') || normalizedValue.includes('archiv')) return 'Archivada';
-    if (normalizedValue.includes('error') || normalizedValue.includes('reject')) return 'Con errores';
-    if (normalizedValue.includes('finish') || normalizedValue.includes('final')) return 'Finalizada';
+    if (normalizedValue.includes('archive') || normalizedValue.includes('archiv'))
+      return 'Archivada';
+    if (normalizedValue.includes('error') || normalizedValue.includes('reject'))
+      return 'Con errores';
+    if (normalizedValue.includes('finish') || normalizedValue.includes('final'))
+      return 'Finalizada';
 
     return 'Activa';
   }
@@ -980,6 +1008,23 @@ export class FileImportService {
     this.historyService.deleteRecord(id);
   }
 
+  deleteHistoryRecordWithData(id: string): void {
+    const record = this.historyService.history().find((item) => item.id === id);
+    if (!record) {
+      return;
+    }
+
+    if (record.typeId === 'orders' && this.getActiveDataRecordIds().has(record.id)) {
+      this.importedOrdersStore.clearOrders();
+    }
+
+    if (record.typeId === 'campaigns' && this.getActiveDataRecordIds().has(record.id)) {
+      this.importedCampaignsStore.clearCampaigns();
+    }
+
+    this.historyService.deleteRecord(id);
+  }
+
   openTemplatePanel(): void {
     this.templatePanelVisibleState.set(true);
   }
@@ -1077,13 +1122,27 @@ export class FileImportService {
     return Array.from(new Set(aliases));
   }
 
+  private getActiveDataRecordIds(): ReadonlySet<string> {
+    const activeIds = new Set<string>();
+
+    for (const typeId of ['orders', 'campaigns'] as const) {
+      const activeRecord = this.historyService
+        .history()
+        .find((record) => record.typeId === typeId && record.successfulRows > 0);
+
+      if (activeRecord) {
+        activeIds.add(activeRecord.id);
+      }
+    }
+
+    return activeIds;
+  }
+
   private hasEnoughMappedRequiredColumns(): boolean {
     const requiredKeys = new Set(
       this.activeColumnDefinitions()
         .filter((definition) => definition.required)
-        .map(
-        (definition) => definition.key,
-      ),
+        .map((definition) => definition.key),
     );
     const mappedRequiredColumns = this.columnMappingsState().filter(
       (mapping) => requiredKeys.has(mapping.systemColumnKey) && Boolean(mapping.sourceColumnName),

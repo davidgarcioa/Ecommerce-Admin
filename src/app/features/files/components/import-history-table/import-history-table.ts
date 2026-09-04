@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
 import { DataTableComponent } from '../../../../shared/components/data-table/data-table.component';
 import {
@@ -17,6 +17,7 @@ import { ImportHistoryRecord } from '../../models/import-history-record.model';
 })
 export class ImportHistoryTableComponent {
   readonly records = input.required<readonly ImportHistoryRecord[]>();
+  readonly activeDataRecordIds = input<ReadonlySet<string>>(new Set<string>());
   readonly actionClick = output<TableActionClick<ImportHistoryRecord>>();
   readonly rowClick = output<ImportHistoryRecord>();
   readonly columns: readonly TableColumn<ImportHistoryRecord>[] = [
@@ -130,16 +131,26 @@ export class ImportHistoryTableComponent {
       align: 'left',
     },
   ];
-  readonly actions: readonly TableAction<ImportHistoryRecord>[] = [
+  readonly actions = computed<readonly TableAction<ImportHistoryRecord>[]>(() => [
     { id: 'view', label: 'Ver detalle', icon: 'visibility', variant: 'default' },
     { id: 'retry', label: 'Reintentar', icon: 'refresh', variant: 'default' },
     {
+      id: 'delete-data',
+      label: 'Eliminar datos',
+      icon: 'delete_forever',
+      variant: 'danger',
+      hidden: (record) => !this.activeDataRecordIds().has(record.id),
+      confirmationRequired: true,
+      confirmationMessage:
+        'Eliminar este registro y los datos activos de esa pagina? Esta accion no se puede deshacer.',
+    },
+    {
       id: 'delete',
-      label: 'Eliminar',
+      label: 'Eliminar historial',
       icon: 'delete',
       variant: 'danger',
       confirmationRequired: true,
       confirmationMessage: '¿Eliminar este registro del historial?',
     },
-  ];
+  ]);
 }

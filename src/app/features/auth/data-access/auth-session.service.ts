@@ -17,6 +17,7 @@ import { catchError, from, map, Observable, of, switchMap, tap, throwError } fro
 import { API_CONFIG, isStaticFrontendApi } from '../../../core/config/api.config';
 import { FIREBASE_CONFIG } from '../../../core/config/firebase.config';
 import { ApiResponse } from '../../../core/models/api-response.model';
+import { AccountStorageService } from '../../../core/services/account-storage.service';
 import { PermissionsService } from '../../../core/services/permissions.service';
 import {
   AuthSession,
@@ -34,6 +35,7 @@ export class AuthSessionService {
   private readonly http = inject(HttpClient);
   private readonly apiConfig = inject(API_CONFIG);
   private readonly firebaseConfig = inject(FIREBASE_CONFIG);
+  private readonly accountStorage = inject(AccountStorageService);
   private readonly permissions = inject(PermissionsService);
   private readonly authenticatedState = signal(this.hasAccessToken());
 
@@ -169,6 +171,7 @@ export class AuthSessionService {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('token');
     } finally {
+      this.accountStorage.refreshFromSession();
       this.permissions.clear();
       this.authenticatedState.set(false);
     }
@@ -198,6 +201,7 @@ export class AuthSessionService {
   private storeTokens(tokens: AuthTokenResponse): void {
     localStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
+    this.accountStorage.refreshFromSession();
     this.permissions.refreshFromToken();
     this.authenticatedState.set(true);
   }
@@ -355,8 +359,7 @@ function toFirebaseMessage(code: string): string {
       'Ya hay una ventana de Google abierta. Termina ese intento o vuelve a probar.',
     'auth/account-exists-with-different-credential':
       'Ese correo ya existe con otro método de acceso. Inicia sesión con el método original.',
-    'auth/credential-already-in-use':
-      'La cuenta de Google ya está vinculada a otro usuario.',
+    'auth/credential-already-in-use': 'La cuenta de Google ya está vinculada a otro usuario.',
     'auth/network-request-failed':
       'No pudimos conectarnos. Revisa tu conexión e inténtalo nuevamente.',
     'auth/too-many-requests': 'Demasiados intentos. Espera un momento.',

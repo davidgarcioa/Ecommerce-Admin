@@ -147,6 +147,7 @@
   } @else {
     <app-import-history-table
       [records]="importHistory()"
+      [activeDataRecordIds]="activeDataRecordIds()"
       (rowClick)="openImportDetail($event)"
       (actionClick)="onHistoryAction($event)"
     />

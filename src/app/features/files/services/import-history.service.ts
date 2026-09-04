@@ -1,5 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { effect, inject, Injectable, signal } from '@angular/core';
 
+import { AccountStorageService } from '../../../core/services/account-storage.service';
 import { FILE_IMPORT_HISTORY_KEY } from '../constants/files.constants';
 import { ImportHistoryRecord } from '../models/import-history-record.model';
 
@@ -9,12 +10,16 @@ const HISTORY_LIMIT = 100;
 
 @Injectable({ providedIn: 'root' })
 export class ImportHistoryService {
+  private readonly accountStorage = inject(AccountStorageService);
   private readonly historyState = signal<readonly ImportHistoryRecord[]>(this.readHistory());
 
   readonly history = this.historyState.asReadonly();
 
   constructor() {
-    this.persist();
+    effect(() => {
+      this.accountStorage.scope();
+      this.historyState.set(this.readHistory());
+    });
   }
 
   addRecord(record: ImportHistoryRecord): void {
@@ -41,7 +46,7 @@ export class ImportHistoryService {
 
   private readHistory(): readonly ImportHistoryRecord[] {
     try {
-      const raw = localStorage.getItem(FILE_IMPORT_HISTORY_KEY);
+      const raw = this.accountStorage.getItem(FILE_IMPORT_HISTORY_KEY);
       if (!raw) {
         return [];
       }
@@ -70,7 +75,7 @@ export class ImportHistoryService {
 
   private persist(): void {
     try {
-      localStorage.setItem(FILE_IMPORT_HISTORY_KEY, JSON.stringify(this.historyState()));
+      this.accountStorage.setItem(FILE_IMPORT_HISTORY_KEY, JSON.stringify(this.historyState()));
     } catch {
       return;
     }

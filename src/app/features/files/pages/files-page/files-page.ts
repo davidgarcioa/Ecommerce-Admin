@@ -64,6 +64,7 @@ export class FilesPageComponent {
   readonly importProgress = this.fileImportService.importProgress;
   readonly importResult = this.fileImportService.importResult;
   readonly importHistory = this.fileImportService.importHistory;
+  readonly activeDataRecordIds = this.fileImportService.activeDataRecordIds;
   readonly selectedHistoryRecord = this.fileImportService.selectedHistoryRecord;
   readonly loading = this.fileImportService.loading;
   readonly error = this.fileImportService.error;
@@ -83,7 +84,9 @@ export class FilesPageComponent {
   }
 
   onHistoryAction(event: TableActionClick<ImportHistoryRecord>): void {
-    if (event.action.id === 'delete') {
+    if (event.action.id === 'delete-data') {
+      this.fileImportService.deleteHistoryRecordWithData(event.row.id);
+    } else if (event.action.id === 'delete') {
       this.fileImportService.deleteHistoryRecord(event.row.id);
     } else {
       this.fileImportService.openImportDetail(event.row);
@@ -129,6 +132,8 @@ export class FilesPageComponent {
   readonly closeImportDetail = (): void => this.fileImportService.closeImportDetail();
   readonly deleteHistoryRecord = (id: string): void =>
     this.fileImportService.deleteHistoryRecord(id);
+  readonly deleteHistoryRecordWithData = (id: string): void =>
+    this.fileImportService.deleteHistoryRecordWithData(id);
   readonly retryImport = (): void => this.fileImportService.retryImport();
   readonly downloadTemplate = (id: string): void => this.fileImportService.downloadTemplate(id);
 }

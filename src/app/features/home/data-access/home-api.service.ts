@@ -4,6 +4,7 @@ import { catchError, forkJoin, map, Observable, of } from 'rxjs';
 
 import { API_CONFIG, isStaticFrontendApi } from '../../../core/config/api.config';
 import { ApiResponse } from '../../../core/models/api-response.model';
+import { AccountStorageService } from '../../../core/services/account-storage.service';
 import { PermissionCode } from '../../../core/services/permissions.service';
 import { DailyOrder } from '../../daily-report/models/daily-order.model';
 import { ImportedOrdersStoreService } from '../../daily-report/services/imported-orders-store.service';
@@ -31,6 +32,7 @@ const LOCAL_PRODUCT_GROUPS_STORAGE_KEY = 'ecommerce.product-groups.local.records
 export class HomeApiService {
   private readonly http = inject(HttpClient);
   private readonly apiConfig = inject(API_CONFIG);
+  private readonly accountStorage = inject(AccountStorageService);
   private readonly importedOrdersStore = inject(ImportedOrdersStoreService);
   private readonly importHistory = inject(ImportHistoryService);
   private readonly baseUrl = this.apiConfig.baseUrl;
@@ -107,16 +109,16 @@ export class HomeApiService {
     const productGroups =
       orders.length > 0
         ? toImportedProductGroups(orders)
-        : readStoredRecords(LOCAL_PRODUCT_GROUPS_STORAGE_KEY);
+        : readStoredRecords(this.accountStorage, LOCAL_PRODUCT_GROUPS_STORAGE_KEY);
     const fileHistory = this.importHistory.history();
 
     return {
       orders: this.has(permissions, 'orders.statistics') ? buildOrderStatistics(orders) : null,
       testing: this.has(permissions, 'testing.statistics')
-        ? buildTestingStatistics(readStoredRecords(LOCAL_TESTS_STORAGE_KEY))
+        ? buildTestingStatistics(readStoredRecords(this.accountStorage, LOCAL_TESTS_STORAGE_KEY))
         : null,
       tags: this.has(permissions, 'tags.statistics')
-        ? buildTagStatistics(readStoredRecords(LOCAL_TAGS_STORAGE_KEY))
+        ? buildTagStatistics(readStoredRecords(this.accountStorage, LOCAL_TAGS_STORAGE_KEY))
         : null,
       productGroups: this.has(permissions, 'product-groups.statistics')
         ? buildProductGroupStatistics(productGroups)
@@ -199,9 +201,9 @@ function buildProductGroupStatistics(records: readonly unknown[]): ProductGroupH
   };
 }
 
-function readStoredRecords(key: string): readonly unknown[] {
+function readStoredRecords(storage: AccountStorageService, key: string): readonly unknown[] {
   try {
-    const raw = globalThis.localStorage?.getItem(key);
+    const raw = storage.getItem(key);
     if (!raw) return [];
 
     const parsed: unknown = JSON.parse(raw);

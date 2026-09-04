@@ -1,14 +1,23 @@
-import { Injectable, signal } from '@angular/core';
+import { effect, inject, Injectable, signal } from '@angular/core';
 
+import { AccountStorageService } from '../../../core/services/account-storage.service';
 import { DailyOrder } from '../models/daily-order.model';
 
 const IMPORTED_ORDERS_STORAGE_KEY = 'ecommerce-control-center.imported-orders';
 
 @Injectable({ providedIn: 'root' })
 export class ImportedOrdersStoreService {
+  private readonly accountStorage = inject(AccountStorageService);
   private readonly ordersState = signal<readonly DailyOrder[]>(this.readOrders());
 
   readonly orders = this.ordersState.asReadonly();
+
+  constructor() {
+    effect(() => {
+      this.accountStorage.scope();
+      this.ordersState.set(this.readOrders());
+    });
+  }
 
   replaceOrders(orders: readonly DailyOrder[]): void {
     this.ordersState.set(this.dedupeOrders(orders));
@@ -22,16 +31,12 @@ export class ImportedOrdersStoreService {
 
   clearOrders(): void {
     this.ordersState.set([]);
-    try {
-      localStorage.removeItem(IMPORTED_ORDERS_STORAGE_KEY);
-    } catch {
-      // La aplicación debe seguir funcionando aunque el navegador bloquee localStorage.
-    }
+    this.accountStorage.removeItem(IMPORTED_ORDERS_STORAGE_KEY);
   }
 
   private readOrders(): readonly DailyOrder[] {
     try {
-      const raw = localStorage.getItem(IMPORTED_ORDERS_STORAGE_KEY);
+      const raw = this.accountStorage.getItem(IMPORTED_ORDERS_STORAGE_KEY);
       if (!raw) {
         return [];
       }
@@ -44,11 +49,7 @@ export class ImportedOrdersStoreService {
   }
 
   private persistOrders(): void {
-    try {
-      localStorage.setItem(IMPORTED_ORDERS_STORAGE_KEY, JSON.stringify(this.ordersState()));
-    } catch {
-      // La tabla debe seguir funcionando aunque el navegador bloquee localStorage.
-    }
+    this.accountStorage.setItem(IMPORTED_ORDERS_STORAGE_KEY, JSON.stringify(this.ordersState()));
   }
 
   private dedupeOrders(orders: readonly DailyOrder[]): readonly DailyOrder[] {

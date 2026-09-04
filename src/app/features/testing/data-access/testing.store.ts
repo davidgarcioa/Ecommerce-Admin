@@ -2,6 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { finalize, forkJoin, of } from 'rxjs';
 
 import { API_CONFIG, isStaticFrontendApi } from '../../../core/config/api.config';
+import { AccountStorageService } from '../../../core/services/account-storage.service';
 import { PermissionsService } from '../../../core/services/permissions.service';
 import { DEFAULT_TESTING_FILTERS, TESTING_PERMISSIONS } from '../utils/testing.constants';
 import { validateTestingForm } from '../utils/testing.validators';
@@ -31,6 +32,7 @@ const LOCAL_TESTS_STORAGE_KEY = 'ecommerce.testing.local.records';
 export class TestingStore {
   private readonly api = inject(TestingApiService);
   private readonly apiConfig = inject(API_CONFIG);
+  private readonly accountStorage = inject(AccountStorageService);
   private readonly permissions = inject(PermissionsService);
 
   private readonly testsState = signal<readonly EcommerceTest[]>([]);
@@ -109,7 +111,7 @@ export class TestingStore {
     }
 
     if (this.isStaticMode()) {
-      this.replaceTests(readStoredTests() ?? [], false);
+      this.replaceTests(this.readStoredTests() ?? [], false);
       return;
     }
 
@@ -123,7 +125,7 @@ export class TestingStore {
       .pipe(finalize(() => this.loadingState.set(false)))
       .subscribe({
         next: ({ tests, statistics }) => {
-          const storedTests = readStoredTests();
+          const storedTests = this.readStoredTests();
           const resolvedTests = storedTests ?? tests;
 
           this.replaceTests(resolvedTests, false);
@@ -132,7 +134,7 @@ export class TestingStore {
           );
         },
         error: () => {
-          this.replaceTests(readStoredTests() ?? [], false);
+          this.replaceTests(this.readStoredTests() ?? [], false);
         },
       });
   }
@@ -387,7 +389,7 @@ export class TestingStore {
     this.statisticsState.set(buildTestingStatistics(tests));
     this.lastUpdatedState.set(new Date().toISOString());
 
-    if (persist) persistTests(tests);
+    if (persist) this.persistTests(tests);
   }
 
   private findKnownTest(id: string): EcommerceTest | null {
@@ -395,7 +397,15 @@ export class TestingStore {
   }
 
   private resolveWorkingTests(): readonly EcommerceTest[] {
-    return this.testsState().length > 0 ? this.testsState() : (readStoredTests() ?? []);
+    return this.testsState().length > 0 ? this.testsState() : (this.readStoredTests() ?? []);
+  }
+
+  private readStoredTests(): readonly EcommerceTest[] | null {
+    return readStoredTests(this.accountStorage);
+  }
+
+  private persistTests(tests: readonly EcommerceTest[]): void {
+    persistTests(this.accountStorage, tests);
   }
 
   private isStaticMode(): boolean {
@@ -525,9 +535,9 @@ function restoreLocalTest(test: EcommerceTest): EcommerceTest {
   };
 }
 
-function readStoredTests(): readonly EcommerceTest[] | null {
+function readStoredTests(storage: AccountStorageService): readonly EcommerceTest[] | null {
   try {
-    const rawTests = globalThis.localStorage?.getItem(LOCAL_TESTS_STORAGE_KEY);
+    const rawTests = storage.getItem(LOCAL_TESTS_STORAGE_KEY);
 
     if (!rawTests) return null;
 
@@ -541,12 +551,8 @@ function readStoredTests(): readonly EcommerceTest[] | null {
   }
 }
 
-function persistTests(tests: readonly EcommerceTest[]): void {
-  try {
-    globalThis.localStorage?.setItem(LOCAL_TESTS_STORAGE_KEY, JSON.stringify(tests));
-  } catch {
-    return;
-  }
+function persistTests(storage: AccountStorageService, tests: readonly EcommerceTest[]): void {
+  storage.setItem(LOCAL_TESTS_STORAGE_KEY, JSON.stringify(tests));
 }
 
 function isEcommerceTest(value: unknown): value is EcommerceTest {

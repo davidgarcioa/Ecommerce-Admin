@@ -11,6 +11,7 @@ import {
   signal,
 } from '@angular/core';
 
+import { accountScopedStorageKey } from '../../../../../../core/services/account-storage.service';
 import { AnimateOnViewDirective } from '../../../../../../shared/directives/animate-on-view.directive';
 import { DailyOrder } from '../../../../models/daily-order.model';
 import { formatDailyValue } from '../../../../utils/daily-report.utils';
@@ -410,7 +411,9 @@ function toStatusId(label: string): string {
 
 function loadGuideStatusPreferences(): GuideStatusPreferences {
   try {
-    const rawPreferences = localStorage.getItem(GUIDE_STATUS_PREFERENCES_KEY);
+    const rawPreferences = localStorage.getItem(
+      accountScopedStorageKey(GUIDE_STATUS_PREFERENCES_KEY),
+    );
 
     if (rawPreferences === null) {
       return createDefaultGuideStatusPreferences();
@@ -429,7 +432,10 @@ function loadGuideStatusPreferences(): GuideStatusPreferences {
 
 function saveGuideStatusPreferences(preferences: GuideStatusPreferences): void {
   try {
-    localStorage.setItem(GUIDE_STATUS_PREFERENCES_KEY, JSON.stringify(preferences));
+    localStorage.setItem(
+      accountScopedStorageKey(GUIDE_STATUS_PREFERENCES_KEY),
+      JSON.stringify(preferences),
+    );
   } catch {
     // Las preferencias son opcionales.
   }

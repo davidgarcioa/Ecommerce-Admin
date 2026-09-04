@@ -2,6 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { finalize, forkJoin, of } from 'rxjs';
 
 import { API_CONFIG, isStaticFrontendApi } from '../../../core/config/api.config';
+import { AccountStorageService } from '../../../core/services/account-storage.service';
 import { PermissionsService } from '../../../core/services/permissions.service';
 import { DEFAULT_TAG_FILTERS, TAGS_PERMISSIONS } from '../utils/tags.constants';
 import { resolveSafeTagColor } from '../utils/tags.formatters';
@@ -25,6 +26,7 @@ const LOCAL_TAGS_STORAGE_KEY = 'ecommerce.tags.local.records';
 export class TagsStore {
   private readonly api = inject(TagsApiService);
   private readonly apiConfig = inject(API_CONFIG);
+  private readonly accountStorage = inject(AccountStorageService);
   private readonly permissions = inject(PermissionsService);
 
   private readonly tagsState = signal<readonly Tag[]>([]);
@@ -104,7 +106,7 @@ export class TagsStore {
     }
 
     if (this.isStaticMode()) {
-      this.replaceTags(readStoredTags() ?? [], false);
+      this.replaceTags(this.readStoredTags() ?? [], false);
       return;
     }
 
@@ -118,7 +120,7 @@ export class TagsStore {
       .pipe(finalize(() => this.loadingState.set(false)))
       .subscribe({
         next: ({ tags, statistics }) => {
-          const storedTags = readStoredTags();
+          const storedTags = this.readStoredTags();
           const resolvedTags = storedTags ?? tags;
 
           this.replaceTags(resolvedTags, false);
@@ -127,7 +129,7 @@ export class TagsStore {
           );
         },
         error: () => {
-          this.replaceTags(readStoredTags() ?? [], false);
+          this.replaceTags(this.readStoredTags() ?? [], false);
         },
       });
   }
@@ -382,7 +384,7 @@ export class TagsStore {
     this.statisticsState.set(buildTagStatistics(tags));
     this.lastUpdatedState.set(new Date().toISOString());
 
-    if (persist) persistTags(tags);
+    if (persist) this.persistTags(tags);
   }
 
   private findKnownTag(id: string): Tag | null {
@@ -390,7 +392,15 @@ export class TagsStore {
   }
 
   private resolveWorkingTags(): readonly Tag[] {
-    return this.tagsState().length > 0 ? this.tagsState() : (readStoredTags() ?? []);
+    return this.tagsState().length > 0 ? this.tagsState() : (this.readStoredTags() ?? []);
+  }
+
+  private readStoredTags(): readonly Tag[] | null {
+    return readStoredTags(this.accountStorage);
+  }
+
+  private persistTags(tags: readonly Tag[]): void {
+    persistTags(this.accountStorage, tags);
   }
 
   private isStaticMode(): boolean {
@@ -520,9 +530,9 @@ function restoreLocalTag(tag: Tag): Tag {
   };
 }
 
-function readStoredTags(): readonly Tag[] | null {
+function readStoredTags(storage: AccountStorageService): readonly Tag[] | null {
   try {
-    const rawTags = globalThis.localStorage?.getItem(LOCAL_TAGS_STORAGE_KEY);
+    const rawTags = storage.getItem(LOCAL_TAGS_STORAGE_KEY);
 
     if (!rawTags) return null;
 
@@ -536,12 +546,8 @@ function readStoredTags(): readonly Tag[] | null {
   }
 }
 
-function persistTags(tags: readonly Tag[]): void {
-  try {
-    globalThis.localStorage?.setItem(LOCAL_TAGS_STORAGE_KEY, JSON.stringify(tags));
-  } catch {
-    return;
-  }
+function persistTags(storage: AccountStorageService, tags: readonly Tag[]): void {
+  storage.setItem(LOCAL_TAGS_STORAGE_KEY, JSON.stringify(tags));
 }
 
 function isTag(value: unknown): value is Tag {

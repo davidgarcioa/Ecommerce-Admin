@@ -2,6 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { finalize, forkJoin } from 'rxjs';
 
 import { API_CONFIG, isStaticFrontendApi } from '../../../core/config/api.config';
+import { AccountStorageService } from '../../../core/services/account-storage.service';
 import { PermissionsService } from '../../../core/services/permissions.service';
 import { DailyOrder } from '../../daily-report/models/daily-order.model';
 import { ImportedOrdersStoreService } from '../../daily-report/services/imported-orders-store.service';
@@ -37,6 +38,7 @@ const LOCAL_PRODUCT_GROUPS_STORAGE_KEY = 'ecommerce.product-groups.local.records
 export class ProductGroupsStore {
   private readonly api = inject(ProductGroupsApiService);
   private readonly apiConfig = inject(API_CONFIG);
+  private readonly accountStorage = inject(AccountStorageService);
   private readonly permissionsService = inject(PermissionsService);
   private readonly importedOrdersStore = inject(ImportedOrdersStoreService);
 
@@ -167,7 +169,7 @@ export class ProductGroupsStore {
     }
 
     if (this.isStaticMode()) {
-      this.replaceGroups(readStoredGroups() ?? [], false);
+      this.replaceGroups(this.readStoredGroups() ?? [], false);
       return;
     }
 
@@ -179,11 +181,11 @@ export class ProductGroupsStore {
       .pipe(finalize(() => this.loadingState.set(false)))
       .subscribe({
         next: (groups) => {
-          const storedGroups = readStoredGroups();
+          const storedGroups = this.readStoredGroups();
           this.replaceGroups(storedGroups ?? groups, false);
         },
         error: () => {
-          this.replaceGroups(readStoredGroups() ?? [], false);
+          this.replaceGroups(this.readStoredGroups() ?? [], false);
         },
       });
   }
@@ -247,7 +249,7 @@ export class ProductGroupsStore {
 
     if (this.isStaticMode()) {
       const normalizedTerm = normalize(term);
-      const storedProducts = (readStoredGroups() ?? []).flatMap(localProductsForGroup);
+      const storedProducts = (this.readStoredGroups() ?? []).flatMap(localProductsForGroup);
 
       this.availableProductsState.set(
         storedProducts.filter((product) =>
@@ -261,7 +263,7 @@ export class ProductGroupsStore {
       next: (products) => this.availableProductsState.set(products),
       error: () => {
         const normalizedTerm = normalize(term);
-        const storedProducts = (readStoredGroups() ?? []).flatMap(localProductsForGroup);
+        const storedProducts = (this.readStoredGroups() ?? []).flatMap(localProductsForGroup);
 
         this.availableProductsState.set(
           storedProducts.filter((product) =>
@@ -548,7 +550,7 @@ export class ProductGroupsStore {
     this.errorState.set(null);
     this.lastUpdatedState.set(new Date().toISOString());
 
-    if (persist) persistGroups(groups);
+    if (persist) this.persistGroups(groups);
   }
 
   private findKnownGroup(id: string): ProductGroup | null {
@@ -556,7 +558,15 @@ export class ProductGroupsStore {
   }
 
   private resolveWorkingGroups(): readonly ProductGroup[] {
-    return this.groupsState().length > 0 ? this.groupsState() : (readStoredGroups() ?? []);
+    return this.groupsState().length > 0 ? this.groupsState() : (this.readStoredGroups() ?? []);
+  }
+
+  private readStoredGroups(): readonly ProductGroup[] | null {
+    return readStoredGroups(this.accountStorage);
+  }
+
+  private persistGroups(groups: readonly ProductGroup[]): void {
+    persistGroups(this.accountStorage, groups);
   }
 
   private loadLocalGroupDetail(id: string): void {
@@ -728,9 +738,9 @@ function localProfitabilityForGroup(group: ProductGroup): ProductGroupProfitabil
   };
 }
 
-function readStoredGroups(): readonly ProductGroup[] | null {
+function readStoredGroups(storage: AccountStorageService): readonly ProductGroup[] | null {
   try {
-    const rawGroups = globalThis.localStorage?.getItem(LOCAL_PRODUCT_GROUPS_STORAGE_KEY);
+    const rawGroups = storage.getItem(LOCAL_PRODUCT_GROUPS_STORAGE_KEY);
 
     if (!rawGroups) return null;
 
@@ -744,12 +754,8 @@ function readStoredGroups(): readonly ProductGroup[] | null {
   }
 }
 
-function persistGroups(groups: readonly ProductGroup[]): void {
-  try {
-    globalThis.localStorage?.setItem(LOCAL_PRODUCT_GROUPS_STORAGE_KEY, JSON.stringify(groups));
-  } catch {
-    return;
-  }
+function persistGroups(storage: AccountStorageService, groups: readonly ProductGroup[]): void {
+  storage.setItem(LOCAL_PRODUCT_GROUPS_STORAGE_KEY, JSON.stringify(groups));
 }
 
 function isProductGroup(value: unknown): value is ProductGroup {

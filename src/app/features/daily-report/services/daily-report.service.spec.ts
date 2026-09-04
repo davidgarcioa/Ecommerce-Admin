@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
+import { accountScopedStorageKey } from '../../../core/services/account-storage.service';
 import { DailyOrder } from '../models/daily-order.model';
 import { DailyReportService } from './daily-report.service';
 
@@ -62,7 +63,9 @@ const importedOrders: readonly DailyOrder[] = [
 
 describe('DailyReportService', () => {
   let service: DailyReportService;
-  const importedOrdersStorageKey = 'ecommerce-control-center.imported-orders';
+  const importedOrdersStorageKey = accountScopedStorageKey(
+    'ecommerce-control-center.imported-orders',
+  );
 
   beforeEach(() => {
     localStorage.setItem(importedOrdersStorageKey, JSON.stringify(importedOrders));

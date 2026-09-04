@@ -1,3 +1,4 @@
+import { accountScopedStorageKey } from '../../../core/services/account-storage.service';
 import { TrackingRecentSearch, TrackingSearchQuery } from '../data-access/tracking.models';
 import { TRACKING_RECENT_SEARCHES_KEY } from './tracking.constants';
 import { maskEmail, maskPhone } from './tracking.formatters';
@@ -11,7 +12,7 @@ export function maskSearchValue(query: TrackingSearchQuery): string {
 
 export function readRecentSearches(): readonly TrackingRecentSearch[] {
   try {
-    const raw = localStorage.getItem(TRACKING_RECENT_SEARCHES_KEY);
+    const raw = localStorage.getItem(accountScopedStorageKey(TRACKING_RECENT_SEARCHES_KEY));
     if (!raw) return [];
     const parsed = JSON.parse(raw) as readonly TrackingRecentSearch[];
     return parsed.slice(0, 5);
@@ -34,7 +35,10 @@ export function persistRecentSearch(query: TrackingSearchQuery): readonly Tracki
     ),
   ].slice(0, 5);
   try {
-    localStorage.setItem(TRACKING_RECENT_SEARCHES_KEY, JSON.stringify(next));
+    localStorage.setItem(
+      accountScopedStorageKey(TRACKING_RECENT_SEARCHES_KEY),
+      JSON.stringify(next),
+    );
   } catch {
     return next;
   }

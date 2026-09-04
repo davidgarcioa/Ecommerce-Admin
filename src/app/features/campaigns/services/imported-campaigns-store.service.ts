@@ -1,13 +1,22 @@
-import { Injectable, signal } from '@angular/core';
+import { effect, inject, Injectable, signal } from '@angular/core';
 
+import { AccountStorageService } from '../../../core/services/account-storage.service';
 import { CAMPAIGN_STORAGE_KEY } from '../constants/campaigns.constants';
 import { Campaign } from '../models/campaign.model';
 
 @Injectable({ providedIn: 'root' })
 export class ImportedCampaignsStoreService {
+  private readonly accountStorage = inject(AccountStorageService);
   private readonly campaignsState = signal<readonly Campaign[]>(this.readCampaigns());
 
   readonly campaigns = this.campaignsState.asReadonly();
+
+  constructor() {
+    effect(() => {
+      this.accountStorage.scope();
+      this.campaignsState.set(this.readCampaigns());
+    });
+  }
 
   replaceCampaigns(campaigns: readonly Campaign[]): void {
     this.campaignsState.set(this.mergeCampaigns([], campaigns));
@@ -24,9 +33,14 @@ export class ImportedCampaignsStoreService {
     this.persistCampaigns();
   }
 
+  clearCampaigns(): void {
+    this.campaignsState.set([]);
+    this.accountStorage.removeItem(CAMPAIGN_STORAGE_KEY);
+  }
+
   private readCampaigns(): readonly Campaign[] {
     try {
-      const raw = localStorage.getItem(CAMPAIGN_STORAGE_KEY);
+      const raw = this.accountStorage.getItem(CAMPAIGN_STORAGE_KEY);
       if (!raw) return [];
 
       const parsed = JSON.parse(raw) as readonly Campaign[];
@@ -37,11 +51,7 @@ export class ImportedCampaignsStoreService {
   }
 
   private persistCampaigns(): void {
-    try {
-      localStorage.setItem(CAMPAIGN_STORAGE_KEY, JSON.stringify(this.campaignsState()));
-    } catch {
-      return;
-    }
+    this.accountStorage.setItem(CAMPAIGN_STORAGE_KEY, JSON.stringify(this.campaignsState()));
   }
 
   private mergeCampaigns(
