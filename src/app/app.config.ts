@@ -4,11 +4,12 @@ import {
   provideRouter,
   withComponentInputBinding,
   withInMemoryScrolling,
-  withRouterConfig,
+  withPreloading,
 } from '@angular/router';
 
 import { routes } from './app.routes';
 import { authTokenInterceptor } from './core/interceptors/auth-token.interceptor';
+import { IdlePreloadingStrategy } from './core/routing/idle-preloading.strategy';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -17,7 +18,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(
       routes,
       withComponentInputBinding(),
-      withRouterConfig({ onSameUrlNavigation: 'reload' }),
+      withPreloading(IdlePreloadingStrategy),
       withInMemoryScrolling({
         anchorScrolling: 'enabled',
         scrollPositionRestoration: 'top',

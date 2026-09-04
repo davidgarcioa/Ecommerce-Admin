@@ -66,12 +66,10 @@ export class CampaignsService {
   private readonly lastSynchronizationState = signal(this.reportState().generatedAt);
   private readonly toastMessageState = signal<string | null>(null);
 
-  readonly report = this.reportState.asReadonly();
-  readonly summaryMetrics = computed(() =>
-    buildSummaryMetrics(this.filterCampaigns(this.campaignsState())),
-  );
   readonly campaigns = this.campaignsState.asReadonly();
   readonly filteredCampaigns = computed(() => this.filterCampaigns(this.campaignsState()));
+  readonly report = this.reportState.asReadonly();
+  readonly summaryMetrics = computed(() => buildSummaryMetrics(this.filteredCampaigns()));
   readonly adSets = this.adSetsState.asReadonly();
   readonly filteredAdSets = computed(() => this.filterAdSets(this.adSetsState()));
   readonly advertisements = this.advertisementsState.asReadonly();
@@ -325,8 +323,10 @@ export class CampaignsService {
   private filterCampaigns(campaigns: readonly Campaign[]): readonly Campaign[] {
     const filters = this.filtersState();
     const normalizedSearch = filters.searchTerm.trim().toLowerCase();
+    const adsByCampaign = groupAdvertisementsByCampaign(this.advertisementsState());
 
     return campaigns.filter((campaign) => {
+      const campaignAds = adsByCampaign.get(campaign.id) ?? [];
       const matchesPeriod = isCampaignInPeriod(campaign, filters);
       const matchesStatus =
         filters.campaignStatus === 'Todos' || campaign.status === filters.campaignStatus;
@@ -351,18 +351,13 @@ export class CampaignsService {
         ]
           .filter((value): value is string => Boolean(value))
           .some((value) => value.toLowerCase().includes(normalizedSearch)) ||
-        this.advertisementsState().some(
-          (ad) =>
-            ad.campaignId === campaign.id &&
-            [ad.name, ad.productName]
-              .filter((value): value is string => Boolean(value))
-              .some((value) => value.toLowerCase().includes(normalizedSearch)),
+        campaignAds.some((ad) =>
+          [ad.name, ad.productName]
+            .filter((value): value is string => Boolean(value))
+            .some((value) => value.toLowerCase().includes(normalizedSearch)),
         );
       const matchesProduct =
-        filters.productId === 'all' ||
-        this.advertisementsState().some(
-          (ad) => ad.campaignId === campaign.id && ad.productId === filters.productId,
-        );
+        filters.productId === 'all' || campaignAds.some((ad) => ad.productId === filters.productId);
 
       return (
         matchesPeriod &&
@@ -523,16 +518,25 @@ function buildProductPerformance(
   advertisements: readonly Advertisement[],
 ): readonly ProductAdPerformance[] {
   const groups = new Map<string, Advertisement[]>();
+  const campaignById = new Map(campaigns.map((campaign) => [campaign.id, campaign]));
 
   for (const ad of advertisements) {
     if (!ad.productId) continue;
-    groups.set(ad.productId, [...(groups.get(ad.productId) ?? []), ad]);
+    const group = groups.get(ad.productId);
+
+    if (group) {
+      group.push(ad);
+    } else {
+      groups.set(ad.productId, [ad]);
+    }
   }
 
   return [...groups.entries()]
     .map(([productId, ads]) => {
       const campaignIds = new Set(ads.map((ad) => ad.campaignId));
-      const relatedCampaigns = campaigns.filter((campaign) => campaignIds.has(campaign.id));
+      const relatedCampaigns = [...campaignIds]
+        .map((campaignId) => campaignById.get(campaignId))
+        .filter((campaign): campaign is Campaign => Boolean(campaign));
       const firstAd = ads[0];
       const relatedCampaign = relatedCampaigns[0];
       const amountSpent = sum(ads, 'amountSpent');
@@ -628,12 +632,24 @@ function resolveReportAccountName(campaigns: readonly Campaign[]): string {
 }
 
 function buildSummaryMetrics(campaigns: readonly Campaign[]): readonly CampaignMetric[] {
-  const amountSpent = sum(campaigns, 'amountSpent');
-  const attributedRevenue = sum(campaigns, 'attributedRevenue');
-  const purchases = sum(campaigns, 'purchases');
-  const impressions = sum(campaigns, 'impressions');
-  const clicks = sum(campaigns, 'clicks');
-  const activeCampaigns = campaigns.filter((campaign) => campaign.status === 'Activa').length;
+  let amountSpent = 0;
+  let attributedRevenue = 0;
+  let purchases = 0;
+  let impressions = 0;
+  let clicks = 0;
+  let activeCampaigns = 0;
+  let warnings = 0;
+
+  for (const campaign of campaigns) {
+    amountSpent += Number(campaign.amountSpent) || 0;
+    attributedRevenue += Number(campaign.attributedRevenue) || 0;
+    purchases += Number(campaign.purchases) || 0;
+    impressions += Number(campaign.impressions) || 0;
+    clicks += Number(campaign.clicks) || 0;
+    if (campaign.status === 'Activa') activeCampaigns += 1;
+    if (campaign.hasWarnings) warnings += 1;
+  }
+
   const roas = calculateRoas(attributedRevenue, amountSpent) ?? 0;
   const cpa = calculateCpa(amountSpent, purchases) ?? 0;
   const ctr = calculateCtr(clicks, impressions) ?? 0;
@@ -705,7 +721,7 @@ function buildSummaryMetrics(campaigns: readonly Campaign[]): readonly CampaignM
     metric(
       'warnings',
       'Alertas',
-      campaigns.filter((campaign) => campaign.hasWarnings).length,
+      warnings,
       'Campañas con revisión pendiente',
       'warning',
       'critical',
@@ -788,12 +804,16 @@ function isCampaignInPeriod(campaign: Campaign, filters: CampaignFilter): boolea
 }
 
 function getLatestCampaignTimestamp(campaigns: readonly Campaign[]): string {
-  return (
-    campaigns
-      .map((campaign) => campaign.lastSynchronizedAt || campaign.updatedAt)
-      .filter((value): value is string => Boolean(value))
-      .sort((left, right) => right.localeCompare(left))[0] ?? ''
-  );
+  let latest = '';
+
+  for (const campaign of campaigns) {
+    const value = campaign.lastSynchronizedAt || campaign.updatedAt;
+    if (value && value > latest) {
+      latest = value;
+    }
+  }
+
+  return latest;
 }
 
 function buildCampaignImportHistory(
@@ -859,4 +879,22 @@ function shiftDate(date: Date, days: number): Date {
 
 function sum<T, K extends keyof T>(items: readonly T[], key: K): number {
   return items.reduce((total, item) => total + (Number(item[key]) || 0), 0);
+}
+
+function groupAdvertisementsByCampaign(
+  advertisements: readonly Advertisement[],
+): ReadonlyMap<string, readonly Advertisement[]> {
+  const byCampaign = new Map<string, Advertisement[]>();
+
+  for (const advertisement of advertisements) {
+    const group = byCampaign.get(advertisement.campaignId);
+
+    if (group) {
+      group.push(advertisement);
+    } else {
+      byCampaign.set(advertisement.campaignId, [advertisement]);
+    }
+  }
+
+  return byCampaign;
 }

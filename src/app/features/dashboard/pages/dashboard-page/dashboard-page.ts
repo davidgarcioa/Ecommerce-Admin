@@ -211,11 +211,7 @@ export class DashboardPageComponent {
   readonly carrierOptions = computed(() => unique(this.orders().map((row) => row.carrier)));
   readonly cityOptions = computed(() => unique(this.orders().map((row) => row.city)));
   readonly guideStatusOptions = computed(() => unique(this.orders().map((row) => row.guideStatus)));
-  readonly latestOrderDate = computed(
-    () =>
-      [...this.orders()].sort((a, b) => a.dateIso.localeCompare(b.dateIso)).at(-1)?.dateIso ??
-      toDateIso(new Date()),
-  );
+  readonly latestOrderDate = computed(() => latestDateIso(this.orders()));
 
   readonly filteredOrders = computed(() => {
     const search = normalize(this.searchTerm());
@@ -461,13 +457,9 @@ export class DashboardPageComponent {
     return filters.filter(Boolean).length;
   });
 
-  readonly filteredRevenue = computed(() =>
-    formatCurrency(this.filteredOrders().reduce((total, row) => total + row.valueAmount, 0)),
-  );
+  readonly filteredRevenue = computed(() => formatCurrency(this.totals().sales));
 
-  readonly filteredProfit = computed(() =>
-    formatCurrency(this.filteredOrders().reduce((total, row) => total + row.profitAmount, 0)),
-  );
+  readonly filteredProfit = computed(() => formatCurrency(this.totals().profit));
 
   toggleFilters(): void {
     this.filtersVisible.update((visible) => !visible);
@@ -717,14 +709,26 @@ function toOrderRow(dailyOrder: DailyOrder): OrderRow {
 
 function buildTotals(orders: readonly OrderRow[]): DashboardTotals {
   const total = orders.length;
-  const confirmed = orders.filter((orderRow) => isConfirmedOrder(orderRow.status)).length;
-  const delivered = orders.filter((orderRow) => isDeliveredOrder(orderRow)).length;
-  const sales = orders.reduce((sum, orderRow) => sum + orderRow.valueAmount, 0);
-  const profit = orders.reduce((sum, orderRow) => sum + orderRow.profitAmount, 0);
-  const costs = orders.reduce((sum, orderRow) => sum + orderRow.costAmount, 0);
-  const returns = orders.filter((orderRow) => orderRow.status === 'Devuelta').length;
-  const cancelled = orders.filter((orderRow) => orderRow.status === 'Cancelada').length;
-  const urgent = orders.filter((orderRow) => orderRow.urgent).length;
+  let confirmed = 0;
+  let delivered = 0;
+  let sales = 0;
+  let profit = 0;
+  let costs = 0;
+  let returns = 0;
+  let cancelled = 0;
+  let urgent = 0;
+
+  for (const orderRow of orders) {
+    if (isConfirmedOrder(orderRow.status)) confirmed += 1;
+    if (isDeliveredOrder(orderRow)) delivered += 1;
+    if (orderRow.status === 'Devuelta') returns += 1;
+    if (orderRow.status === 'Cancelada') cancelled += 1;
+    if (orderRow.urgent) urgent += 1;
+
+    sales += orderRow.valueAmount;
+    profit += orderRow.profitAmount;
+    costs += orderRow.costAmount;
+  }
 
   return {
     total,
@@ -821,8 +825,13 @@ function buildProductGroups(orders: readonly OrderRow[]): readonly ProductGroupR
   const groups = Array.from(byGroup.entries()).sort(
     (first, second) => second[1].sales - first[1].sales,
   );
-  const maxSales = Math.max(...groups.map(([, item]) => item.sales), 1);
-  const maxProfit = Math.max(...groups.map(([, item]) => item.profit), 1);
+  let maxSales = 1;
+  let maxProfit = 1;
+
+  for (const [, item] of groups) {
+    maxSales = Math.max(maxSales, item.sales);
+    maxProfit = Math.max(maxProfit, item.profit);
+  }
 
   return groups.map(([name, item]) => {
     const deliveryRate = ratioPercent(item.delivered, item.orders);
@@ -847,9 +856,14 @@ function buildProductGroups(orders: readonly OrderRow[]): readonly ProductGroupR
 
 function buildStatusRows(orders: readonly OrderRow[]): readonly StatusRow[] {
   const total = orders.length;
+  const counts = new Map<string, number>();
+
+  for (const orderRow of orders) {
+    counts.set(orderRow.status, (counts.get(orderRow.status) ?? 0) + 1);
+  }
 
   return STATUS_CONFIG.map((config) => {
-    const count = orders.filter((orderRow) => orderRow.status === config.label).length;
+    const count = counts.get(config.label) ?? 0;
     const percentage = ratioPercent(count, total);
 
     return {
@@ -861,6 +875,18 @@ function buildStatusRows(orders: readonly OrderRow[]): readonly StatusRow[] {
       color: config.color,
     };
   });
+}
+
+function latestDateIso(orders: readonly OrderRow[]): string {
+  let latestDate = '';
+
+  for (const orderRow of orders) {
+    if (orderRow.dateIso > latestDate) {
+      latestDate = orderRow.dateIso;
+    }
+  }
+
+  return latestDate || toDateIso(new Date());
 }
 
 function loadGuidePreferences(): GuidePreference[] {

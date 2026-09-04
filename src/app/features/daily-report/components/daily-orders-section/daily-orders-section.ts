@@ -23,6 +23,15 @@ interface OrderInsight {
   readonly tone: OrderInsightTone;
 }
 
+interface OrderStats {
+  readonly total: number;
+  readonly urgent: number;
+  readonly moving: number;
+  readonly incidents: number;
+  readonly revenueOrders: readonly DailyOrder[];
+  readonly revenue: number;
+}
+
 @Component({
   selector: 'app-daily-orders-section',
   imports: [DataTableComponent],
@@ -37,23 +46,13 @@ export class DailyOrdersSectionComponent {
   readonly actionClick = output<TableActionClick<DailyOrder>>();
 
   readonly selectedInsight = signal<OrderInsightId>('all');
-  readonly totalOrders = computed(() => this.orders().length);
-  readonly urgentOrders = computed(() => this.orders().filter((order) => order.urgent).length);
-  readonly movingOrders = computed(
-    () =>
-      this.orders().filter(
-        (order) => order.status === 'En tránsito' || order.status === 'Despachada',
-      ).length,
-  );
-  readonly incidentOrders = computed(
-    () =>
-      this.orders().filter((order) => order.status === 'Devuelta' || order.status === 'Cancelada')
-        .length,
-  );
-  readonly revenueOrders = computed(() => this.orders().filter((order) => order.orderValue > 0));
-  readonly totalRevenue = computed(() =>
-    this.revenueOrders().reduce((total, order) => total + order.orderValue, 0),
-  );
+  readonly orderStats = computed(() => buildOrderStats(this.orders()));
+  readonly totalOrders = computed(() => this.orderStats().total);
+  readonly urgentOrders = computed(() => this.orderStats().urgent);
+  readonly movingOrders = computed(() => this.orderStats().moving);
+  readonly incidentOrders = computed(() => this.orderStats().incidents);
+  readonly revenueOrders = computed(() => this.orderStats().revenueOrders);
+  readonly totalRevenue = computed(() => this.orderStats().revenue);
   readonly filteredOrders = computed(() => {
     const selectedInsight = this.selectedInsight();
 
@@ -188,6 +187,34 @@ export class DailyOrdersSectionComponent {
   selectInsight(insightId: OrderInsightId): void {
     this.selectedInsight.set(insightId);
   }
+}
+
+function buildOrderStats(orders: readonly DailyOrder[]): OrderStats {
+  const revenueOrders: DailyOrder[] = [];
+  let urgent = 0;
+  let moving = 0;
+  let incidents = 0;
+  let revenue = 0;
+
+  for (const order of orders) {
+    if (order.urgent) urgent += 1;
+    if (order.status === 'En tránsito' || order.status === 'Despachada') moving += 1;
+    if (order.status === 'Devuelta' || order.status === 'Cancelada') incidents += 1;
+
+    if (order.orderValue > 0) {
+      revenueOrders.push(order);
+      revenue += order.orderValue;
+    }
+  }
+
+  return {
+    total: orders.length,
+    urgent,
+    moving,
+    incidents,
+    revenueOrders,
+    revenue,
+  };
 }
 
 function formatCompactCurrency(value: number): string {

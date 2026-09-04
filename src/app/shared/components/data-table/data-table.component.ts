@@ -24,6 +24,8 @@ import {
   sortTableData,
 } from './utils/table.utils';
 
+const statusToneCache = new Map<string, string>();
+
 @Component({
   selector: 'app-data-table',
   imports: [
@@ -109,14 +111,16 @@ export class DataTableComponent<T extends object> {
   });
 
   readonly pagedData = computed(() => {
+    const filteredData = this.filteredData();
+
     if (!this.pageable()) {
-      return this.filteredData();
+      return filteredData;
     }
 
-    return paginateTableData(this.filteredData(), {
+    return paginateTableData(filteredData, {
       pageIndex: this.pageIndex(),
       pageSize: this.currentPageSize(),
-      totalItems: this.filteredData().length,
+      totalItems: filteredData.length,
     });
   });
 
@@ -124,11 +128,14 @@ export class DataTableComponent<T extends object> {
     this.data().filter((row) => this.selectedIds().has(getTableRowId(row, this.rowIdKey()))),
   );
 
-  readonly allVisibleSelected = computed(
-    () =>
-      this.pagedData().length > 0 &&
-      this.pagedData().every((row) => this.selectedIds().has(getTableRowId(row, this.rowIdKey()))),
-  );
+  readonly allVisibleSelected = computed(() => {
+    const pagedData = this.pagedData();
+
+    return (
+      pagedData.length > 0 &&
+      pagedData.every((row) => this.selectedIds().has(getTableRowId(row, this.rowIdKey())))
+    );
+  });
 
   readonly activeFilterCount = computed(
     () =>
@@ -317,8 +324,9 @@ export class DataTableComponent<T extends object> {
   onToggleAllVisible(event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
     const nextSelection = new Set(this.selectedIds());
+    const pagedData = this.pagedData();
 
-    this.pagedData().forEach((row) => {
+    pagedData.forEach((row) => {
       const rowId = getTableRowId(row, this.rowIdKey());
       if (checked) {
         nextSelection.add(rowId);
@@ -366,56 +374,17 @@ export class DataTableComponent<T extends object> {
   }
 
   getStatusTone(value: string): string {
+    const cachedTone = statusToneCache.get(value);
+    if (cachedTone) {
+      return cachedTone;
+    }
+
     const normalizedValue = normalizeStatusValue(value);
+    const tone = resolveStatusTone(normalizedValue);
 
-    if (
-      normalizedValue.includes('activa') ||
-      normalizedValue.includes('activo') ||
-      normalizedValue.includes('entregada') ||
-      normalizedValue.includes('entregado') ||
-      normalizedValue.includes('confirmada') ||
-      normalizedValue.includes('confirmado') ||
-      normalizedValue.includes('pagado') ||
-      normalizedValue.includes('gestionado') ||
-      normalizedValue.includes('finalizado')
-    ) {
-      return 'positive';
-    }
+    statusToneCache.set(value, tone);
 
-    if (
-      normalizedValue.includes('transito') ||
-      normalizedValue.includes('despachada') ||
-      normalizedValue.includes('enviado') ||
-      normalizedValue.includes('asignado') ||
-      normalizedValue.includes('asignada') ||
-      normalizedValue.includes('preparacion')
-    ) {
-      return 'info';
-    }
-
-    if (
-      normalizedValue.includes('borrador') ||
-      normalizedValue.includes('pausado') ||
-      normalizedValue.includes('pendiente') ||
-      normalizedValue.includes('urgente') ||
-      normalizedValue.includes('sin guia')
-    ) {
-      return 'warning';
-    }
-
-    if (
-      normalizedValue.includes('archivado') ||
-      normalizedValue.includes('devuelta') ||
-      normalizedValue.includes('devuelto') ||
-      normalizedValue.includes('fallido') ||
-      normalizedValue.includes('novedad') ||
-      normalizedValue.includes('cancelada') ||
-      normalizedValue.includes('cancelado')
-    ) {
-      return 'danger';
-    }
-
-    return 'neutral';
+    return tone;
   }
 
   private persistPreferences(): void {
@@ -439,6 +408,57 @@ export class DataTableComponent<T extends object> {
       return;
     }
   }
+}
+
+function resolveStatusTone(normalizedValue: string): string {
+  if (
+    normalizedValue.includes('activa') ||
+    normalizedValue.includes('activo') ||
+    normalizedValue.includes('entregada') ||
+    normalizedValue.includes('entregado') ||
+    normalizedValue.includes('confirmada') ||
+    normalizedValue.includes('confirmado') ||
+    normalizedValue.includes('pagado') ||
+    normalizedValue.includes('gestionado') ||
+    normalizedValue.includes('finalizado')
+  ) {
+    return 'positive';
+  }
+
+  if (
+    normalizedValue.includes('transito') ||
+    normalizedValue.includes('despachada') ||
+    normalizedValue.includes('enviado') ||
+    normalizedValue.includes('asignado') ||
+    normalizedValue.includes('asignada') ||
+    normalizedValue.includes('preparacion')
+  ) {
+    return 'info';
+  }
+
+  if (
+    normalizedValue.includes('borrador') ||
+    normalizedValue.includes('pausado') ||
+    normalizedValue.includes('pendiente') ||
+    normalizedValue.includes('urgente') ||
+    normalizedValue.includes('sin guia')
+  ) {
+    return 'warning';
+  }
+
+  if (
+    normalizedValue.includes('archivado') ||
+    normalizedValue.includes('devuelta') ||
+    normalizedValue.includes('devuelto') ||
+    normalizedValue.includes('fallido') ||
+    normalizedValue.includes('novedad') ||
+    normalizedValue.includes('cancelada') ||
+    normalizedValue.includes('cancelado')
+  ) {
+    return 'danger';
+  }
+
+  return 'neutral';
 }
 
 function normalizeStatusValue(value: string): string {

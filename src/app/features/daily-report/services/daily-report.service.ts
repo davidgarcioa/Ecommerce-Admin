@@ -30,8 +30,8 @@ export class DailyReportService {
   readonly exportPanelVisible = this.exportPanelVisibleState.asReadonly();
   readonly selectedOrder = this.selectedOrderState.asReadonly();
 
-  readonly filteredOrders = computed(() => this.resolveVisibleOrders());
   readonly orders = computed(() => this.resolveSourceOrders());
+  readonly filteredOrders = computed(() => this.resolveVisibleOrders(this.orders()));
   readonly summaryMetrics = computed(() => this.createSummaryMetrics(this.filteredOrders()));
   readonly comparison = signal<readonly ReportComparison[]>([]).asReadonly();
   readonly productGroupPerformance = computed(() => this.createProductGroupPerformance());
@@ -86,8 +86,8 @@ export class DailyReportService {
     this.generatedAtState.set(new Date().toISOString());
   }
 
-  private resolveVisibleOrders(): readonly DailyOrder[] {
-    const filteredOrders = this.filterOrders(this.resolveSourceOrders(), this.filtersState());
+  private resolveVisibleOrders(sourceOrders: readonly DailyOrder[]): readonly DailyOrder[] {
+    const filteredOrders = this.filterOrders(sourceOrders, this.filtersState());
 
     if (filteredOrders.length > 0) {
       return filteredOrders;
@@ -235,25 +235,31 @@ export class DailyReportService {
 
   private createSummaryMetrics(orders: readonly DailyOrder[]): readonly DailyMetric[] {
     const safeOrders = normalizeDailyOrders(orders);
-    const deliveries = safeOrders.filter((order) => order.status === 'Entregada').length;
-    const confirmed = safeOrders.filter(
-      (order) => order.status !== 'Pendiente' && order.status !== 'Cancelada',
-    ).length;
-    const sales = safeOrders.reduce((total, order) => total + order.orderValue, 0);
-    const adSpend = safeOrders.reduce((total, order) => total + order.advertisingCost, 0);
-    const operationalCosts = safeOrders.reduce(
-      (total, order) =>
-        total +
-        (order.shippingCost ?? 0) +
-        (order.returnShippingCost ?? 0) +
-        (order.commission ?? 0),
-      0,
-    );
+    let deliveries = 0;
+    let confirmed = 0;
+    let sales = 0;
+    let adSpend = 0;
+    let operationalCosts = 0;
+    let profit = 0;
+    let returns = 0;
+    let cancelled = 0;
+    let urgent = 0;
+
+    for (const order of safeOrders) {
+      if (order.status === 'Entregada') deliveries += 1;
+      if (order.status !== 'Pendiente' && order.status !== 'Cancelada') confirmed += 1;
+      if (order.status === 'Devuelta') returns += 1;
+      if (order.status === 'Cancelada') cancelled += 1;
+      if (order.urgent) urgent += 1;
+
+      sales += order.orderValue;
+      adSpend += order.advertisingCost;
+      operationalCosts +=
+        (order.shippingCost ?? 0) + (order.returnShippingCost ?? 0) + (order.commission ?? 0);
+      profit += order.estimatedProfit;
+    }
+
     const acquisitionCostBase = adSpend > 0 ? adSpend : operationalCosts;
-    const profit = safeOrders.reduce((total, order) => total + order.estimatedProfit, 0);
-    const returns = safeOrders.filter((order) => order.status === 'Devuelta').length;
-    const cancelled = safeOrders.filter((order) => order.status === 'Cancelada').length;
-    const urgent = safeOrders.filter((order) => order.urgent).length;
     const deliveryRate = confirmed === 0 ? 0 : (deliveries / confirmed) * 100;
     const cpa = confirmed === 0 ? 0 : acquisitionCostBase / confirmed;
     const roas = acquisitionCostBase === 0 ? 0 : sales / acquisitionCostBase;
@@ -360,6 +366,7 @@ export class DailyReportService {
   }
 
   private createProductGroupPerformance(): readonly ProductGroupPerformance[] {
+    const filteredOrders = this.filteredOrders();
     const groups = new Map<
       string,
       {
@@ -375,7 +382,7 @@ export class DailyReportService {
       }
     >();
 
-    this.filteredOrders().forEach((order) => {
+    filteredOrders.forEach((order) => {
       const existing = groups.get(order.productGroupId) ?? {
         id: order.productGroupId,
         name: order.productGroupName,
@@ -421,6 +428,7 @@ export class DailyReportService {
 
   private createOperationalStatus(orders: readonly DailyOrder[]) {
     const total = Math.max(orders.length, 1);
+    const counts = new Map<OrderStatus, number>();
     const statuses: readonly OrderStatus[] = [
       'Pendiente',
       'Confirmada',
@@ -432,8 +440,12 @@ export class DailyReportService {
       'Cancelada',
     ];
 
+    for (const order of orders) {
+      counts.set(order.status, (counts.get(order.status) ?? 0) + 1);
+    }
+
     return statuses.map((status) => {
-      const count = orders.filter((order) => order.status === status).length;
+      const count = counts.get(status) ?? 0;
       return { status, count, percentage: (count / total) * 100 };
     });
   }
