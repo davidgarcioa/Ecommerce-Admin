@@ -1,10 +1,10 @@
 import { Routes } from '@angular/router';
 
-import { DashboardPageComponent } from './pages/dashboard-page/dashboard-page';
-
 export const routes: Routes = [
   {
     path: '',
-    component: DashboardPageComponent,
+    loadComponent: () =>
+      import('./pages/dashboard-page/dashboard-page').then((m) => m.DashboardPageComponent),
+    data: { title: 'Dashboard', reuse: true },
   },
 ];

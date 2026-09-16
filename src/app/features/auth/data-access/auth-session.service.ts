@@ -232,7 +232,10 @@ export class AuthSessionService {
       return false;
     }
 
-    return isStaticFrontendApi(this.apiConfig.baseUrl) && [0, 404, 405].includes(error.status);
+    return (
+      (isStaticFrontendApi(this.apiConfig.baseUrl) && [0, 404, 405].includes(error.status)) ||
+      isPendingApprovalError(error)
+    );
   }
 
   private toMessage(error: unknown): string {
@@ -249,6 +252,33 @@ export class AuthSessionService {
 
     return typeof error === 'string' ? error : 'Ocurrió un problema. Inténtalo nuevamente.';
   }
+}
+
+function isPendingApprovalError(error: HttpErrorResponse): boolean {
+  const message = getBackendErrorMessage(error);
+  const normalized = normalizeBackendText(message);
+
+  return (
+    normalized.includes('pendiente') &&
+    (normalized.includes('aprob') || normalized.includes('administrador'))
+  );
+}
+
+function getBackendErrorMessage(error: HttpErrorResponse): string {
+  const response = error.error as Partial<ApiResponse<unknown>> | string | null | undefined;
+
+  if (typeof response === 'string') {
+    return response;
+  }
+
+  return typeof response?.message === 'string' ? response.message : error.message;
+}
+
+function normalizeBackendText(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
 }
 
 function createStaticSession(user: User): AuthSession {

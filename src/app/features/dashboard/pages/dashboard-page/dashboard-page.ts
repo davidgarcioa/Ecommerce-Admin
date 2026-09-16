@@ -100,6 +100,7 @@ interface DashboardTotals {
 }
 
 const GUIDE_STORAGE_KEY = 'linkoba.dashboard.guideSegments';
+const MAX_VISIBLE_GUIDE_SEGMENTS = 5;
 const FALLBACK_GUIDE_SEGMENT: GuideSegment = {
   id: 'sin-datos',
   label: 'Sin estados',
@@ -199,6 +200,7 @@ export class DashboardPageComponent {
   readonly hoveredGuideSegmentId = signal<string | null>(null);
   readonly donutRadius = 45;
   readonly donutCircumference = 2 * Math.PI * this.donutRadius;
+  readonly maxVisibleGuideSegments = MAX_VISIBLE_GUIDE_SEGMENTS;
 
   readonly orders = computed<readonly OrderRow[]>(() =>
     this.importedOrdersStore
@@ -525,7 +527,12 @@ export class DashboardPageComponent {
 
   toggleGuideSegmentVisibility(segmentId: string, visible: boolean): void {
     const segmentExists = this.guideSegments().some((segment) => segment.id === segmentId);
-    if (!segmentExists || (!visible && this.visibleGuideSegments().length <= 1)) {
+    const visibleCount = this.visibleGuideSegments().length;
+    if (
+      !segmentExists ||
+      (!visible && visibleCount <= 1) ||
+      (visible && visibleCount >= MAX_VISIBLE_GUIDE_SEGMENTS)
+    ) {
       return;
     }
 
@@ -564,7 +571,7 @@ export class DashboardPageComponent {
     const preferences = segments.map((segment, index) => ({
       id: segment.id,
       color: defaultGuideColor(segment.label, index),
-      enabled: true,
+      enabled: index < MAX_VISIBLE_GUIDE_SEGMENTS,
     }));
 
     this.setGuidePreferences(preferences);
@@ -572,7 +579,7 @@ export class DashboardPageComponent {
   }
 
   guideBackground(): string {
-    const total = Math.max(this.guideTotal(), 1);
+    const total = Math.max(this.allGuideTotal(), 1);
     let current = 0;
     const segments = this.visibleGuideSegments().map((segment) => {
       const start = current;
@@ -598,7 +605,7 @@ export class DashboardPageComponent {
   }
 
   guideSegmentDash(segment: GuideSegment): string {
-    const total = Math.max(this.guideTotal(), 1);
+    const total = Math.max(this.allGuideTotal(), 1);
     const visibleCount = Math.max(segment.count, 0);
     const segmentLength = (visibleCount / total) * this.donutCircumference;
     const visualLength =
@@ -608,7 +615,7 @@ export class DashboardPageComponent {
   }
 
   guideSegmentOffset(segment: GuideSegment): number {
-    const total = Math.max(this.guideTotal(), 1);
+    const total = Math.max(this.allGuideTotal(), 1);
     let offset = 0;
 
     for (const current of this.visibleGuideSegments()) {
@@ -623,7 +630,7 @@ export class DashboardPageComponent {
   }
 
   segmentShare(segment: GuideSegment): string {
-    const total = Math.max(this.guideTotal(), 1);
+    const total = Math.max(this.allGuideTotal(), 1);
     return `${formatPercent((segment.count / total) * 100)} %`;
   }
 
@@ -778,6 +785,8 @@ function buildGuideSegments(
       const legacyPreference = preferenceById.get(LEGACY_GUIDE_IDS_BY_LABEL.get(id) ?? '');
       const preference = preferenceById.get(id) ?? legacyPreference;
 
+      const enabledByDefault = index < MAX_VISIBLE_GUIDE_SEGMENTS;
+
       return {
         id,
         label: item.label,
@@ -785,7 +794,17 @@ function buildGuideSegments(
         color: isHexColor(preference?.color)
           ? preference.color
           : defaultGuideColor(item.label, index),
-        enabled: typeof preference?.enabled === 'boolean' ? preference.enabled : true,
+        enabled: typeof preference?.enabled === 'boolean' ? preference.enabled : enabledByDefault,
+      };
+    })
+    .map((segment, index, segments) => {
+      const enabledBeforeCurrent = segments
+        .slice(0, index)
+        .filter((current) => current.enabled).length;
+
+      return {
+        ...segment,
+        enabled: segment.enabled && enabledBeforeCurrent < MAX_VISIBLE_GUIDE_SEGMENTS,
       };
     });
 }

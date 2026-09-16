@@ -39,11 +39,11 @@
 
     &:hover {
       background:
-        radial-gradient(circle at 12% 0%, rgb(59 130 246 / 10%), transparent 30%),
+        radial-gradient(circle at 12% 0%, rgb(59 130 246 / 6%), transparent 30%),
         var(--color-card-elevated);
-      border-color: rgb(59 130 246 / 42%);
-      box-shadow: 0 0 1.35rem rgb(59 130 246 / 10%);
-      transform: translateY(-0.0625rem);
+      border-color: rgb(59 130 246 / 24%);
+      box-shadow: 0 0 0.5rem rgb(59 130 246 / 6%);
+      transform: translateY(-0.03125rem);
     }
 
     h1 {
@@ -116,8 +116,8 @@
         ),
         var(--color-card-elevated);
       border-color: color-mix(in srgb, var(--files-accent) 42%, var(--color-border));
-      box-shadow: 0 0 1.15rem color-mix(in srgb, var(--files-accent) 13%, transparent);
-      transform: translateY(-0.0625rem);
+      box-shadow: 0 0 0.7rem color-mix(in srgb, var(--files-accent) 13%, transparent);
+      transform: translateY(-0.03125rem);
     }
 
     i {
@@ -265,8 +265,8 @@
       &:hover,
       &:focus {
         background: rgb(0 0 0 / 46%);
-        border-color: rgb(59 130 246 / 58%);
-        box-shadow: 0 0 0.75rem rgb(59 130 246 / 9%);
+        border-color: rgb(59 130 246 / 34%);
+        box-shadow: 0 0 0.75rem rgb(59 130 246 / 5%);
       }
 
       option {
@@ -336,9 +336,9 @@
 
   &:hover:not(:disabled) {
     background: var(--color-card-elevated);
-    border-color: rgb(59 130 246 / 45%);
-    box-shadow: 0 0 0.85rem rgb(59 130 246 / 10%);
-    transform: translateY(-0.0625rem);
+    border-color: rgb(59 130 246 / 26%);
+    box-shadow: 0 0 0.55rem rgb(59 130 246 / 6%);
+    transform: translateY(-0.03125rem);
   }
 
   &--active {

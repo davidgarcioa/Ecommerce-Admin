@@ -5,7 +5,7 @@ export const routes: Routes = [
     path: '',
     loadComponent: () =>
       import('./pages/testing-page/testing-page').then((m) => m.TestingPageComponent),
-    data: { title: 'Testeos' },
+    data: { title: 'Testeos', reuse: true },
   },
   {
     path: 'nuevo',

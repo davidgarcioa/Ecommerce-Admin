@@ -1,6 +1,8 @@
 <section class="quick-access" aria-labelledby="quick-access-title">
   <div class="quick-access__heading">
-    <h2 id="quick-access-title">Accesos principales</h2>
+    <div>
+      <h2 id="quick-access-title">Accesos principales</h2>
+    </div>
     @if (availableItems().length > 0) {
       <button
         class="quick-access__customize"
@@ -24,7 +26,9 @@
           <span class="material-symbols-rounded" aria-hidden="true">{{ item.icon }}</span>
           <strong>{{ item.title }}</strong>
           <p>{{ item.description }}</p>
-          <small aria-hidden="true">{{ item.actionLabel }}</small>
+          <small aria-hidden="true">
+            <span class="material-symbols-rounded">arrow_forward</span>
+          </small>
         </a>
       }
     </nav>

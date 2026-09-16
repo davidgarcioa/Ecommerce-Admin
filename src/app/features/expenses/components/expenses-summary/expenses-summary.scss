@@ -41,8 +41,8 @@
         ),
         var(--color-card-elevated);
       border-color: color-mix(in srgb, var(--expense-accent) 42%, var(--color-border));
-      box-shadow: 0 0 1.25rem color-mix(in srgb, var(--expense-accent) 14%, transparent);
-      transform: translateY(-0.0625rem);
+      box-shadow: 0 0 0.75rem color-mix(in srgb, var(--expense-accent) 14%, transparent);
+      transform: translateY(-0.03125rem);
     }
 
     p,
@@ -137,11 +137,11 @@
 
     &:hover {
       background:
-        radial-gradient(circle at 8% 0%, rgb(59 130 246 / 7%), transparent 28%),
+        radial-gradient(circle at 8% 0%, rgb(59 130 246 / 4%), transparent 28%),
         var(--color-card-elevated);
-      border-color: rgb(59 130 246 / 28%);
-      box-shadow: 0 0 1rem rgb(59 130 246 / 8%);
-      transform: translateY(-0.0625rem);
+      border-color: rgb(59 130 246 / 16%);
+      box-shadow: 0 0 0.65rem rgb(59 130 246 / 5%);
+      transform: translateY(-0.03125rem);
     }
 
     header {

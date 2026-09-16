@@ -42,7 +42,7 @@
   &__tabs button:hover {
     background: var(--color-card-elevated);
     border-color: var(--color-separator);
-    transform: translateY(-1px);
+    transform: translateY(-0.5px);
   }
 
   &__primary {
@@ -57,7 +57,7 @@
   }
 
   &__tabs button.files-page__tab--active:hover {
-    background: rgb(59 130 246 / 24%);
+    background: rgb(59 130 246 / 14%);
     border-color: rgb(59 130 246);
     color: var(--color-text-primary);
   }

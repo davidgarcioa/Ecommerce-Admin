@@ -42,8 +42,8 @@
         ),
         var(--color-card-elevated);
       border-color: color-mix(in srgb, var(--tag-accent) 46%, var(--color-border));
-      box-shadow: 0 0 1.25rem color-mix(in srgb, var(--tag-accent) 14%, transparent);
-      transform: translateY(-0.0625rem);
+      box-shadow: 0 0 0.75rem color-mix(in srgb, var(--tag-accent) 14%, transparent);
+      transform: translateY(-0.03125rem);
     }
   }
 

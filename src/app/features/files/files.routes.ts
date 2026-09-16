@@ -1,30 +1,35 @@
 import { Routes } from '@angular/router';
 
-import { FileDetailPageComponent } from './pages/file-detail-page/file-detail-page';
-import { FileEditPageComponent } from './pages/file-edit-page/file-edit-page';
-import { FileUploadPageComponent } from './pages/file-upload-page/file-upload-page';
-import { FilesManagerPageComponent } from './pages/files-manager-page/files-manager-page';
-import { FilesPageComponent } from './pages/files-page/files-page';
-
 export const routes: Routes = [
   {
     path: '',
-    component: FilesManagerPageComponent,
+    loadComponent: () =>
+      import('./pages/files-manager-page/files-manager-page').then(
+        (m) => m.FilesManagerPageComponent,
+      ),
+    data: { title: 'Archivos', reuse: true },
   },
   {
     path: 'subir',
-    component: FileUploadPageComponent,
+    loadComponent: () =>
+      import('./pages/file-upload-page/file-upload-page').then((m) => m.FileUploadPageComponent),
+    data: { title: 'Subir archivo' },
   },
   {
     path: 'importar',
-    component: FilesPageComponent,
+    loadComponent: () => import('./pages/files-page/files-page').then((m) => m.FilesPageComponent),
+    data: { title: 'Importar datos' },
   },
   {
     path: ':id/editar',
-    component: FileEditPageComponent,
+    loadComponent: () =>
+      import('./pages/file-edit-page/file-edit-page').then((m) => m.FileEditPageComponent),
+    data: { title: 'Editar archivo' },
   },
   {
     path: ':id',
-    component: FileDetailPageComponent,
+    loadComponent: () =>
+      import('./pages/file-detail-page/file-detail-page').then((m) => m.FileDetailPageComponent),
+    data: { title: 'Detalle de archivo' },
   },
 ];

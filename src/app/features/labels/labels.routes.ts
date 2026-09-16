@@ -5,7 +5,7 @@ export const routes: Routes = [
     path: '',
     loadComponent: () =>
       import('./pages/labels-page/labels-page').then((m) => m.LabelsPageComponent),
-    data: { title: 'Etiquetas' },
+    data: { title: 'Etiquetas', reuse: true },
   },
   {
     path: 'nueva',

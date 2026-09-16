@@ -5,6 +5,6 @@ export const routes: Routes = [
     path: '',
     loadComponent: () =>
       import('./pages/home-page/home-page').then((component) => component.HomePageComponent),
-    data: { title: 'Inicio' },
+    data: { title: 'Inicio', reuse: true },
   },
 ];

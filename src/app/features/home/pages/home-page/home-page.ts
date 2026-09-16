@@ -18,7 +18,6 @@ export class HomePageComponent implements OnInit {
 
   readonly greeting = this.store.greeting;
   readonly userName = this.store.userName;
-  readonly userRoleLabel = this.store.userRoleLabel;
   readonly currentDate = this.store.currentDate;
   readonly availableQuickAccessItems = this.store.availableQuickAccessItems;
   readonly selectedQuickAccessItemIds = this.store.selectedQuickAccessItemIds;

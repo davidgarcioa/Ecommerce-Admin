@@ -1,82 +1,67 @@
 @use '../../../../styles/abstracts/variables' as *;
 
 .home-header {
-  align-items: start;
+  align-items: center;
   display: flex;
-  gap: $space-6;
+  gap: $space-5;
   justify-content: space-between;
   min-width: 0;
+  padding: 0;
+  position: relative;
 
   &__identity {
-    align-items: center;
+    align-items: flex-start;
     display: flex;
     gap: $space-4;
     min-width: 0;
   }
 
-  &__avatar {
-    align-items: center;
-    background:
-      radial-gradient(circle at 38% 22%, rgb(59 130 246 / 18%), transparent 48%), var(--color-card);
-    border: 1px solid rgb(59 130 246 / 55%);
-    border-radius: 999px;
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 4%);
-    color: var(--color-interaction);
-    display: inline-flex;
-    flex: 0 0 3.25rem;
-    font-weight: $font-weight-bold;
-    height: 3.25rem;
-    justify-content: center;
-    position: relative;
-    transition:
-      background 180ms ease,
-      border-color 180ms ease,
-      box-shadow 180ms ease,
-      color 180ms ease,
-      transform 180ms ease;
+  &__content {
+    display: grid;
+    gap: 0;
+    min-width: 0;
+  }
 
-    .material-symbols-rounded {
-      color: var(--color-interaction);
-      font-size: 1.35rem;
-      line-height: 1;
-      position: relative;
-      z-index: 1;
-    }
+  &__date {
+    color: var(--color-text-disabled);
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+    letter-spacing: 0;
+    line-height: 1.2;
+    margin: 0 0 $space-1;
+  }
 
-    &:hover {
-      background:
-        radial-gradient(circle at 38% 22%, rgb(59 130 246 / 28%), transparent 52%),
-        var(--color-card-elevated);
-      border-color: var(--color-interaction);
-      box-shadow:
-        0 0 1.4rem rgb(59 130 246 / 18%),
-        inset 0 0 0 1px rgb(255 255 255 / 6%);
-      color: var(--color-interaction);
-      transform: translateY(-0.0625rem);
-    }
+  &__subtitle {
+    color: var(--color-text-secondary);
+    font-size: $font-size-md;
+    line-height: 1.35;
+    margin: $space-1 0 0;
   }
 
   h1 {
     color: var(--color-text-primary);
-    font-size: clamp(1.875rem, 2.75vw, 2.5rem);
+    font-size: 2rem;
     font-weight: $font-weight-bold;
     letter-spacing: 0;
-    line-height: 1.05;
-    margin: $space-1 0 $space-2;
-  }
-
-  p,
-  span {
-    color: var(--color-text-secondary);
+    line-height: 1.1;
     margin: 0;
-  }
-
-  p {
-    font-weight: $font-weight-medium;
   }
 }
 @media (max-width: 720px) {
   .home-header {
     display: grid;
+    padding-top: 0;
+  }
+
+  .home-header__identity {
+    gap: $space-3;
+  }
+
+  .home-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .home-header__subtitle {
+    font-size: $font-size-sm;
   }
 }

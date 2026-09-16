@@ -55,8 +55,8 @@
 
     &:hover {
       background: var(--color-card-elevated);
-      border-color: rgb(59 130 246 / 48%);
-      transform: translateY(-1px);
+      border-color: rgb(59 130 246 / 28%);
+      transform: translateY(-0.5px);
     }
 
     &:focus-visible {

@@ -7,6 +7,7 @@ export const routes: Routes = [
       import('./pages/product-groups-page/product-groups-page').then(
         (m) => m.ProductGroupsPageComponent,
       ),
+    data: { title: 'Conjuntos', reuse: true },
   },
   {
     path: 'nuevo',

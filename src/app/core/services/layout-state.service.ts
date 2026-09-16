@@ -29,6 +29,10 @@ export class LayoutStateService {
 
   readonly activeTitle = computed(() => this.activeItem()?.label ?? 'Inicio');
   readonly isHomeRoute = computed(() => this.currentUrlState() === '/inicio');
+  readonly isTopbarSearchVisible = computed(() => {
+    const currentPath = this.currentUrlState().split(/[?#]/)[0];
+    return currentPath !== '/inicio' && !currentPath.startsWith('/dashboard');
+  });
 
   readonly breadcrumbs = computed<readonly Breadcrumb[]>(() => {
     const currentUrl = this.currentUrlState();

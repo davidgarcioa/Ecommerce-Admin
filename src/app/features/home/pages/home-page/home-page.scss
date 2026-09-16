@@ -1,15 +1,16 @@
 @use '../../../../styles/abstracts/variables' as *;
 
 .home-page {
+  align-content: start;
   animation: home-page-fade-in $transition-slow both;
   border-radius: $radius-lg;
   display: grid;
-  gap: $space-8;
+  gap: $space-10;
   margin: 0 auto;
-  max-width: 82rem;
+  max-width: 90rem;
   min-width: 0;
   overflow: hidden;
-  padding: $space-6 $space-6 $space-8;
+  padding: $space-8 $space-8 $space-12;
   position: relative;
   width: 100%;
 
@@ -35,9 +36,9 @@
       transform 180ms ease;
 
     &:hover {
-      border-color: rgb(59 130 246 / 38%);
-      box-shadow: 0 0 1.2rem rgb(59 130 246 / 10%);
-      transform: translateY(-0.0625rem);
+      border-color: rgb(59 130 246 / 22%);
+      box-shadow: 0 0 1.2rem rgb(59 130 246 / 6%);
+      transform: translateY(-0.03125rem);
     }
 
     strong {
@@ -76,10 +77,10 @@
 
       &:hover,
       &:focus-visible {
-        background: rgb(59 130 246 / 9%);
-        border-color: rgb(59 130 246 / 42%);
-        box-shadow: 0 0 1rem rgb(59 130 246 / 12%);
-        transform: translateY(-0.0625rem);
+        background: rgb(59 130 246 / 5%);
+        border-color: rgb(59 130 246 / 24%);
+        box-shadow: 0 0 0.65rem rgb(59 130 246 / 7%);
+        transform: translateY(-0.03125rem);
       }
     }
   }
@@ -97,8 +98,8 @@
 
 @media (max-width: 640px) {
   .home-page {
-    gap: $space-5;
-    padding: $space-3 0 $space-5;
+    gap: $space-6;
+    padding: $space-5 $space-4 $space-8;
   }
 
   .home-page__error,

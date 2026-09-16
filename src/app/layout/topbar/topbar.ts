@@ -31,11 +31,13 @@ export class Topbar {
   readonly title = this.layoutState.activeTitle;
   readonly breadcrumbs = this.layoutState.breadcrumbs;
   readonly isHomeRoute = this.layoutState.isHomeRoute;
+  readonly isTopbarSearchVisible = this.layoutState.isTopbarSearchVisible;
   readonly searchQuery = signal('');
   readonly searchOpen = signal(false);
   readonly loggingOut = signal(false);
+  readonly currentThemeLabel = computed(() => (this.theme.isLight() ? 'Claro' : 'Oscuro'));
+  readonly currentThemeIcon = computed(() => (this.theme.isLight() ? 'light_mode' : 'dark_mode'));
   readonly themeToggleLabel = this.theme.nextThemeLabel;
-  readonly themeToggleIcon = this.theme.nextThemeIcon;
   readonly searchResults = computed<readonly TopbarSearchResult[]>(() => {
     const query = normalizeSearchText(this.searchQuery());
     const allowedItems = APP_NAVIGATION_ITEMS.filter((item) => {

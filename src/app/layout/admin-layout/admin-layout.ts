@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import { LayoutStateService } from '../../core/services/layout-state.service';
+import { NavigationWarmupService } from '../../core/routing/navigation-warmup.service';
 import { PageContainer } from '../page-container/page-container';
 import { Sidebar } from '../sidebar/sidebar';
 import { Topbar } from '../topbar/topbar';
@@ -14,7 +15,12 @@ import { Topbar } from '../topbar/topbar';
 })
 export class AdminLayout {
   private readonly layoutState = inject(LayoutStateService);
+  private readonly navigationWarmup = inject(NavigationWarmupService);
   readonly isSidebarCollapsed = this.layoutState.isSidebarCollapsed;
+
+  constructor() {
+    this.navigationWarmup.warmupAdminPages();
+  }
 
   toggleSidebar(): void {
     this.layoutState.toggleSidebar();

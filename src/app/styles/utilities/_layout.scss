@@ -19,8 +19,8 @@
 
   &:hover {
     background: var(--color-hover);
-    border-color: var(--color-interaction);
-    color: var(--color-interaction);
+    border-color: color-mix(in srgb, var(--color-interaction) 34%, var(--color-border));
+    color: var(--color-text-primary);
   }
 
   &:focus-visible {

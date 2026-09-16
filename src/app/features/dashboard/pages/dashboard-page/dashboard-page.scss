@@ -2,7 +2,7 @@
 
 .dashboard-page {
   display: grid;
-  gap: $space-8;
+  gap: $space-6;
   min-width: 0;
 }
 
@@ -10,7 +10,7 @@
 .summary-cards,
 .status-grid {
   display: grid;
-  gap: $space-4;
+  gap: $space-3;
   min-width: 0;
 }
 
@@ -56,12 +56,12 @@
 .donut-card {
   align-items: center;
   display: grid;
-  gap: $space-3;
-  grid-template-rows: 8.75rem auto auto minmax(2.45rem, auto);
+  gap: $space-2;
+  grid-template-rows: 7.4rem auto auto;
   justify-items: center;
-  min-height: 17rem;
+  min-height: 13.75rem;
   min-width: 0;
-  padding: $space-5;
+  padding: $space-4;
   position: relative;
   text-align: center;
 
@@ -69,19 +69,19 @@
     align-items: center;
     border-radius: 50%;
     display: grid;
-    height: 8.75rem;
+    height: 7.4rem;
     justify-items: center;
     position: relative;
-    width: 8.75rem;
+    width: 7.4rem;
 
     &::after {
       background: var(--color-card);
       border: 1px solid rgb(255 255 255 / 7%);
       border-radius: inherit;
       content: '';
-      height: 5.85rem;
+      height: 4.95rem;
       position: absolute;
-      width: 5.85rem;
+      width: 4.95rem;
       z-index: 1;
     }
 
@@ -101,7 +101,7 @@
     &__track,
     &__segment {
       fill: none;
-      stroke-width: 16;
+      stroke-width: 14;
     }
 
     &__track {
@@ -119,9 +119,9 @@
 
     &__segment:hover,
     &__segment:focus {
-      filter: drop-shadow(0 0 0.45rem currentColor);
+      filter: drop-shadow(0 0 0.32rem currentColor);
       opacity: 0.96;
-      stroke-width: 18;
+      stroke-width: 15.5;
     }
   }
 
@@ -139,7 +139,7 @@
       font-weight: $font-weight-semibold;
       line-height: 1.15;
       margin-top: $space-1;
-      max-width: 4.9rem;
+      max-width: 4.4rem;
       overflow-wrap: anywhere;
       text-align: center;
     }
@@ -147,10 +147,10 @@
 
   &__value {
     color: var(--color-text-primary);
-    font-size: $font-size-lg;
+    font-size: 1.12rem;
     font-weight: $font-weight-bold;
     line-height: 1.05;
-    max-width: 4.8rem;
+    max-width: 4.4rem;
     position: relative;
     z-index: 2;
   }
@@ -161,71 +161,25 @@
 
   strong {
     color: var(--color-text-primary);
-    font-size: $font-size-lg;
+    font-size: 1.05rem;
     line-height: 1.15;
   }
 
   p {
     color: var(--color-text-secondary);
-    font-size: $font-size-sm;
+    font-size: 0.78rem;
     margin: 0;
   }
 
   &__tool {
     position: absolute;
-    right: $space-4;
-    top: $space-4;
-  }
-
-  &__legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: $space-2 $space-3;
-    justify-content: center;
-
-    span {
-      border-left: 0.18rem solid;
-      color: var(--color-text-secondary);
-      display: inline-flex;
-      font-size: $font-size-xs;
-      font-weight: $font-weight-semibold;
-      gap: $space-1;
-      outline: none;
-      padding-left: $space-2;
-    }
-
-    b {
-      color: inherit;
-      font: inherit;
-    }
-
-    small {
-      color: var(--color-text-primary);
-      font-size: inherit;
-      max-width: 0;
-      opacity: 0;
-      overflow: hidden;
-      transition:
-        max-width $transition-base,
-        opacity $transition-base;
-      white-space: nowrap;
-    }
-
-    &--placeholder {
-      min-height: 2.45rem;
-      visibility: hidden;
-    }
+    right: $space-3;
+    top: $space-3;
   }
 }
 
 .donut-card--guide {
   z-index: 3;
-}
-
-.donut-card__legend span:hover small,
-.donut-card__legend span:focus small {
-  max-width: 3.25rem;
-  opacity: 1;
 }
 
 .icon-button,
@@ -253,6 +207,12 @@
   height: 2.2rem;
   padding: 0;
   width: 2.2rem;
+}
+
+.donut-card__tool {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .ghost-button,
@@ -614,7 +574,7 @@ button:disabled {
 .metric-card {
   display: grid;
   gap: $space-3;
-  min-height: 10.25rem;
+  min-height: 8.75rem;
   overflow: hidden;
   padding: $space-4;
   position: relative;
@@ -633,7 +593,7 @@ button:disabled {
   &__top {
     align-items: center;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
 
     span {
       align-items: center;
@@ -646,13 +606,6 @@ button:disabled {
       height: 2rem;
       justify-content: center;
       width: 2rem;
-    }
-
-    i {
-      background: var(--accent);
-      border-radius: 50%;
-      height: 0.36rem;
-      width: 0.36rem;
     }
   }
 
@@ -683,7 +636,6 @@ button:disabled {
   }
 }
 
-.metric-card__bar,
 .group-row__track,
 .status-card__bar {
   background: rgb(255 255 255 / 7%);
@@ -700,7 +652,6 @@ button:disabled {
   }
 }
 
-.metric-card__bar span,
 .group-row__track i {
   background: var(--accent, var(--color-interaction));
 }
@@ -1042,7 +993,6 @@ button:disabled {
 }
 
 @media (hover: hover) {
-  .summary-section:hover,
   .group-section:hover,
   .status-section:hover,
   .orders-section:hover,
@@ -1055,9 +1005,9 @@ button:disabled {
       var(--color-card);
     border-color: color-mix(in srgb, var(--color-border) 48%, var(--accent));
     box-shadow:
-      0 0 1.25rem color-mix(in srgb, var(--accent) 20%, transparent),
+      0 0 0.75rem color-mix(in srgb, var(--accent) 20%, transparent),
       inset 0 1px 0 rgb(255 255 255 / 5%);
-    transform: translateY(-0.12rem);
+    transform: translateY(-0.03125rem);
   }
 
   .icon-button:hover,
@@ -1071,14 +1021,21 @@ button:disabled {
       var(--color-border) 44%,
       var(--accent, var(--color-interaction))
     );
-    box-shadow: 0 0 1rem
+    box-shadow: 0 0 0.65rem
       color-mix(in srgb, var(--accent, var(--color-interaction)) 18%, transparent);
     color: var(--color-text-primary);
   }
 
+  .donut-card__tool:hover {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    color: var(--color-text-primary);
+  }
+
   .date-presets button:hover {
-    background: rgb(59 130 246 / 14%);
-    box-shadow: 0 0 0.8rem rgb(59 130 246 / 14%);
+    background: rgb(59 130 246 / 8%);
+    box-shadow: 0 0 0.5rem rgb(59 130 246 / 8%);
     color: var(--color-text-primary);
   }
 
@@ -1086,8 +1043,8 @@ button:disabled {
   .filter-field input:hover,
   .filter-field select:hover,
   .date-presets div:hover {
-    border-color: rgb(59 130 246 / 34%);
-    box-shadow: 0 0 1rem rgb(59 130 246 / 12%);
+    border-color: rgb(59 130 246 / 20%);
+    box-shadow: 0 0 0.65rem rgb(59 130 246 / 7%);
   }
 
   .filter-control:focus-within,
@@ -1100,7 +1057,7 @@ button:disabled {
 
   .orders-table tbody tr:hover {
     background: rgb(255 255 255 / 3%);
-    box-shadow: inset 0 0 1rem rgb(59 130 246 / 7%);
+    box-shadow: inset 0 0 0.65rem rgb(59 130 246 / 4%);
   }
 }
 

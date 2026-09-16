@@ -26,7 +26,6 @@
         </span>
         <strong>{{ metric.label }}</strong>
         <p>{{ metric.helper }}</p>
-        <div class="donut-card__legend donut-card__legend--placeholder" aria-hidden="true"></div>
       </article>
     }
 
@@ -73,20 +72,12 @@
             <span class="donut-card__value">{{ segmentShare(segment) }}</span>
             <small>{{ segment.label }}</small>
           } @else {
-            <span class="donut-card__value">{{ guideTotal() }}</span>
+            <span class="donut-card__value">{{ allGuideTotal() }}</span>
           }
         </span>
       </span>
       <strong>Estado de guía</strong>
       <p>Distribución por colores</p>
-      <div class="donut-card__legend" aria-label="Estados de guía">
-        @for (segment of visibleGuideSegments(); track segment.id) {
-          <span tabindex="0" [style.border-color]="segment.color">
-            <b>{{ segment.label }}</b>
-            <small>{{ segmentShare(segment) }}</small>
-          </span>
-        }
-      </div>
     </article>
 
     <article
@@ -117,7 +108,6 @@
       </span>
       <strong>{{ marginDonutMetric().label }}</strong>
       <p>{{ marginDonutMetric().helper }}</p>
-      <div class="donut-card__legend donut-card__legend--placeholder" aria-hidden="true"></div>
     </article>
   </section>
 
@@ -137,7 +127,9 @@
         <header>
           <div>
             <h3 id="guide-editor-title">Editar estados de guía</h3>
-            <p>{{ guideTotal() }} visibles de {{ allGuideTotal() }} guías</p>
+            <p>
+              {{ visibleGuideSegments().length }} de {{ maxVisibleGuideSegments }} estados visibles
+            </p>
           </div>
           <button
             class="icon-button"
@@ -181,7 +173,11 @@
             <input
               type="checkbox"
               [checked]="selectedGuideSegment().enabled"
-              [disabled]="selectedGuideSegment().enabled && visibleGuideSegments().length <= 1"
+              [disabled]="
+                (selectedGuideSegment().enabled && visibleGuideSegments().length <= 1) ||
+                (!selectedGuideSegment().enabled &&
+                  visibleGuideSegments().length >= maxVisibleGuideSegments)
+              "
               (change)="toggleSelectedGuideSegmentVisibility($any($event.target).checked)"
             />
             <span>Mostrar en dona</span>
@@ -224,7 +220,10 @@
                   type="checkbox"
                   [attr.data-testid]="'guide-visibility-' + segment.id"
                   [checked]="segment.enabled"
-                  [disabled]="segment.enabled && visibleGuideSegments().length <= 1"
+                  [disabled]="
+                    (segment.enabled && visibleGuideSegments().length <= 1) ||
+                    (!segment.enabled && visibleGuideSegments().length >= maxVisibleGuideSegments)
+                  "
                   [attr.aria-label]="'Mostrar ' + segment.label + ' en la dona'"
                   (change)="toggleGuideSegmentVisibility(segment.id, $any($event.target).checked)"
                 />
@@ -266,16 +265,12 @@
         >
           <div class="metric-card__top">
             <span class="material-symbols-rounded" aria-hidden="true">{{ metric.icon }}</span>
-            <i aria-hidden="true"></i>
           </div>
           <div>
             <p>{{ metric.title }}</p>
             <strong>{{ metric.value }}</strong>
             <small>{{ metric.subtitle }}</small>
           </div>
-          <span class="metric-card__bar" [attr.title]="metric.title">
-            <span [style.width.%]="metric.percentage"></span>
-          </span>
         </article>
       }
     </div>

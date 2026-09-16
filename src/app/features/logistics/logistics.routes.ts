@@ -7,7 +7,7 @@ export const routes: Routes = [
       import('./pages/logistics-tower-page/logistics-tower-page').then(
         (component) => component.LogisticsTowerPageComponent,
       ),
-    data: { title: 'Torre Logística' },
+    data: { title: 'Torre Logística', reuse: true },
   },
   {
     path: 'pendientes',

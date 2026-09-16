@@ -269,7 +269,7 @@
   }
 
   &:not(:disabled):hover {
-    transform: translateY(-1px);
+    transform: translateY(-0.5px);
   }
 }
 
@@ -323,9 +323,9 @@
 
   &:not(:disabled):hover,
   &:focus-visible {
-    border-color: var(--color-interaction);
-    box-shadow: 0 0 22px color-mix(in srgb, var(--color-interaction) 20%, transparent);
-    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--color-interaction) 34%, var(--color-border));
+    box-shadow: 0 0 22px color-mix(in srgb, var(--color-interaction) 12%, transparent);
+    transform: translateY(-0.5px);
   }
 }
 

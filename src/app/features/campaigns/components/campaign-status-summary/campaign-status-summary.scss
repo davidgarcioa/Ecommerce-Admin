@@ -37,8 +37,8 @@
     &:hover {
       background: var(--color-card-elevated);
       border-color: var(--status-accent);
-      box-shadow: 0 0 1.15rem color-mix(in srgb, var(--status-accent), transparent 72%);
-      transform: translateY(-0.0625rem);
+      box-shadow: 0 0 0.7rem color-mix(in srgb, var(--status-accent), transparent 72%);
+      transform: translateY(-0.03125rem);
     }
 
     &:nth-child(2) {

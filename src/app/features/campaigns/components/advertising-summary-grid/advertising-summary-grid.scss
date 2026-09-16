@@ -43,7 +43,7 @@
         radial-gradient(circle at 12% 0%, rgb(var(--summary-accent) / 13%), transparent 36%),
         var(--color-card-elevated);
       border-color: rgb(var(--summary-accent) / 42%);
-      box-shadow: 0 0 1.25rem rgb(var(--summary-accent) / 12%);
+      box-shadow: 0 0 0.75rem rgb(var(--summary-accent) / 12%);
       transform: translateY(-0.075rem);
     }
 

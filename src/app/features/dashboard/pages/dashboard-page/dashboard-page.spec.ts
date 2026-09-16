@@ -30,6 +30,7 @@ describe('DashboardPageComponent', () => {
 
   it('should render dashboard page with imported orders', () => {
     const fixture = TestBed.createComponent(DashboardPageComponent);
+    const component = fixture.componentInstance;
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
@@ -41,6 +42,7 @@ describe('DashboardPageComponent', () => {
     expect(compiled.textContent).toContain('6 de 6 órdenes');
     expect(compiled.querySelector('[data-testid="orders-filters"]')).toBeNull();
     expect(compiled.querySelectorAll('.donut-card .donut-chart')).toHaveLength(4);
+    expect(component.visibleGuideSegments()).toHaveLength(5);
   });
 
   it('should toggle the guide editor from the real edit button', () => {
@@ -146,22 +148,44 @@ describe('DashboardPageComponent', () => {
     editButton.click();
     fixture.detectChanges();
 
-    const cancelledToggle = fixture.nativeElement.querySelector(
-      '[data-testid="guide-visibility-cancelada"]',
+    const issueToggle = fixture.nativeElement.querySelector(
+      '[data-testid="guide-visibility-novedad"]',
     ) as HTMLInputElement;
-    cancelledToggle.checked = false;
-    cancelledToggle.dispatchEvent(new Event('change'));
+    issueToggle.checked = false;
+    issueToggle.dispatchEvent(new Event('change'));
     fixture.detectChanges();
 
-    const legend = fixture.nativeElement.querySelector(
-      '.donut-card--guide .donut-card__legend',
-    ) as HTMLElement;
+    expect(component.visibleGuideSegments().some((segment) => segment.id === 'novedad')).toBe(
+      false,
+    );
+    expect(component.guideTotal()).toBe(4);
+    expect(component.guideBackground()).not.toContain('#ef4444');
+    expect(fixture.nativeElement.querySelectorAll('.donut-chart__segment--guide')).toHaveLength(4);
+  });
+
+  it('should keep the guide donut limited to five visible statuses', () => {
+    const fixture = TestBed.createComponent(DashboardPageComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(component.visibleGuideSegments()).toHaveLength(5);
     expect(component.visibleGuideSegments().some((segment) => segment.id === 'cancelada')).toBe(
       false,
     );
-    expect(component.guideTotal()).toBe(5);
-    expect(component.guideBackground()).not.toContain('#d99009');
-    expect(legend.textContent).not.toContain('Cancelada');
+
+    component.toggleGuideSegmentVisibility('cancelada', true);
+    expect(component.visibleGuideSegments()).toHaveLength(5);
+    expect(component.visibleGuideSegments().some((segment) => segment.id === 'cancelada')).toBe(
+      false,
+    );
+
+    component.toggleGuideSegmentVisibility('novedad', false);
+    component.toggleGuideSegmentVisibility('cancelada', true);
+
+    expect(component.visibleGuideSegments()).toHaveLength(5);
+    expect(component.visibleGuideSegments().some((segment) => segment.id === 'cancelada')).toBe(
+      true,
+    );
   });
 
   it('should show a guide percentage only when hovering a real donut segment', () => {

@@ -5,7 +5,7 @@ export const routes: Routes = [
     path: '',
     loadComponent: () =>
       import('./pages/office-page/office-page').then((component) => component.OfficePageComponent),
-    data: { title: 'Oficina' },
+    data: { title: 'Oficina', reuse: true },
   },
   {
     path: 'pendientes',

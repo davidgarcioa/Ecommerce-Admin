@@ -38,11 +38,11 @@
 
     &:hover,
     &:focus-visible {
-      background: rgb(59 130 246 / 8%);
-      border-color: rgb(59 130 246 / 42%);
-      box-shadow: 0 0 1rem rgb(59 130 246 / 9%);
+      background: rgb(59 130 246 / 5%);
+      border-color: rgb(59 130 246 / 24%);
+      box-shadow: 0 0 0.65rem rgb(59 130 246 / 5%);
       outline: none;
-      transform: translateY(-0.0625rem);
+      transform: translateY(-0.03125rem);
     }
   }
 
@@ -92,11 +92,11 @@
 
     &:hover {
       background:
-        radial-gradient(circle at 8% 0%, rgb(59 130 246 / 8%), transparent 28%),
+        radial-gradient(circle at 8% 0%, rgb(59 130 246 / 5%), transparent 28%),
         var(--color-card-elevated);
-      border-color: rgb(59 130 246 / 34%);
-      box-shadow: 0 0 1.25rem rgb(59 130 246 / 9%);
-      transform: translateY(-0.0625rem);
+      border-color: rgb(59 130 246 / 20%);
+      box-shadow: 0 0 0.75rem rgb(59 130 246 / 5%);
+      transform: translateY(-0.03125rem);
     }
   }
 
@@ -112,7 +112,7 @@
         radial-gradient(circle at 8% 0%, rgb(245 158 11 / 8%), transparent 28%),
         var(--color-card-elevated);
       border-color: rgb(245 158 11 / 34%);
-      box-shadow: 0 0 1.25rem rgb(245 158 11 / 8%);
+      box-shadow: 0 0 0.75rem rgb(245 158 11 / 8%);
     }
   }
 }

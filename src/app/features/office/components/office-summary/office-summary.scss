@@ -35,8 +35,8 @@
         ),
         linear-gradient(135deg, rgb(255 255 255 / 3%), transparent 44%), var(--color-card-elevated);
       border-color: color-mix(in srgb, var(--summary-accent) 46%, transparent);
-      box-shadow: 0 0 1.25rem color-mix(in srgb, var(--summary-accent) 12%, transparent);
-      transform: translateY(-0.0625rem);
+      box-shadow: 0 0 0.75rem color-mix(in srgb, var(--summary-accent) 12%, transparent);
+      transform: translateY(-0.03125rem);
     }
   }
 

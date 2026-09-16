@@ -24,6 +24,9 @@
         routerLinkActive="sidebar__link--active"
         [routerLinkActiveOptions]="{ exact: item.exact }"
         [attr.aria-label]="item.label"
+        (pointerenter)="prefetchRoute(item.route)"
+        (pointerdown)="prefetchRoute(item.route)"
+        (focus)="prefetchRoute(item.route)"
       >
         <span class="material-symbols-rounded sidebar__icon" aria-hidden="true">{{
           item.icon

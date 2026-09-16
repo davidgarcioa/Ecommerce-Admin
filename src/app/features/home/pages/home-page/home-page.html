@@ -1,10 +1,5 @@
 <main class="home-page">
-  <app-home-header
-    [greeting]="greeting()"
-    [userName]="userName()"
-    [roleLabel]="userRoleLabel()"
-    [currentDate]="currentDate()"
-  />
+  <app-home-header [greeting]="greeting()" [userName]="userName()" [currentDate]="currentDate()" />
 
   @if (error(); as message) {
     <section class="home-page__error" role="alert">

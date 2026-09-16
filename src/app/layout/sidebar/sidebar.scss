@@ -69,8 +69,8 @@
 
     &:hover {
       background: var(--color-hover);
-      color: var(--color-interaction);
-      transform: translateX(2px);
+      color: var(--color-text-primary);
+      transform: translateX(0.5px);
     }
 
     &--active {
@@ -96,8 +96,8 @@
 
   &__link:hover &__icon,
   &__link:focus-visible &__icon {
-    color: var(--color-interaction);
-    transform: translateY(-1px);
+    color: var(--color-text-primary);
+    transform: translateY(-0.5px);
   }
 
   &__link--active &__icon {
@@ -115,7 +115,7 @@
 
   &__link:hover &__label,
   &__link:focus-visible &__label {
-    transform: translateX(1px);
+    transform: translateX(0.5px);
   }
 
   &__link:nth-child(1) {

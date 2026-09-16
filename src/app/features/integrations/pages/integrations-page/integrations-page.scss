@@ -44,11 +44,11 @@
 
   &:hover {
     background:
-      radial-gradient(circle at 10% 0%, rgb(59 130 246 / 8%), transparent 28%),
+      radial-gradient(circle at 10% 0%, rgb(59 130 246 / 5%), transparent 28%),
       var(--color-card-elevated);
-    border-color: rgb(59 130 246 / 36%);
-    box-shadow: 0 0 1.1rem rgb(59 130 246 / 8%);
-    transform: translateY(-0.0625rem);
+    border-color: rgb(59 130 246 / 21%);
+    box-shadow: 0 0 0.65rem rgb(59 130 246 / 5%);
+    transform: translateY(-0.03125rem);
   }
 }
 
@@ -137,9 +137,9 @@ h2 {
 
   &:hover:not(:disabled) {
     background: var(--color-card-elevated);
-    border-color: rgb(59 130 246 / 42%);
-    box-shadow: 0 0 0.85rem rgb(59 130 246 / 9%);
-    transform: translateY(-0.0625rem);
+    border-color: rgb(59 130 246 / 24%);
+    box-shadow: 0 0 0.55rem rgb(59 130 246 / 5%);
+    transform: translateY(-0.03125rem);
   }
 
   &:focus-visible {
@@ -222,8 +222,8 @@ h2 {
       ),
       var(--color-card-elevated);
     border-color: color-mix(in srgb, var(--status-color) 38%, var(--color-border));
-    box-shadow: 0 0 1rem color-mix(in srgb, var(--status-color) 12%, transparent);
-    transform: translateY(-0.0625rem);
+    box-shadow: 0 0 0.65rem color-mix(in srgb, var(--status-color) 12%, transparent);
+    transform: translateY(-0.03125rem);
   }
 }
 

@@ -2,19 +2,27 @@
 
 .quick-access {
   display: grid;
-  gap: $space-4;
+  gap: $space-6;
   min-width: 0;
 
   &__heading {
-    align-items: start;
+    align-items: end;
     display: flex;
-    gap: $space-4;
+    gap: $space-6;
     justify-content: space-between;
+    min-width: 0;
+
+    > div {
+      display: grid;
+      gap: $space-1;
+      min-width: 0;
+    }
 
     h2 {
       color: var(--color-text-primary);
-      font-size: $font-size-lg;
+      font-size: $font-size-xl;
       font-weight: $font-weight-bold;
+      line-height: 1.2;
       margin: 0;
       position: relative;
 
@@ -25,15 +33,13 @@
         height: 1px;
         margin-top: $space-3;
         opacity: 0.55;
-        width: 2.25rem;
+        width: 2.75rem;
       }
     }
 
     .quick-access__customize {
       align-items: center;
-      background:
-        radial-gradient(circle at 30% 20%, rgb(59 130 246 / 12%), transparent 52%),
-        var(--color-card);
+      background: var(--color-card);
       border: 1px solid var(--color-border);
       border-radius: $radius-md;
       color: var(--color-text-secondary);
@@ -41,29 +47,33 @@
       display: inline-flex;
       font: inherit;
       font-weight: $font-weight-semibold;
-      height: 2.25rem;
+      height: 2.5rem;
       justify-content: center;
-      min-height: 2.25rem;
+      min-height: 2.5rem;
       padding: 0;
       transition:
-        background-color $transition-base,
+        background $transition-base,
         border-color $transition-base,
         box-shadow 180ms ease,
         color $transition-base,
         transform $transition-base;
-      width: 2.25rem;
+      width: 2.5rem;
 
       &:hover,
       &:focus-visible {
-        background: rgb(59 130 246 / 9%);
-        border-color: var(--color-interaction);
-        box-shadow: 0 0 1rem rgb(59 130 246 / 16%);
+        background:
+          radial-gradient(circle at 50% 14%, rgb(59 130 246 / 9%), transparent 56%),
+          var(--color-card-elevated);
+        border-color: color-mix(in srgb, var(--color-interaction) 34%, var(--color-border));
+        box-shadow:
+          0 0 0.65rem rgb(59 130 246 / 9%),
+          inset 0 0 0 1px rgb(255 255 255 / 4%);
         color: var(--color-interaction);
-        transform: translateY(-0.0625rem);
+        transform: translateY(-0.03125rem);
       }
 
       .material-symbols-rounded {
-        font-size: 1rem;
+        font-size: 1.1rem;
         line-height: 1;
       }
     }
@@ -76,7 +86,7 @@
 
   &__grid {
     display: grid;
-    gap: $space-4;
+    gap: $space-6;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     min-width: 0;
   }
@@ -84,17 +94,17 @@
   &__card {
     align-items: center;
     animation: access-card-in 260ms ease both;
-    background:
-      radial-gradient(circle at 10% 0%, rgb(59 130 246 / 7%), transparent 32%), var(--color-card);
+    background: var(--color-card);
     border: 1px solid var(--color-border);
     border-radius: $radius-lg;
     color: var(--color-text-secondary);
     display: grid;
     column-gap: $space-4;
-    row-gap: $space-1;
+    row-gap: 0;
     grid-template-columns: auto minmax(0, 1fr) auto;
-    min-height: 5.75rem;
-    padding: $space-4;
+    min-height: 6.25rem;
+    overflow: hidden;
+    padding: $space-5;
     position: relative;
     text-decoration: none;
     transition:
@@ -122,16 +132,17 @@
     &:hover,
     &:focus-visible {
       background:
-        radial-gradient(circle at 10% 0%, rgb(59 130 246 / 12%), transparent 36%),
-        var(--color-card-elevated);
-      border-color: rgb(59 130 246 / 46%);
-      box-shadow: 0 0 1.35rem rgb(59 130 246 / 13%);
-      transform: translateY(-2px);
+        linear-gradient(135deg, rgb(59 130 246 / 3%), transparent 46%), var(--color-card-elevated);
+      border-color: rgb(59 130 246 / 16%);
+      box-shadow:
+        0 0.65rem 1.4rem rgb(0 0 0 / 14%),
+        inset 0 0 0 1px rgb(255 255 255 / 2%);
+      transform: translateY(-0.5px);
     }
 
     &:hover::before,
     &:focus-visible::before {
-      opacity: 0.75;
+      opacity: 0.42;
       transform: scaleY(1);
     }
 
@@ -147,9 +158,9 @@
       border-radius: $radius-md;
       color: var(--color-text-primary);
       display: inline-flex;
-      font-size: 1.15rem;
+      font-size: 1.2rem;
       grid-row: span 2;
-      height: 2.25rem;
+      height: 2.35rem;
       justify-content: center;
       line-height: 1;
       transition:
@@ -158,16 +169,16 @@
         box-shadow 180ms ease,
         color 180ms ease,
         transform 180ms ease;
-      width: 2.25rem;
+      width: 2.35rem;
     }
 
     &:hover .material-symbols-rounded,
     &:focus-visible .material-symbols-rounded {
-      background: rgb(59 130 246 / 9%);
-      border-color: var(--color-interaction);
-      box-shadow: 0 0 0.9rem rgb(59 130 246 / 14%);
+      background: rgb(59 130 246 / 3%);
+      border-color: rgb(59 130 246 / 14%);
+      box-shadow: none;
       color: var(--color-interaction);
-      transform: translateY(-1px);
+      transform: none;
     }
 
     strong,
@@ -179,38 +190,65 @@
       color: var(--color-text-primary);
       font-size: $font-size-md;
       font-weight: $font-weight-bold;
-      line-height: 1.15;
+      line-height: 1.05;
     }
 
     p {
       color: var(--color-text-secondary);
+      font-size: $font-size-sm;
       grid-column: 2;
       font-weight: $font-weight-medium;
-      margin: 0;
+      line-height: 1.1;
+      margin: -0.125rem 0 0;
       overflow: hidden;
       text-overflow: ellipsis;
-      line-height: 1.25;
-      white-space: nowrap;
+      white-space: normal;
     }
 
     small {
-      color: var(--color-text-primary);
-      font-weight: $font-weight-semibold;
+      align-items: center;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      color: var(--color-text-secondary);
+      display: inline-flex;
       grid-column: 3;
       grid-row: 1 / span 2;
+      height: 2.25rem;
+      justify-content: center;
       opacity: 0.86;
       transform: translateX(0);
       transition:
+        border-color 180ms ease,
         color 180ms ease,
         opacity 180ms ease,
         transform 180ms ease;
+      width: 2.25rem;
+
+      .material-symbols-rounded {
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        color: inherit;
+        font-size: 1.05rem;
+        height: auto;
+        width: auto;
+      }
     }
 
     &:hover small,
     &:focus-visible small {
+      border-color: transparent;
       color: var(--color-interaction);
-      opacity: 1;
-      transform: translateX(2px);
+      opacity: 0.9;
+      transform: translateX(0.5px);
+    }
+
+    &:hover small .material-symbols-rounded,
+    &:focus-visible small .material-symbols-rounded {
+      background: transparent;
+      border-color: transparent;
+      box-shadow: none;
+      transform: none;
     }
   }
 
@@ -247,7 +285,8 @@
 
 @media (max-width: 640px) {
   .quick-access__heading {
-    display: grid;
+    align-items: start;
+    display: flex;
   }
 
   .quick-access__grid {

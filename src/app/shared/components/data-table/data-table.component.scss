@@ -49,8 +49,8 @@
         color 180ms ease;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.045);
-        border-color: rgba(59, 130, 246, 0.5);
+        background: rgba(255, 255, 255, 0.032);
+        border-color: rgba(59, 130, 246, 0.14);
         color: var(--color-text-primary);
       }
     }
@@ -119,8 +119,8 @@
       border-color 180ms ease;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.035);
-      border-color: rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.026);
+      border-color: rgba(255, 255, 255, 0.1);
     }
 
     &:focus-visible,
@@ -244,7 +244,7 @@
 
     &:hover {
       background: var(--color-hover);
-      box-shadow: inset 2px 0 0 rgba(59, 130, 246, 0.35);
+      box-shadow: inset 1px 0 0 rgba(59, 130, 246, 0.12);
     }
   }
 

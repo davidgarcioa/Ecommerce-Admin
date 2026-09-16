@@ -109,9 +109,9 @@
   }
 
   button:hover:not(:disabled) {
-    background: rgb(59 130 246 / 12%);
-    border-color: rgb(59 130 246 / 48%);
-    transform: translateY(-1px);
+    background: rgb(59 130 246 / 7%);
+    border-color: rgb(59 130 246 / 28%);
+    transform: translateY(-0.5px);
   }
 
   button:disabled {

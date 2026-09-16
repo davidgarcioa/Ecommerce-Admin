@@ -27,7 +27,7 @@
   </div>
 
   <div class="topbar__actions">
-    @if (!isHomeRoute()) {
+    @if (isTopbarSearchVisible()) {
       <div class="topbar__search-wrap">
         <label class="topbar__search">
           <span class="material-symbols-rounded" aria-hidden="true">search</span>
@@ -60,13 +60,17 @@
     }
 
     <button
-      class="icon-button topbar__theme"
+      class="topbar__theme"
+      [class.topbar__theme--light]="currentThemeLabel() === 'Claro'"
       type="button"
       [attr.aria-label]="themeToggleLabel()"
       [attr.title]="themeToggleLabel()"
       (click)="toggleTheme()"
     >
-      <span class="material-symbols-rounded" aria-hidden="true">{{ themeToggleIcon() }}</span>
+      <span class="material-symbols-rounded topbar__theme-icon" aria-hidden="true">{{
+        currentThemeIcon()
+      }}</span>
+      <span class="topbar__theme-label">{{ currentThemeLabel() }}</span>
     </button>
 
     <button

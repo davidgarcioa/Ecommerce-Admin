@@ -7,7 +7,7 @@ export const routes: Routes = [
       import('./pages/tracking-page/tracking-page').then(
         (component) => component.TrackingPageComponent,
       ),
-    data: { title: 'Rastreo' },
+    data: { title: 'Rastreo', reuse: true },
   },
   {
     path: 'pedido/:orderId',

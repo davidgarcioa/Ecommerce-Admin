@@ -30,12 +30,12 @@
 
   &:hover {
     background:
-      linear-gradient(135deg, rgb(59 130 246 / 9%), transparent 34%), var(--color-card-elevated);
-    border-color: rgb(59 130 246 / 42%);
+      linear-gradient(135deg, rgb(59 130 246 / 5%), transparent 34%), var(--color-card-elevated);
+    border-color: rgb(59 130 246 / 24%);
     box-shadow:
-      0 0 0 1px rgb(59 130 246 / 10%),
-      0 1rem 2.35rem rgb(59 130 246 / 8%);
-    transform: translateY(-0.0625rem);
+      0 0 0 1px rgb(59 130 246 / 6%),
+      0 0.55rem 1.35rem rgb(59 130 246 / 5%);
+    transform: translateY(-0.03125rem);
   }
 
   &__copy {
@@ -141,10 +141,10 @@
     }
 
     &:hover:not(:disabled) {
-      background: rgb(59 130 246 / 9%);
-      border-color: rgb(59 130 246 / 48%);
+      background: rgb(59 130 246 / 5%);
+      border-color: rgb(59 130 246 / 28%);
       color: var(--color-text-primary);
-      transform: translateY(-0.0625rem);
+      transform: translateY(-0.03125rem);
     }
 
     &:disabled {
